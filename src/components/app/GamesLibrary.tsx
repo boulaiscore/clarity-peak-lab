@@ -267,28 +267,28 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
 
           {nodes.map((node, index) => (
             <g key={`${node.x}-${node.y}`}>
-              {index % (isFast ? 4 : 3) === 0 && (
+              {index % (isFast ? 5 : 4) === 0 && (
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={node.r * 2.4}
+                  r={node.r * 2.0}
                   fill="none"
                   stroke={`url(#${gradientId})`}
-                  strokeWidth="0.4"
-                  opacity="0.12"
+                  strokeWidth="0.35"
+                  opacity="0.08"
                 >
                   {!reduceMotion && (
                     <>
                       <animate
                         attributeName="r"
-                        values={`${(node.r * 1.6).toFixed(2)};${(node.r * (isFast ? 3.2 : 2.8)).toFixed(2)};${(node.r * 1.6).toFixed(2)}`}
+                        values={`${(node.r * 1.4).toFixed(2)};${(node.r * (isFast ? 2.6 : 2.2)).toFixed(2)};${(node.r * 1.4).toFixed(2)}`}
                         dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
                         begin={`${((index % 5) * 0.2).toFixed(2)}s`}
                         repeatCount="indefinite"
                       />
                       <animate
                         attributeName="opacity"
-                        values="0.04;0.28;0.04"
+                        values="0.03;0.18;0.03"
                         dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
                         begin={`${((index % 5) * 0.2).toFixed(2)}s`}
                         repeatCount="indefinite"
@@ -300,22 +300,22 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
               <circle
                 cx={node.x}
                 cy={node.y}
-                r={node.r * 0.85}
+                r={node.r * 0.75}
                 fill={`url(#${gradientId})`}
-                opacity={0.38 + (index % 3) * 0.08}
+                opacity={0.22 + (index % 3) * 0.06}
               >
-                {!reduceMotion && index % (isFast ? 2 : 1) === 0 && (
+                {!reduceMotion && index % (isFast ? 3 : 2) === 0 && (
                   <>
                     <animate
                       attributeName="r"
-                      values={`${(node.r * 0.7).toFixed(2)};${(node.r * 1.15).toFixed(2)};${(node.r * 0.7).toFixed(2)}`}
+                      values={`${(node.r * 0.6).toFixed(2)};${(node.r * 1.0).toFixed(2)};${(node.r * 0.6).toFixed(2)}`}
                       dur={`${(pulseDuration + (index % 4) * 0.21).toFixed(2)}s`}
                       begin={`${((index % 6) * 0.16).toFixed(2)}s`}
                       repeatCount="indefinite"
                     />
                     <animate
                       attributeName="opacity"
-                      values="0.28;0.72;0.28"
+                      values="0.18;0.48;0.18"
                       dur={`${(pulseDuration + (index % 4) * 0.21).toFixed(2)}s`}
                       begin={`${((index % 6) * 0.16).toFixed(2)}s`}
                       repeatCount="indefinite"
