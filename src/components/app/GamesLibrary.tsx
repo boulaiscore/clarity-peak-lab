@@ -110,22 +110,16 @@ const SLOW_SIGNAL_PATHS = [
   "M 14 52 L 34 41 L 62 32 L 88 42 L 107 32",
 ];
 
-// Sagittal half-brain silhouette (frontal lobe facing right, occipital + cerebellum
-// on the left). The "slow" card mirrors it so the two cards read as left/right halves.
+// Frontal left hemisphere with a straight medial edge. Mirroring this exact path
+// creates the matching right hemisphere, so the two cards show complementary halves.
 const BRAIN_PATH =
-  "M8 32 C4 24 8 15 16 12 C18 6 26 4 31 8 C35 3 44 3 47 8 C52 4 60 6 62 12 C70 14 74 21 70 27 C74 31 71 36 65 37 C63 42 57 45 51 43 C47 48 38 49 34 44 C29 47 22 45 20 40 C13 40 8 37 8 32 Z";
-
-const BRAIN_CEREBELLUM =
-  "M12 38 C7 40 5 45 9 49 C13 53 21 53 25 49 C27 46 26 42 22 40 C19 38 15 37 12 38 Z";
-
-const BRAIN_STEM = "M25 48 C27 52 28 55 31 58";
+  "M46 8 C42 5 37 4 33 6 C29 3 23 5 22 9 C16 7 11 11 12 16 C7 18 5 23 8 27 C3 31 4 38 9 40 C7 46 12 51 18 50 C20 55 27 57 32 53 C36 56 42 55 46 52 L46 8 Z";
 
 const BRAIN_FOLDS = [
-  "M16 16 C26 14 40 15 52 20",
-  "M12 27 C24 24 40 26 56 31",
-  "M22 38 C30 35 42 36 50 40",
-  "M9 43 C14 42 20 43 24 46",
-  "M11 48 C16 47 21 48 24 50",
+  "M40 10 C33 10 29 14 31 19 C26 16 20 16 16 20",
+  "M42 24 C35 21 28 23 27 28 C22 25 15 27 11 31",
+  "M44 35 C37 31 31 34 31 39 C25 36 17 38 13 42",
+  "M42 48 C36 44 29 45 25 51",
 ];
 
 
@@ -144,8 +138,8 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const brainPath = BRAIN_PATH;
   const folds = BRAIN_FOLDS;
   const brainTransform = isFast
-    ? "translate(19,4)"
-    : "translate(97,4) scale(-1,1)";
+    ? "translate(10,1)"
+    : "translate(106,1) scale(-1,1)";
 
 
   return (
@@ -361,25 +355,6 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
             }}
             style={reduceMotion ? { opacity: 0.85 } : undefined}
           />
-
-          <path
-            d={BRAIN_CEREBELLUM}
-            stroke={`url(#${gradientId})`}
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-            fill="none"
-            opacity="0.85"
-          />
-
-          <path
-            d={BRAIN_STEM}
-            stroke={`url(#${gradientId})`}
-            strokeWidth="2"
-            strokeLinecap="round"
-            fill="none"
-            opacity="0.8"
-          />
-
 
           <g stroke={`url(#${gradientId})`} strokeWidth="1" opacity="0.5" fill="none" strokeLinecap="round">
             {folds.map((fold) => <path key={fold} d={fold} />)}
