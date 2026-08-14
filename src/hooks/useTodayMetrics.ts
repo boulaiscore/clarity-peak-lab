@@ -66,6 +66,20 @@ import {
   type DigitalAttentionEstimate,
 } from "@/lib/digitalFragmentation";
 
+// Stale-types shim: these columns were added by migration 20260812183000_digital_fragmentation
+// and will be regenerated in src/integrations/supabase/types.ts on the next schema pull.
+type DeviceUsageSnapshotRow = {
+  snapshot_date: string;
+  attention_usage_min: number | null;
+  active_app_count: number | null;
+  attention_session_count: number | null;
+  attention_switch_count: number | null;
+  brief_session_count: number | null;
+  permission_state: string;
+  confidence: number;
+  updated_at: string;
+};
+
 export interface UseTodayMetricsResult {
   // Today metrics (0-100)
   sharpness: number;
@@ -210,7 +224,8 @@ export function useTodayMetrics(): UseTodayMetricsResult {
           .select("snapshot_date, attention_usage_min, active_app_count, attention_session_count, attention_switch_count, brief_session_count, permission_state, confidence, updated_at")
           .eq("user_id", userId)
           .gte("snapshot_date", passiveHistoryStart)
-          .order("snapshot_date", { ascending: true }),
+          .order("snapshot_date", { ascending: true })
+          .returns<DeviceUsageSnapshotRow[]>(),
         supabase
           .from("calendar_context_snapshots")
           .select("snapshot_date, busy_minutes, meeting_count, permission_state, confidence, updated_at")
