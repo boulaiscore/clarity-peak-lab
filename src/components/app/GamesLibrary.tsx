@@ -197,7 +197,7 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
           {connections.map(([from, to], index) => {
             const start = nodes[from];
             const end = nodes[to];
-            const baseOpacity = isFast ? 0.08 + (index % 4) * 0.035 : 0.12 + (index % 3) * 0.04;
+            const baseOpacity = isFast ? 0.05 + (index % 4) * 0.022 : 0.08 + (index % 3) * 0.028;
             return (
               <line
                 key={`${from}-${to}-${index}`}
@@ -206,13 +206,13 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
                 x2={end.x}
                 y2={end.y}
                 stroke={`url(#${gradientId})`}
-                strokeWidth={index % 6 === 0 ? 0.6 : 0.4}
+                strokeWidth={index % 6 === 0 ? 0.5 : 0.35}
                 opacity={baseOpacity}
               >
-                {!reduceMotion && index % (isFast ? 3 : 4) === 0 && (
+                {!reduceMotion && index % (isFast ? 4 : 5) === 0 && (
                   <animate
                     attributeName="opacity"
-                    values={`${(baseOpacity * 0.38).toFixed(2)};${Math.min(0.82, baseOpacity * 2.8).toFixed(2)};${(baseOpacity * 0.38).toFixed(2)}`}
+                    values={`${(baseOpacity * 0.4).toFixed(2)};${Math.min(0.55, baseOpacity * 2.2).toFixed(2)};${(baseOpacity * 0.4).toFixed(2)}`}
                     dur={`${(pulseDuration + (index % 3) * 0.32).toFixed(2)}s`}
                     begin={`${((index % 5) * (isFast ? 0.14 : 0.48)).toFixed(2)}s`}
                     repeatCount="indefinite"
