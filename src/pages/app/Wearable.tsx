@@ -206,6 +206,13 @@ const Health = () => {
                     Wearable app <span className="px-1 text-foreground/50">→</span> Health Connect <span className="px-1 text-foreground/50">→</span> LOOMA
                   </p>
                 )}
+
+                {!isNative && (
+                  <p className="mt-4 border-t border-border/25 pt-4 text-[11px] leading-relaxed text-muted-foreground">
+                    Connecting happens in the LOOMA mobile app: open it on your iPhone or Android phone and grant access to
+                    Apple Health or Health Connect. Signals synced there appear here automatically.
+                  </p>
+                )}
               </div>
             </div>
 
