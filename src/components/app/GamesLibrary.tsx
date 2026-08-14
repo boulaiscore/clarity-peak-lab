@@ -362,6 +362,15 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
           />
 
           <path
+            d={BRAIN_CEREBELLUM}
+            stroke={`url(#${gradientId})`}
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+            fill="none"
+            opacity="0.85"
+          />
+
+          <path
             d={BRAIN_STEM}
             stroke={`url(#${gradientId})`}
             strokeWidth="2"
@@ -369,6 +378,7 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
             fill="none"
             opacity="0.8"
           />
+
 
           <g stroke={`url(#${gradientId})`} strokeWidth="1" opacity="0.5" fill="none" strokeLinecap="round">
             {folds.map((fold) => <path key={fold} d={fold} />)}
