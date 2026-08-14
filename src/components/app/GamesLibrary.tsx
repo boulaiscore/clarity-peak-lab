@@ -132,7 +132,7 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const glowId = `${id}-glow`;
   const softGlowId = `${id}-soft-glow`;
   const brainClipId = `${id}-brain-clip`;
-  const pulseDuration = isFast ? 0.92 : 5.6;
+  const pulseDuration = isFast ? 0.64 : 5.6;
   const nodes = isFast ? FAST_NODES : SLOW_NODES;
   const connections = isFast ? FAST_CONNECTIONS : SLOW_CONNECTIONS;
   const brainPath = BRAIN_PATH;
