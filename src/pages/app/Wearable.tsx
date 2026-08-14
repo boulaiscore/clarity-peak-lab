@@ -74,6 +74,25 @@ function DataCode({ children, active }: { children: string; active: boolean }) {
   );
 }
 
+function SignalValue({ label, value, unit }: { label: string; value: string | null; unit?: string }) {
+  return (
+    <div className="rounded-xl border border-border/30 bg-background/35 px-3 py-2.5">
+      <p className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground/60">{label}</p>
+      <p className="mt-1 text-sm font-semibold tabular-nums text-foreground/90">
+        {value ?? <span className="text-muted-foreground/40">—</span>}
+        {value && unit ? <span className="ml-0.5 text-[10px] font-medium text-muted-foreground/70">{unit}</span> : null}
+      </p>
+    </div>
+  );
+}
+
+function formatSleep(minutes: number | null | undefined): string | null {
+  if (minutes == null || !Number.isFinite(minutes)) return null;
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return `${h}h ${String(m).padStart(2, "0")}m`;
+}
+
 const Health = () => {
   const { user } = useAuth();
   const wearableSync = useWearableSync();
