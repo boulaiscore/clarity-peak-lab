@@ -84,18 +84,22 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
       >
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={color} stopOpacity="0.7" />
-            <stop offset="100%" stopColor={color} />
+            <stop offset="0%" stopColor={color} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={color} stopOpacity="1" />
           </linearGradient>
-          <filter id={glowId} x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation={isFast ? 2 : 3.1} result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation={isFast ? 2.6 : 4.2} result="blur" />
+            <feComponentTransfer in="blur" result="boosted">
+              <feFuncA type="linear" slope="1.35" intercept="0.08" />
+            </feComponentTransfer>
+            <feMerge><feMergeNode in="boosted" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
 
         <g
-          opacity={0.5 + normalizedScore / 250}
+          opacity={0.65 + normalizedScore / 220}
           filter={`url(#${glowId})`}
+          style={{ filter: `url(#${glowId}) saturate(1.45)` }}
           transform={isFast ? undefined : "translate(172 0) scale(-1 1)"}
         >
           {CONNECTIONS.map(([from, to], index) => {
