@@ -158,13 +158,14 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
             <feGaussianBlur stdDeviation={isFast ? "4.2" : "3.4"} />
           </filter>
           <clipPath id={brainClipId}>
-            <path d={brainPath} />
+            <path d={brainPath} transform={brainTransform} />
           </clipPath>
         </defs>
 
         <g clipPath={`url(#${brainClipId})`}>
           <motion.path
             d={brainPath}
+            transform={brainTransform}
             fill={`url(#${gradientId})`}
             filter={`url(#${softGlowId})`}
             animate={reduceMotion ? undefined : {
