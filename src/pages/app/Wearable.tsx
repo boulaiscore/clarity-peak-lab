@@ -232,6 +232,27 @@ const Health = () => {
                     <DataCode active={signals.movement}>MOV</DataCode>
                   </div>
                 </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <SignalValue
+                    label="Sleep"
+                    value={formatSleep(phoneHealth?.sleep_min ?? (hasTodayWearableData ? wearableData?.sleep_duration_min : null))}
+                  />
+                  <SignalValue
+                    label="HRV"
+                    value={hasTodayWearableData && wearableData?.hrv_ms != null ? String(Math.round(wearableData.hrv_ms)) : null}
+                    unit="ms"
+                  />
+                  <SignalValue
+                    label="Resting HR"
+                    value={hasTodayWearableData && wearableData?.resting_hr != null ? String(Math.round(wearableData.resting_hr)) : null}
+                    unit="bpm"
+                  />
+                  <SignalValue
+                    label="Movement"
+                    value={phoneHealth?.steps != null ? Math.round(phoneHealth.steps).toLocaleString() : null}
+                    unit="steps"
+                  />
+                </div>
                 <div className="mt-4 flex items-center justify-between text-[10px] text-muted-foreground/55">
                   <span>{latestCloudUpdate ? `Stored in your cloud · ${compactTime(latestCloudUpdate)}` : "No health snapshot stored yet"}</span>
                   <button
