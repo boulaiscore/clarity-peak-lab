@@ -337,6 +337,18 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
           )}
         </g>
 
+        {!isFast && (
+          <g fill="hsl(var(--area-slow))" fontFamily="monospace" fontSize="3.6" fontWeight="600" letterSpacing="0.05em" opacity="0.55">
+            <text x="66" y="22">87%</text>
+            <text x="80" y="34" fontSize="3.2" opacity="0.7">P=0.93</text>
+            <text x="64" y="45" fontSize="4.2">Σ</text>
+            <text x="78" y="50" fontSize="3">IF→THEN</text>
+            {!reduceMotion && (
+              <animate attributeName="opacity" values="0.35;0.65;0.35" dur={`${pulseDuration * 0.8}s`} repeatCount="indefinite" />
+            )}
+          </g>
+        )}
+
         <g transform={brainTransform}>
           <motion.path
             d={brainPath}
