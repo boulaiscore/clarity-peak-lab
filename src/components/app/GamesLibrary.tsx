@@ -110,25 +110,19 @@ const SLOW_SIGNAL_PATHS = [
   "M 14 52 L 34 41 L 62 32 L 88 42 L 107 32",
 ];
 
-// Stylized cerebral hemispheres. Each card shows one lateral half of a brain,
-// split along the medial edge, so the two cards read as left/right counterparts.
-const HALF_BRAIN_PATHS: Record<ThinkingSystem, string> = {
-  fast: "M104 14 C96 8 84 5 72 6 C60 7 48 12 38 20 C30 28 26 36 28 42 C30 48 40 46 48 42 C56 38 64 44 70 52 C76 58 90 56 104 56 L104 14 Z",
-  slow: "M12 14 C20 8 32 5 44 6 C56 7 68 12 78 20 C86 28 90 36 88 42 C86 48 76 46 68 42 C60 38 52 44 46 52 C40 58 26 56 12 56 L12 14 Z",
-};
+// Sagittal half-brain silhouette (frontal lobe facing right, occipital + cerebellum
+// on the left). The "slow" card mirrors it so the two cards read as left/right halves.
+const BRAIN_PATH =
+  "M30 8 C44 2 62 4 70 14 C76 21 74 27 68 31 C72 34 70 39 64 41 C60 46 54 50 46 50 C42 54 34 55 28 51 C24 55 16 54 13 48 C8 44 8 38 12 34 C6 30 4 20 10 14 C15 8 22 6 30 8 Z";
 
-const HALF_BRAIN_FOLDS: Record<ThinkingSystem, string[]> = {
-  fast: [
-    "M96 18 C84 12 68 10 54 12 C42 14 32 20 26 28",
-    "M24 36 C36 32 50 30 64 34 C76 38 86 46 92 54",
-    "M26 48 C40 44 54 40 66 46 C76 50 88 52 100 50",
-  ],
-  slow: [
-    "M20 18 C32 12 48 10 62 12 C74 14 84 20 90 28",
-    "M92 36 C80 32 66 30 52 34 C40 38 30 46 24 54",
-    "M90 48 C76 44 62 40 50 46 C40 50 28 52 16 50",
-  ],
-};
+const BRAIN_STEM = "M29 50 C30 54 31 57 33 60";
+
+const BRAIN_FOLDS = [
+  "M22 14 C32 10 46 11 56 17",
+  "M14 26 C26 22 42 24 56 30",
+  "M18 40 C28 36 42 38 52 44",
+  "M12 38 C18 41 24 45 27 50",
+];
 
 function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const reduceMotion = useReducedMotion();
@@ -141,9 +135,12 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const pulseDuration = isFast ? 1.55 : 5.2;
   const nodes = isFast ? FAST_NODES : SLOW_NODES;
   const connections = isFast ? FAST_CONNECTIONS : SLOW_CONNECTIONS;
-  const brainPath = HALF_BRAIN_PATHS[system];
-  const folds = HALF_BRAIN_FOLDS[system];
-  const medialX = isFast ? 104 : 12;
+  const brainPath = BRAIN_PATH;
+  const folds = BRAIN_FOLDS;
+  const brainTransform = isFast
+    ? "translate(19,4)"
+    : "translate(97,4) scale(-1,1)";
+
 
   return (
     <div className="pointer-events-none relative h-[68px] w-[116px] shrink-0" aria-hidden="true">
