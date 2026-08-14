@@ -338,16 +338,12 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
         </g>
 
         {!isFast && (
-          <g transform="translate(64, 10)">
-            <rect x="-2" y="-2" width="34" height="48" rx="4" fill="hsl(var(--background))" opacity="0.42" />
-            <g fill="hsl(var(--area-slow))" fontFamily="monospace" fontWeight="700" letterSpacing="0.02em" opacity="0.95">
-              <text x="0" y="14" fontSize="9">87%</text>
-              <text x="0" y="29" fontSize="7">P=0.93</text>
-              <text x="22" y="25" fontSize="11">Σ</text>
-              <text x="0" y="42" fontSize="6.5">IF→THEN</text>
-            </g>
+          <g transform="translate(66, 14)" fill="hsl(var(--area-slow))" fontFamily="monospace" fontWeight="500" letterSpacing="0.04em" opacity="0.38">
+            <text x="0" y="12" fontSize="7">87%</text>
+            <text x="16" y="26" fontSize="10" fontWeight="300" opacity="0.55">Σ</text>
+            <text x="0" y="38" fontSize="5.5">P=0.93</text>
             {!reduceMotion && (
-              <animate attributeName="opacity" values="0.72;0.98;0.72" dur={`${pulseDuration * 0.7}s`} repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.28;0.48;0.28" dur={`${pulseDuration * 0.9}s`} repeatCount="indefinite" />
             )}
           </g>
         )}
