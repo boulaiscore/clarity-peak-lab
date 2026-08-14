@@ -157,7 +157,8 @@ export function useRecordIntradayOnAction() {
           .select("snapshot_date, attention_usage_min, active_app_count, attention_session_count, attention_switch_count, brief_session_count, permission_state, confidence, updated_at")
           .eq("user_id", userId)
           .gte("snapshot_date", passiveHistoryStart)
-          .order("snapshot_date", { ascending: true }),
+          .order("snapshot_date", { ascending: true })
+          .returns<DeviceUsageSnapshotRow[]>(),
         supabase
           .from("calendar_context_snapshots")
           .select("snapshot_date, busy_minutes, meeting_count, permission_state, confidence, updated_at")
