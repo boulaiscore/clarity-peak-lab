@@ -110,24 +110,29 @@ const SLOW_SIGNAL_PATHS = [
   "M 14 52 L 34 41 L 62 32 L 88 42 L 107 32",
 ];
 
-// Complementary, deliberately stylized hemispheres. They communicate that S1
-// and S2 are two process modes of one system without suggesting anatomical
-// localization: the split is a visual metaphor, not a neuroscience claim.
+// Stylized cerebral hemispheres. Each card shows one lateral half of a brain,
+// split along the medial edge, so the two cards read as left/right counterparts.
 const HALF_BRAIN_PATHS: Record<ThinkingSystem, string> = {
-  fast: "M104 8 C93 2 81 2 70 7 C58 3 46 7 41 15 C30 16 23 24 26 32 C19 39 24 49 36 51 C40 59 53 63 65 58 C76 63 92 60 104 55 Z",
-  slow: "M12 8 C23 2 35 2 46 7 C58 3 70 7 75 15 C86 16 93 24 90 32 C97 39 92 49 80 51 C76 59 63 63 51 58 C40 63 24 60 12 55 Z",
+  fast: "M104 14 C96 8 84 5 72 6 C60 7 48 12 38 20 C30 28 26 36 28 44 C30 50 38 50 46 46 C54 42 62 44 68 50 C74 56 64 58 52 56 C40 54 28 48 24 38 C22 30 26 22 34 16 C42 10 54 8 66 10 C78 12 90 18 98 26 C102 30 104 22 104 14 Z",
+  slow: "M12 14 C20 8 32 5 44 6 C56 7 68 12 78 20 C86 28 90 36 88 44 C86 50 78 50 70 46 C62 42 54 44 48 50 C42 56 52 58 64 56 C76 54 88 48 92 38 C94 30 90 22 82 16 C74 10 62 8 50 10 C38 12 26 18 18 26 C14 30 12 22 12 14 Z",
 };
 
 const HALF_BRAIN_FOLDS: Record<ThinkingSystem, string[]> = {
   fast: [
-    "M42 15 C48 20 47 27 39 31 C34 34 34 42 40 48",
-    "M68 7 C63 13 65 20 73 24 C80 28 79 37 71 42 C66 46 66 53 71 58",
-    "M27 32 C35 29 43 32 47 38 C52 45 60 45 66 40",
+    "M30 18 C36 14 46 12 56 14 C66 16 74 22 78 28",
+    "M22 30 C30 26 40 24 50 26 C60 28 68 34 72 40",
+    "M28 44 C38 40 48 38 58 40 C66 42 72 46 74 50",
+    "M36 50 C44 46 54 44 64 46 C72 48 80 52 84 56",
+    "M50 20 C48 28 50 36 56 42 C60 48 68 50 76 48",
+    "M18 34 C26 32 34 34 40 40",
   ],
   slow: [
-    "M74 15 C68 20 69 27 77 31 C82 34 82 42 76 48",
-    "M48 7 C53 13 51 20 43 24 C36 28 37 37 45 42 C50 46 50 53 45 58",
-    "M89 32 C81 29 73 32 69 38 C64 45 56 45 50 40",
+    "M86 18 C80 14 70 12 60 14 C50 16 42 22 38 28",
+    "M94 30 C86 26 76 24 66 26 C56 28 48 34 44 40",
+    "M88 44 C78 40 68 38 58 40 C50 42 44 46 42 50",
+    "M80 50 C72 46 62 44 52 46 C44 48 36 52 32 56",
+    "M66 20 C68 28 66 36 60 42 C56 48 48 50 40 48",
+    "M98 34 C90 32 82 34 76 40",
   ],
 };
 
@@ -172,14 +177,14 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
             fill={`url(#${gradientId})`}
             filter={`url(#${softGlowId})`}
             animate={reduceMotion ? undefined : {
-              opacity: isFast ? [0.09, 0.28, 0.09] : [0.08, 0.2, 0.08],
+              opacity: isFast ? [0.06, 0.18, 0.06] : [0.05, 0.14, 0.05],
             }}
             transition={reduceMotion ? undefined : {
               duration: pulseDuration,
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            style={reduceMotion ? { opacity: 0.14 } : undefined}
+            style={reduceMotion ? { opacity: 0.1 } : undefined}
           />
 
           {!isFast && (
@@ -198,7 +203,7 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
           {connections.map(([from, to], index) => {
             const start = nodes[from];
             const end = nodes[to];
-            const baseOpacity = isFast ? 0.14 + (index % 4) * 0.055 : 0.2 + (index % 3) * 0.055;
+            const baseOpacity = isFast ? 0.08 + (index % 4) * 0.035 : 0.12 + (index % 3) * 0.04;
             return (
               <line
                 key={`${from}-${to}-${index}`}
@@ -207,7 +212,7 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
                 x2={end.x}
                 y2={end.y}
                 stroke={`url(#${gradientId})`}
-                strokeWidth={index % 6 === 0 ? 0.72 : 0.48}
+                strokeWidth={index % 6 === 0 ? 0.6 : 0.4}
                 opacity={baseOpacity}
               >
                 {!reduceMotion && index % (isFast ? 3 : 4) === 0 && (
@@ -275,21 +280,21 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
                   r={node.r * 2.4}
                   fill="none"
                   stroke={`url(#${gradientId})`}
-                  strokeWidth="0.45"
-                  opacity="0.2"
+                  strokeWidth="0.4"
+                  opacity="0.12"
                 >
                   {!reduceMotion && (
                     <>
                       <animate
                         attributeName="r"
-                        values={`${(node.r * 1.6).toFixed(2)};${(node.r * (isFast ? 3.6 : 3.05)).toFixed(2)};${(node.r * 1.6).toFixed(2)}`}
+                        values={`${(node.r * 1.6).toFixed(2)};${(node.r * (isFast ? 3.2 : 2.8)).toFixed(2)};${(node.r * 1.6).toFixed(2)}`}
                         dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
                         begin={`${((index % 5) * 0.2).toFixed(2)}s`}
                         repeatCount="indefinite"
                       />
                       <animate
                         attributeName="opacity"
-                        values="0.06;0.48;0.06"
+                        values="0.04;0.28;0.04"
                         dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
                         begin={`${((index % 5) * 0.2).toFixed(2)}s`}
                         repeatCount="indefinite"
@@ -301,22 +306,22 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
               <circle
                 cx={node.x}
                 cy={node.y}
-                r={node.r}
+                r={node.r * 0.85}
                 fill={`url(#${gradientId})`}
-                opacity={0.62 + (index % 3) * 0.1}
+                opacity={0.38 + (index % 3) * 0.08}
               >
                 {!reduceMotion && index % (isFast ? 2 : 1) === 0 && (
                   <>
                     <animate
                       attributeName="r"
-                      values={`${(node.r * 0.85).toFixed(2)};${(node.r * 1.42).toFixed(2)};${(node.r * 0.85).toFixed(2)}`}
+                      values={`${(node.r * 0.7).toFixed(2)};${(node.r * 1.15).toFixed(2)};${(node.r * 0.7).toFixed(2)}`}
                       dur={`${(pulseDuration + (index % 4) * 0.21).toFixed(2)}s`}
                       begin={`${((index % 6) * 0.16).toFixed(2)}s`}
                       repeatCount="indefinite"
                     />
                     <animate
                       attributeName="opacity"
-                      values="0.42;0.95;0.42"
+                      values="0.28;0.72;0.28"
                       dur={`${(pulseDuration + (index % 4) * 0.21).toFixed(2)}s`}
                       begin={`${((index % 6) * 0.16).toFixed(2)}s`}
                       repeatCount="indefinite"
@@ -343,31 +348,34 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
         <motion.path
           d={brainPath}
           stroke={`url(#${gradientId})`}
-          strokeWidth="0.9"
+          strokeWidth="2.0"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
           animate={reduceMotion ? undefined : {
-            opacity: isFast ? [0.38, 0.88, 0.38] : [0.34, 0.68, 0.34],
+            opacity: isFast ? [0.62, 1, 0.62] : [0.58, 0.92, 0.58],
           }}
           transition={reduceMotion ? undefined : {
             duration: pulseDuration,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          style={reduceMotion ? { opacity: 0.52 } : undefined}
+          style={reduceMotion ? { opacity: 0.78 } : undefined}
         />
 
-        <g stroke={`url(#${gradientId})`} strokeWidth="0.48" opacity={isFast ? 0.25 : 0.32}>
+        <g stroke={`url(#${gradientId})`} strokeWidth="1.0" opacity={isFast ? 0.5 : 0.55} fill="none">
           {folds.map((fold) => <path key={fold} d={fold} />)}
         </g>
 
         <line
           x1={medialX}
-          y1="9"
+          y1="10"
           x2={medialX}
-          y2="54"
+          y2="56"
           stroke={`url(#${gradientId})`}
-          strokeWidth="1.15"
+          strokeWidth="1.8"
           strokeLinecap="round"
-          opacity="0.58"
+          opacity="0.78"
         />
       </svg>
     </div>
