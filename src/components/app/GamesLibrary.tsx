@@ -132,7 +132,7 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const glowId = `${id}-glow`;
   const softGlowId = `${id}-soft-glow`;
   const brainClipId = `${id}-brain-clip`;
-  const pulseDuration = isFast ? 1.55 : 5.2;
+  const pulseDuration = isFast ? 0.92 : 5.6;
   const nodes = isFast ? FAST_NODES : SLOW_NODES;
   const connections = isFast ? FAST_CONNECTIONS : SLOW_CONNECTIONS;
   const brainPath = BRAIN_PATH;
@@ -336,6 +336,21 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
             </g>
           )}
         </g>
+
+        {!isFast && (
+          <g transform="translate(64, 10)">
+            <rect x="-2" y="-2" width="34" height="48" rx="4" fill="hsl(var(--background))" opacity="0.42" />
+            <g fill="hsl(var(--area-slow))" fontFamily="monospace" fontWeight="700" letterSpacing="0.02em" opacity="0.95">
+              <text x="0" y="14" fontSize="9">87%</text>
+              <text x="0" y="29" fontSize="7">P=0.93</text>
+              <text x="22" y="25" fontSize="11">Σ</text>
+              <text x="0" y="42" fontSize="6.5">IF→THEN</text>
+            </g>
+            {!reduceMotion && (
+              <animate attributeName="opacity" values="0.72;0.98;0.72" dur={`${pulseDuration * 0.7}s`} repeatCount="indefinite" />
+            )}
+          </g>
+        )}
 
         <g transform={brainTransform}>
           <motion.path
