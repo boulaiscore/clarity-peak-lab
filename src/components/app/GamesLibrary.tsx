@@ -342,22 +342,22 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
         <motion.path
           d={brainPath}
           stroke={`url(#${gradientId})`}
-          strokeWidth="2.0"
+          strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
           animate={reduceMotion ? undefined : {
-            opacity: isFast ? [0.62, 1, 0.62] : [0.58, 0.92, 0.58],
+            opacity: isFast ? [0.7, 1, 0.7] : [0.65, 0.95, 0.65],
           }}
           transition={reduceMotion ? undefined : {
             duration: pulseDuration,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          style={reduceMotion ? { opacity: 0.78 } : undefined}
+          style={reduceMotion ? { opacity: 0.85 } : undefined}
         />
 
-        <g stroke={`url(#${gradientId})`} strokeWidth="1.0" opacity={isFast ? 0.5 : 0.55} fill="none">
+        <g stroke={`url(#${gradientId})`} strokeWidth="1.15" opacity={isFast ? 0.55 : 0.6} fill="none">
           {folds.map((fold) => <path key={fold} d={fold} />)}
         </g>
 
@@ -367,9 +367,9 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
           x2={medialX}
           y2="56"
           stroke={`url(#${gradientId})`}
-          strokeWidth="1.8"
+          strokeWidth="2.0"
           strokeLinecap="round"
-          opacity="0.78"
+          opacity="0.85"
         />
       </svg>
     </div>
