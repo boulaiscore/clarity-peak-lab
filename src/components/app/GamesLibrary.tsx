@@ -113,16 +113,21 @@ const SLOW_SIGNAL_PATHS = [
 // Sagittal half-brain silhouette (frontal lobe facing right, occipital + cerebellum
 // on the left). The "slow" card mirrors it so the two cards read as left/right halves.
 const BRAIN_PATH =
-  "M30 8 C44 2 62 4 70 14 C76 21 74 27 68 31 C72 34 70 39 64 41 C60 46 54 50 46 50 C42 54 34 55 28 51 C24 55 16 54 13 48 C8 44 8 38 12 34 C6 30 4 20 10 14 C15 8 22 6 30 8 Z";
+  "M8 32 C4 24 8 15 16 12 C18 6 26 4 31 8 C35 3 44 3 47 8 C52 4 60 6 62 12 C70 14 74 21 70 27 C74 31 71 36 65 37 C63 42 57 45 51 43 C47 48 38 49 34 44 C29 47 22 45 20 40 C13 40 8 37 8 32 Z";
 
-const BRAIN_STEM = "M29 50 C30 54 31 57 33 60";
+const BRAIN_CEREBELLUM =
+  "M11 40 C6 42 4 48 8 52 C12 56 20 56 24 52 C26 49 25 45 21 43 C18 41 14 39 11 40 Z";
+
+const BRAIN_STEM = "M24 51 C26 55 27 58 30 60";
 
 const BRAIN_FOLDS = [
-  "M22 14 C32 10 46 11 56 17",
-  "M14 26 C26 22 42 24 56 30",
-  "M18 40 C28 36 42 38 52 44",
-  "M12 38 C18 41 24 45 27 50",
+  "M16 16 C26 14 40 15 52 20",
+  "M12 27 C24 24 40 26 56 31",
+  "M22 38 C30 35 42 36 50 40",
+  "M8 46 C13 45 19 46 23 49",
+  "M10 51 C15 50 20 51 23 53",
 ];
+
 
 function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
   const reduceMotion = useReducedMotion();
