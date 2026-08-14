@@ -336,38 +336,39 @@ function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
           )}
         </g>
 
-        <motion.path
-          d={brainPath}
-          stroke={`url(#${gradientId})`}
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          animate={reduceMotion ? undefined : {
-            opacity: isFast ? [0.7, 1, 0.7] : [0.65, 0.95, 0.65],
-          }}
-          transition={reduceMotion ? undefined : {
-            duration: pulseDuration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          style={reduceMotion ? { opacity: 0.85 } : undefined}
-        />
+        <g transform={brainTransform}>
+          <motion.path
+            d={brainPath}
+            stroke={`url(#${gradientId})`}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            animate={reduceMotion ? undefined : {
+              opacity: isFast ? [0.7, 1, 0.7] : [0.65, 0.95, 0.65],
+            }}
+            transition={reduceMotion ? undefined : {
+              duration: pulseDuration,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            style={reduceMotion ? { opacity: 0.85 } : undefined}
+          />
 
-        <g stroke={`url(#${gradientId})`} strokeWidth="1.15" opacity={isFast ? 0.55 : 0.6} fill="none">
-          {folds.map((fold) => <path key={fold} d={fold} />)}
+          <path
+            d={BRAIN_STEM}
+            stroke={`url(#${gradientId})`}
+            strokeWidth="2"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.8"
+          />
+
+          <g stroke={`url(#${gradientId})`} strokeWidth="1" opacity="0.5" fill="none" strokeLinecap="round">
+            {folds.map((fold) => <path key={fold} d={fold} />)}
+          </g>
         </g>
 
-        <line
-          x1={medialX}
-          y1="10"
-          x2={medialX}
-          y2="56"
-          stroke={`url(#${gradientId})`}
-          strokeWidth="2.0"
-          strokeLinecap="round"
-          opacity="0.85"
-        />
       </svg>
     </div>
   );
