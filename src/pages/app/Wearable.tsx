@@ -74,6 +74,25 @@ function DataCode({ children, active }: { children: string; active: boolean }) {
   );
 }
 
+function SignalValue({ label, value, unit }: { label: string; value: string | null; unit?: string }) {
+  return (
+    <div className="rounded-xl border border-border/30 bg-background/35 px-3 py-2.5">
+      <p className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground/60">{label}</p>
+      <p className="mt-1 text-sm font-semibold tabular-nums text-foreground/90">
+        {value ?? <span className="text-muted-foreground/40">—</span>}
+        {value && unit ? <span className="ml-0.5 text-[10px] font-medium text-muted-foreground/70">{unit}</span> : null}
+      </p>
+    </div>
+  );
+}
+
+function formatSleep(minutes: number | null | undefined): string | null {
+  if (minutes == null || !Number.isFinite(minutes)) return null;
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return `${h}h ${String(m).padStart(2, "0")}m`;
+}
+
 const Health = () => {
   const { user } = useAuth();
   const wearableSync = useWearableSync();
@@ -187,6 +206,13 @@ const Health = () => {
                     Wearable app <span className="px-1 text-foreground/50">→</span> Health Connect <span className="px-1 text-foreground/50">→</span> LOOMA
                   </p>
                 )}
+
+                {!isNative && (
+                  <p className="mt-4 border-t border-border/25 pt-4 text-[11px] leading-relaxed text-muted-foreground">
+                    Connecting happens in the LOOMA mobile app: open it on your iPhone or Android phone and grant access to
+                    Apple Health or Health Connect. Signals synced there appear here automatically.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -205,6 +231,27 @@ const Health = () => {
                     <DataCode active={signals.rhr}>RHR</DataCode>
                     <DataCode active={signals.movement}>MOV</DataCode>
                   </div>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <SignalValue
+                    label="Sleep"
+                    value={formatSleep(phoneHealth?.sleep_min ?? (hasTodayWearableData ? wearableData?.sleep_duration_min : null))}
+                  />
+                  <SignalValue
+                    label="HRV"
+                    value={hasTodayWearableData && wearableData?.hrv_ms != null ? String(Math.round(wearableData.hrv_ms)) : null}
+                    unit="ms"
+                  />
+                  <SignalValue
+                    label="Resting HR"
+                    value={hasTodayWearableData && wearableData?.resting_hr != null ? String(Math.round(wearableData.resting_hr)) : null}
+                    unit="bpm"
+                  />
+                  <SignalValue
+                    label="Movement"
+                    value={phoneHealth?.steps != null ? Math.round(phoneHealth.steps).toLocaleString() : null}
+                    unit="steps"
+                  />
                 </div>
                 <div className="mt-4 flex items-center justify-between text-[10px] text-muted-foreground/55">
                   <span>{latestCloudUpdate ? `Stored in your cloud · ${compactTime(latestCloudUpdate)}` : "No health snapshot stored yet"}</span>
