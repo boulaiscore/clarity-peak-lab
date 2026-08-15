@@ -240,7 +240,7 @@ const Home = () => {
   const hasProtocol = !!user?.trainingPlan;
 
   const sharpnessColor = "hsl(205, 100%, 58%)";
-  const readinessColor = "hsl(225, 85%, 64%)";
+  const readinessColor = "hsl(215, 32%, 60%)";
   const rqColor = "hsl(190, 80%, 52%)";
 
   // Baseline calibration not completed - show CTA to complete it
