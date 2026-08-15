@@ -323,15 +323,20 @@ function FactorDatum({
   label,
   value,
   valueClassName,
+  accentColor,
 }: {
   label: string;
   value: string;
   valueClassName?: string;
+  accentColor?: string;
 }) {
   return (
     <div className="min-w-0">
       <div className="text-[8px] uppercase tracking-[0.12em] text-muted-foreground/45">{label}</div>
-      <div className={cn("mt-1 text-[10px] leading-snug text-muted-foreground tabular-nums", valueClassName)}>
+      <div
+        className={cn("mt-1 text-[10px] leading-snug text-muted-foreground tabular-nums", valueClassName)}
+        style={accentColor ? { color: accentColor } : undefined}
+      >
         {value}
       </div>
     </div>
