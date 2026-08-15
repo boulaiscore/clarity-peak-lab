@@ -6,6 +6,7 @@ import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 import { calculateSharpness } from "@/lib/cognitiveEngine";
 import { calculateCognitiveAgeFromPerformance } from "@/lib/cognitiveAge";
 import type { PassiveSignalSource, SignalCoverageLevel } from "@/lib/dailyPassiveState";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import type { StoredDailyOutlook } from "@/hooks/useReportData";
 
 type Area = "focus" | "reasoning" | "creativity";
@@ -676,28 +677,28 @@ export function ClinicalReport({
     {
       key: "sharpness",
       label: "Sharpness",
-      color: "#46a6ff",
+      color: METRIC_COLORS.sharpness,
       fallback: fallbackSharpness,
       description: "How much fast cognitive capacity is accessible today.",
     },
     {
       key: "readiness",
       label: "Readiness",
-      color: "#8d7bff",
+      color: METRIC_COLORS.readiness,
       fallback: readiness,
       description: "Capacity to sustain demanding work without quality drop.",
     },
     {
       key: "recovery",
       label: "Recovery",
-      color: "#38d6ad",
+      color: METRIC_COLORS.recovery,
       fallback: fallbackRecovery,
       description: "Available restoration buffer supporting cognition.",
     },
     {
       key: "reasoningQuality",
       label: "Reasoning Quality",
-      color: "#d5a245",
+      color: METRIC_COLORS.reasoningQuality,
       fallback: fallbackReasoningQuality,
       description: "How structured and reliable deliberate thinking is.",
     },
