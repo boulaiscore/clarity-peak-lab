@@ -17,6 +17,7 @@ import { useTutorialState } from "@/hooks/useTutorialState";
 import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { useActiveReasonSession } from "@/hooks/useReasonSessions";
 import { cn } from "@/lib/utils";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { getSharpnessStatus, getReadinessStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { HomeTabId } from "@/components/home/HomeTabs";
