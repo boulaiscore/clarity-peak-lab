@@ -203,18 +203,18 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
         </Link>
       )}
 
-      <div className="grid grid-cols-2 gap-3 pt-1">
-        <Link to="/neuro-lab?tab=detox">
-          <Button variant="premium" className="w-full h-12 text-sm">
-            Start Detox
-          </Button>
-        </Link>
-        <Link to="/neuro-lab?tab=walk">
-          <Button variant="outline" className="w-full h-12 text-sm">
-            Start Walking
-          </Button>
-        </Link>
-      </div>
+      <Link to="/neuro-lab?tab=detox" className="block pt-1">
+        <Button variant="premium" className="w-full h-12 text-sm">
+          Start Detox
+        </Button>
+      </Link>
+
+      <Link
+        to="/neuro-lab?tab=walk"
+        className="-mt-3 block px-1 py-1 text-right text-xs text-muted-foreground transition-colors hover:text-foreground"
+      >
+        Start Walking
+      </Link>
 
       <Collapsible open={infoOpen} onOpenChange={setInfoOpen}>
         <CollapsibleTrigger className="flex items-center justify-between w-full py-3 px-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
