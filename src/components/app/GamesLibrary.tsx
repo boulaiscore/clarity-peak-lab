@@ -152,13 +152,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               <div className={LAB_MODE_CARD_AMBIENCE_CLASS} />
               <div className="relative flex h-full flex-col">
                 <div className="flex h-4 shrink-0 items-start justify-between">
-                  <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground/60">
+                  <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground">
                     {system.label}
                   </span>
-                  <span className={cn(
-                    "text-[7px] font-semibold uppercase tracking-[0.16em]",
-                    isFast ? "text-amber-300/90" : "text-violet-200/85",
-                  )}>
+                  <span className="text-[7px] font-semibold uppercase tracking-[0.16em] text-foreground">
                     {isFast ? "Rapid" : "Structured"}
                   </span>
                 </div>
@@ -172,11 +169,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                     {isFast ? "Fast · intuitive" : "Slow · analytical"}
                   </p>
                   <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
-                    <p className={cn(
-                      "min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none",
-                      isFast ? "text-amber-300/90" : "text-violet-200/85",
-                    )}>
-                      {isFast ? "Detect · react" : "Compare · model · decide"}
+                    <p className="min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none text-foreground">
+                      {isFast ? "Detect · react" : "Compare · decide"}
                     </p>
                     <ChevronDown
                       className={cn(
