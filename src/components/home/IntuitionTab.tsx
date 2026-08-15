@@ -78,7 +78,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       <MetricScoreRing
         value={sharpness}
         status={getSharpnessStatus(sharpness).label}
-        color="hsl(210, 100%, 60%)"
+        color={METRIC_COLORS.sharpness}
         isLoading={isLoading}
       />
 
