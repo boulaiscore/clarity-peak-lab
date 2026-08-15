@@ -562,7 +562,7 @@ export function WeeklyGoalCard({
               <div className="px-5 pt-4 pb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-px h-8 bg-indigo-400/70" />
+                    <div className="w-px h-8 bg-[hsl(var(--area-slow))]/70" />
                     <div>
                       <div className="text-[11px] font-semibold text-foreground/85 tracking-tight leading-tight">System 2</div>
                       <div className="text-[9px] text-muted-foreground/45 uppercase tracking-[0.14em] mt-0.5">Deep Thinking</div>
@@ -609,7 +609,7 @@ export function WeeklyGoalCard({
               <div className="px-5 pt-4 pb-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-px h-8 bg-teal-400/70" />
+                    <div className="w-px h-8 bg-[hsl(var(--recovery))]/70" />
                     <div>
                       <div className="text-[11px] font-semibold text-foreground/85 tracking-tight leading-tight flex items-center gap-1.5">
                         Recovery
