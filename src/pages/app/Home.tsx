@@ -239,9 +239,9 @@ const Home = () => {
   } = useTutorialState();
   const hasProtocol = !!user?.trainingPlan;
 
-  const sharpnessColor = "hsl(210, 100%, 60%)";
-  const readinessColor = "hsl(245, 58%, 65%)";
-  const rqColor = "hsl(207, 44%, 55%)";
+  const sharpnessColor = "hsl(205, 100%, 58%)";
+  const readinessColor = "hsl(225, 85%, 64%)";
+  const rqColor = "hsl(190, 80%, 52%)";
 
   // Baseline calibration not completed - show CTA to complete it
   if (!baselineLoading && !isCalibrated) {
