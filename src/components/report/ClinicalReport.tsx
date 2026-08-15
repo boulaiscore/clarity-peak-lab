@@ -6,6 +6,7 @@ import type { SCIBreakdown } from "@/lib/cognitiveNetworkScore";
 import { calculateSharpness } from "@/lib/cognitiveEngine";
 import { calculateCognitiveAgeFromPerformance } from "@/lib/cognitiveAge";
 import type { PassiveSignalSource, SignalCoverageLevel } from "@/lib/dailyPassiveState";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import type { StoredDailyOutlook } from "@/hooks/useReportData";
 
 type Area = "focus" | "reasoning" | "creativity";
