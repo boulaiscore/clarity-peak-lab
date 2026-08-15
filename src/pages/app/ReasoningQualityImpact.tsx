@@ -178,6 +178,7 @@ export default function ReasoningQualityImpact() {
               window={driver.window}
               estimated={driver.estimated}
               contributionTone={driver.tone}
+              accentColor={METRIC_COLORS.reasoningQuality}
               onClick={() => setSelectedDriver(driver)}
             />
           ))}
