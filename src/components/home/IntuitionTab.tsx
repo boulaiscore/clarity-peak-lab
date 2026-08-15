@@ -80,10 +80,6 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
         status={getSharpnessStatus(sharpness).label}
         color={METRIC_COLORS.sharpness}
         isLoading={isLoading}
-        rings={[
-          { label: "S1", value: S1, color: METRIC_COLORS.system1 },
-          { label: "S2", value: S2, color: METRIC_COLORS.system2 },
-        ]}
       />
 
       <MetricInterpretationNote changeDrivers="recovery and fast-processing or reasoning practice" />
