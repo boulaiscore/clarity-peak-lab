@@ -234,6 +234,7 @@ interface MetricFactorCardProps {
   window: string;
   estimated?: boolean;
   contributionTone?: "default" | "negative" | "muted";
+  accentColor?: string;
   onClick?: () => void;
 }
 
