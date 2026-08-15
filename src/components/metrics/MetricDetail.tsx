@@ -294,10 +294,11 @@ export function MetricFactorCard({
           label="Impact"
           value={formatContribution(contribution)}
           valueClassName={cn(
-            contributionTone === "default" && "text-primary/85",
+            contributionTone === "default" && !accentColor && "text-primary/85",
             contributionTone === "negative" && "text-amber-500",
             contributionTone === "muted" && "text-muted-foreground",
           )}
+          accentColor={contributionTone === "default" ? accentColor : undefined}
         />
         <FactorDatum label="Window" value={window} />
       </div>
