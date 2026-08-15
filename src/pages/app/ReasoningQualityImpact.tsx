@@ -153,7 +153,7 @@ export default function ReasoningQualityImpact() {
 
         <MetricDetailHeader
           title="Reasoning Quality"
-          description="A changeable signal from recent deliberate-thinking practice and consistency."
+          description="Decision quality: how sound, stable and bias-resistant your judgment is right now."
           context="Current skills · last 10 S2 sessions · rolling 7-day activity"
         />
 
@@ -164,7 +164,22 @@ export default function ReasoningQualityImpact() {
           isLoading={isLoading}
         />
 
+        <div
+          className="rounded-xl border border-border/30 bg-card/35 p-4"
+          style={{ borderLeft: `2px solid ${METRIC_COLORS.reasoningQuality}` }}
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Decision signature
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-foreground/90">{decisionSignature}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Sharpness measures speed. Readiness measures capacity. Reasoning Quality measures whether the
+            call you make today is likely to be the right one.
+          </p>
+        </div>
+
         <MetricInterpretationNote changeDrivers="deliberate-reasoning practice, consistency and recent learning activity" />
+
 
         <MetricFactorsSection>
           {drivers.map((driver) => (
