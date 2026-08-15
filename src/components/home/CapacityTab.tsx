@@ -89,9 +89,10 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
         context="Daily estimate · health, wearable and recovery actions"
       />
 
-      <RecoveryScoreBar
+      <MetricScoreRing
         value={score}
         status={status}
+        color={METRIC_COLORS.recovery}
         isLoading={isLoading}
         note={isNeutralEstimate ? "Neutral estimate" : undefined}
       />
