@@ -13,6 +13,7 @@ import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { TASK_TYPE_WEIGHTS } from "@/lib/reasoningQuality";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { cn } from "@/lib/utils";
 
 interface ImpactDriver {
@@ -158,7 +159,7 @@ export default function ReasoningQualityImpact() {
         <MetricScoreRing
           value={rq}
           status={getReasoningQualityStatus(rq).label}
-          color="hsl(207, 44%, 55%)"
+          color={METRIC_COLORS.reasoningQuality}
           isLoading={isLoading}
         />
 
@@ -177,6 +178,7 @@ export default function ReasoningQualityImpact() {
               window={driver.window}
               estimated={driver.estimated}
               contributionTone={driver.tone}
+              accentColor={METRIC_COLORS.reasoningQuality}
               onClick={() => setSelectedDriver(driver)}
             />
           ))}

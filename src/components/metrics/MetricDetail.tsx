@@ -234,6 +234,7 @@ interface MetricFactorCardProps {
   window: string;
   estimated?: boolean;
   contributionTone?: "default" | "negative" | "muted";
+  accentColor?: string;
   onClick?: () => void;
 }
 
@@ -259,6 +260,7 @@ export function MetricFactorCard({
   window,
   estimated = false,
   contributionTone = "default",
+  accentColor,
   onClick,
 }: MetricFactorCardProps) {
   const content = (
@@ -292,10 +294,11 @@ export function MetricFactorCard({
           label="Impact"
           value={formatContribution(contribution)}
           valueClassName={cn(
-            contributionTone === "default" && "text-primary/85",
+            contributionTone === "default" && !accentColor && "text-primary/85",
             contributionTone === "negative" && "text-amber-500",
             contributionTone === "muted" && "text-muted-foreground",
           )}
+          accentColor={contributionTone === "default" ? accentColor : undefined}
         />
         <FactorDatum label="Window" value={window} />
       </div>
@@ -320,15 +323,20 @@ function FactorDatum({
   label,
   value,
   valueClassName,
+  accentColor,
 }: {
   label: string;
   value: string;
   valueClassName?: string;
+  accentColor?: string;
 }) {
   return (
     <div className="min-w-0">
       <div className="text-[8px] uppercase tracking-[0.12em] text-muted-foreground/45">{label}</div>
-      <div className={cn("mt-1 text-[10px] leading-snug text-muted-foreground tabular-nums", valueClassName)}>
+      <div
+        className={cn("mt-1 text-[10px] leading-snug text-muted-foreground tabular-nums", valueClassName)}
+        style={accentColor ? { color: accentColor } : undefined}
+      >
         {value}
       </div>
     </div>
