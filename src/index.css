@@ -147,10 +147,10 @@
     --chart-4: 174 22% 40%;
     --chart-5: 0 22% 45%;
 
-    /* System 1 (Fast/Intuitive) - Muted amber/gold */
-    --area-fast: 40 32% 48%;
-    /* System 2 (Slow/Deliberate) - Muted light violet */
-    --area-slow: 248 30% 52%;
+    /* System 1 (Fast/Intuitive) - Sharpness blue */
+    --area-fast: 205 100% 58%;
+    /* System 2 (Slow/Deliberate) - Readiness blue-grey */
+    --area-slow: 215 28% 58%;
     
     /* Area colors - premium muted tones */
     --area-focus: 210 28% 42%;
