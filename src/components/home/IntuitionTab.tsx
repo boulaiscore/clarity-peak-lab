@@ -13,6 +13,7 @@ import {
 } from "@/components/metrics/MetricDetail";
 import { PassiveStateFactors } from "@/components/metrics/PassiveStateFactors";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
 
 interface IntuitionTabProps {
