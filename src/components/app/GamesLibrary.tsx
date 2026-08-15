@@ -166,11 +166,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
                 <div className="h-[52px] shrink-0 border-t border-border/35 pt-2.5">
                   <p className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-foreground">
-                    {isFast ? "Fast · intuitive" : "Slow · analytical"}
+                    {isFast ? "Fast · intuitive" : "Slow · deliberate"}
                   </p>
                   <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
                     <p className="min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none text-foreground">
-                      {isFast ? "Detect · react" : "Compare · decide"}
+                      {isFast ? "Sense · react" : "Analyze · decide"}
                     </p>
                     <ChevronDown
                       className={cn(
