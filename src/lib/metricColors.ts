@@ -9,8 +9,8 @@ export const METRIC_COLORS = {
   sharpness: "hsl(210, 80%, 58%)",
   /** Vivid electric blue — System 1 / fast intuitive processing */
   system1: "hsl(205, 100%, 58%)",
-  /** Muted blue-grey — System 2 / deliberate analytical reasoning */
-  system2: "hsl(215, 28%, 58%)",
+  /** Vivid sky blue — System 2 / deliberate analytical reasoning */
+  system2: "hsl(205, 85%, 62%)",
   /** Vivid sky blue — Readiness / deliberate analytical capacity */
   readiness: "hsl(205, 85%, 62%)",
   /** Teal-cyan — reasoning quality / structured judgment (Reasoning Quality) */
