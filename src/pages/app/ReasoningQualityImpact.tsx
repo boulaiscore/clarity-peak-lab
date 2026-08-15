@@ -159,7 +159,7 @@ export default function ReasoningQualityImpact() {
         <MetricScoreRing
           value={rq}
           status={getReasoningQualityStatus(rq).label}
-          color="hsl(207, 44%, 55%)"
+          color={METRIC_COLORS.reasoningQuality}
           isLoading={isLoading}
         />
 
