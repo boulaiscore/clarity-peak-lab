@@ -146,6 +146,24 @@ export default function ReasoningQualityImpact() {
     taskPrimingContribution,
   ]);
 
+  const decisionSignature = useMemo(() => {
+    const weakest = [
+      { label: "evidence evaluation", value: CT },
+      { label: "pattern insight", value: IN },
+      { label: "judgment stability", value: s2Consistency },
+      { label: "conceptual priming", value: taskPriming },
+    ].sort((a, b) => a.value - b.value)[0];
+
+    if (rq >= 75) {
+      return `Your judgment is holding at a high standard. Protect it by keeping ${weakest.label} from slipping.`;
+    }
+    if (rq >= 55) {
+      return `Decisions are broadly sound, but ${weakest.label} is the factor most likely to distort today's calls.`;
+    }
+    return `Judgment is currently fragile: ${weakest.label} is the limiting factor. Defer high-stakes decisions where possible.`;
+  }, [CT, IN, rq, s2Consistency, taskPriming]);
+
+
   return (
     <AppShell>
       <div className="mx-auto max-w-lg space-y-6 px-5 pt-3 pb-12">
