@@ -260,6 +260,7 @@ export function MetricFactorCard({
   window,
   estimated = false,
   contributionTone = "default",
+  accentColor,
   onClick,
 }: MetricFactorCardProps) {
   const content = (
