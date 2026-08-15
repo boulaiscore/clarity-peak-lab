@@ -13,6 +13,7 @@ import { useCognitiveStates } from "@/hooks/useCognitiveStates";
 import { useReasoningQuality } from "@/hooks/useReasoningQuality";
 import { getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { TASK_TYPE_WEIGHTS } from "@/lib/reasoningQuality";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { cn } from "@/lib/utils";
 
 interface ImpactDriver {
