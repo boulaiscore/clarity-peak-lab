@@ -77,7 +77,11 @@ export function ReasoningQualityCard({
       </div>
       
       {/* Progress bar */}
+      <p className="mb-1.5 text-[9px] leading-tight text-muted-foreground">Decision quality · bias resistance</p>
+
+      {/* Progress bar */}
       <div className="h-1 bg-primary/15 rounded-full overflow-hidden">
+
         <motion.div className="h-full bg-primary rounded-full" initial={{
         width: 0
       }} animate={{

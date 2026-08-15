@@ -59,29 +59,29 @@ export default function ReasoningQualityImpact() {
       {
         id: "ct",
         code: "CT",
-        name: "Critical Thinking",
+        name: "Evidence Evaluation",
         value: CT,
         weight: "25%",
         contribution: 0.25 * CT,
         window: "Current skill state",
-        description: "Analytical accuracy and evaluation of evidence.",
+        description: "How rigorously you weigh evidence before committing to a decision.",
         note: "CT supplies half of S2 Core. Since S2 Core is 50% of RQ, CT contributes 25% of the final score.",
       },
       {
         id: "in",
         code: "IN",
-        name: "Insight",
+        name: "Pattern Insight",
         value: IN,
         weight: "25%",
         contribution: 0.25 * IN,
         window: "Current skill state",
-        description: "Pattern recognition and useful conceptual connections.",
+        description: "Reading the structure of a problem and finding the connection that changes the call.",
         note: "IN supplies half of S2 Core. Since S2 Core is 50% of RQ, IN contributes 25% of the final score.",
       },
       {
         id: "s2-consistency",
         code: "S2-C",
-        name: "S2 Consistency",
+        name: "Judgment Stability",
         value: consistencyIsEstimated ? `Est. ${Math.round(s2Consistency)}` : s2Consistency,
         weight: "30%",
         contribution: s2ConsistencyContribution,
@@ -90,7 +90,7 @@ export default function ReasoningQualityImpact() {
           : `Last ${Math.min(s2SessionCount, 10)} S2 sessions`,
         description: consistencyIsEstimated
           ? "Provisional value until five deliberate-reasoning sessions are available."
-          : "Stability of performance across recent deliberate-reasoning sessions.",
+          : "How repeatable your judgment is — decisions that hold up call after call.",
         estimated: consistencyIsEstimated,
         tone: consistencyIsEstimated ? "muted" : "default",
         note: consistencyIsEstimated
@@ -100,12 +100,13 @@ export default function ReasoningQualityImpact() {
       {
         id: "task-priming",
         code: "PRIME",
-        name: "Task Priming",
+        name: "Conceptual Priming",
         value: taskPriming,
         weight: "20%",
         contribution: taskPrimingContribution,
         window: "Rolling 7 days",
-        description: "Recent deliberate reading, listening and timed reasoning sessions.",
+        description: "The depth of material feeding your judgment: deliberate reading, listening and timed reasoning.",
+
         tone: taskPriming === 0 ? "muted" : "default",
           note: `${taskCount} curated item(s): ${taskBreakdown.podcastCount} podcast, ${taskBreakdown.articleCount} article, ${taskBreakdown.bookCount} book. Fresh base weights are ${TASK_TYPE_WEIGHTS.podcast}/${TASK_TYPE_WEIGHTS.article}/${TASK_TYPE_WEIGHTS.book}; timer sessions are duration-weighted. The stronger valid capture path is used, so one method is never required to unlock the other half.`,
       },
@@ -145,6 +146,24 @@ export default function ReasoningQualityImpact() {
     taskPrimingContribution,
   ]);
 
+  const decisionSignature = useMemo(() => {
+    const weakest = [
+      { label: "evidence evaluation", value: CT },
+      { label: "pattern insight", value: IN },
+      { label: "judgment stability", value: s2Consistency },
+      { label: "conceptual priming", value: taskPriming },
+    ].sort((a, b) => a.value - b.value)[0];
+
+    if (rq >= 75) {
+      return `Your judgment is holding at a high standard. Protect it by keeping ${weakest.label} from slipping.`;
+    }
+    if (rq >= 55) {
+      return `Decisions are broadly sound, but ${weakest.label} is the factor most likely to distort today's calls.`;
+    }
+    return `Judgment is currently fragile: ${weakest.label} is the limiting factor. Defer high-stakes decisions where possible.`;
+  }, [CT, IN, rq, s2Consistency, taskPriming]);
+
+
   return (
     <AppShell>
       <div className="mx-auto max-w-lg space-y-6 px-5 pt-3 pb-12">
@@ -152,7 +171,7 @@ export default function ReasoningQualityImpact() {
 
         <MetricDetailHeader
           title="Reasoning Quality"
-          description="A changeable signal from recent deliberate-thinking practice and consistency."
+          description="Decision quality: how sound, stable and bias-resistant your judgment is right now."
           context="Current skills · last 10 S2 sessions · rolling 7-day activity"
         />
 
@@ -163,7 +182,22 @@ export default function ReasoningQualityImpact() {
           isLoading={isLoading}
         />
 
+        <div
+          className="rounded-xl border border-border/30 bg-card/35 p-4"
+          style={{ borderLeft: `2px solid ${METRIC_COLORS.reasoningQuality}` }}
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Decision signature
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-foreground/90">{decisionSignature}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Sharpness measures speed. Readiness measures capacity. Reasoning Quality measures whether the
+            call you make today is likely to be the right one.
+          </p>
+        </div>
+
         <MetricInterpretationNote changeDrivers="deliberate-reasoning practice, consistency and recent learning activity" />
+
 
         <MetricFactorsSection>
           {drivers.map((driver) => (
