@@ -76,7 +76,7 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
       <MetricScoreRing
         value={readiness}
         status={getReadinessStatus(readiness).label}
-        color="hsl(245, 58%, 65%)"
+        color={METRIC_COLORS.readiness}
         isLoading={isLoading}
       />
 
