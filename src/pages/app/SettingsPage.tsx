@@ -30,6 +30,7 @@ import {
   ChevronRight,
   CreditCard,
   BrainCircuit,
+  Fingerprint,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCheckout } from "@/hooks/useCheckout";
@@ -37,6 +38,7 @@ import { DEFAULT_TRAINING_PLAN } from "@/lib/trainingPlans";
 import { OnboardingTutorial } from "@/components/tutorial/OnboardingTutorial";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useNativeSecurity } from "@/contexts/NativeSecurityContext";
 
 const DEVICE_LABELS: Record<string, string> = {
   apple_health: "Apple Health",
@@ -128,12 +130,20 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const { permission, isSupported, requestPermission, setDailyReminder } = useNotifications();
   const { theme, toggleTheme } = useTheme();
+  const {
+    isNative,
+    isAvailable: biometricAvailable,
+    biometricLabel,
+    biometricLockEnabled,
+    setBiometricLockEnabled,
+  } = useNativeSecurity();
 
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState("08:30");
   const [timezone, setTimezone] = useState("UTC");
   const [showTutorial, setShowTutorial] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [securityLoading, setSecurityLoading] = useState(false);
 
   const handleOpenBillingPortal = async () => {
     if (!user?.email) {
@@ -203,6 +213,24 @@ const SettingsPage = () => {
     if (user?.id) {
       await supabase.from("profiles").update({ timezone: newTimezone }).eq("user_id", user.id);
     }
+  };
+
+  const handleBiometricToggle = async (enabled: boolean) => {
+    if (securityLoading) return;
+    setSecurityLoading(true);
+    const result = await setBiometricLockEnabled(enabled);
+    setSecurityLoading(false);
+
+    if (!result.success) {
+      toast({
+        title: enabled ? "App lock not enabled" : "App lock unchanged",
+        description: result.error,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({ title: enabled ? "App lock enabled" : "App lock disabled" });
   };
 
   const deviceLabel = user?.primaryDevice ? DEVICE_LABELS[user.primaryDevice] : "Not set";
@@ -300,6 +328,33 @@ const SettingsPage = () => {
               </SelectContent>
             </Select>
           </div>
+        </ListGroup>
+
+        {/* SECURITY */}
+        <SectionLabel>Security</SectionLabel>
+        <ListGroup>
+          <Row
+            icon={Fingerprint}
+            label="Face ID / Fingerprint"
+            value={
+              !isNative
+                ? "Mobile app"
+                : biometricAvailable
+                  ? biometricLabel
+                  : "Not set up"
+            }
+            trailing={
+              isNative ? (
+                <Switch
+                  checked={biometricLockEnabled}
+                  disabled={securityLoading || (!biometricAvailable && !biometricLockEnabled)}
+                  onCheckedChange={(enabled) => void handleBiometricToggle(enabled)}
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label="Require Face ID or fingerprint to open LOOMA"
+                />
+              ) : undefined
+            }
+          />
         </ListGroup>
 
         {/* BILLING */}

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
+import { App as CapacitorApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { sendWelcomeEmail } from "@/lib/emailService";
 import { getAuthRedirectUrl } from "@/lib/platformUtils";
@@ -145,6 +147,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // Native WebViews can remain suspended for hours. Pause token rotation while
+  // backgrounded and resume it as soon as LOOMA becomes active, matching the
+  // lifecycle guidance for persistent mobile Supabase sessions.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let disposed = false;
+    let listener: { remove: () => Promise<void> } | undefined;
+
+    void supabase.auth.startAutoRefresh();
+    void CapacitorApp.addListener("appStateChange", ({ isActive }) => {
+      if (isActive) {
+        void supabase.auth.startAutoRefresh();
+      } else {
+        void supabase.auth.stopAutoRefresh();
+      }
+    }).then((handle) => {
+      if (disposed) {
+        void handle.remove();
+        return;
+      }
+      listener = handle;
+    });
+
+    return () => {
+      disposed = true;
+      void listener?.remove();
+      void supabase.auth.stopAutoRefresh();
+    };
+  }, []);
 
   // Ensure new users never show Recovery=0 because `user_cognitive_metrics` row is missing.
   // Runs after profile fetch; fire-and-forget.

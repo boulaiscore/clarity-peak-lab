@@ -6,6 +6,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { NativeSecurityProvider } from "@/contexts/NativeSecurityContext";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { AdminRoute } from "./components/admin/AdminRoute";
@@ -475,22 +476,24 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SessionProvider>
-          <AppInitProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <HashRouter>
-                  <ScrollToTop />
-                  <DeepLinkHandler>
-                    <Suspense fallback={<RouteFallback />}>
-                      <AppRoutes />
-                    </Suspense>
-                  </DeepLinkHandler>
-                </HashRouter>
-              </TooltipProvider>
-          </AppInitProvider>
-        </SessionProvider>
+        <NativeSecurityProvider>
+          <SessionProvider>
+            <AppInitProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <HashRouter>
+                    <ScrollToTop />
+                    <DeepLinkHandler>
+                      <Suspense fallback={<RouteFallback />}>
+                        <AppRoutes />
+                      </Suspense>
+                    </DeepLinkHandler>
+                  </HashRouter>
+                </TooltipProvider>
+            </AppInitProvider>
+          </SessionProvider>
+        </NativeSecurityProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
