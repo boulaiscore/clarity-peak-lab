@@ -25,8 +25,6 @@ export function FirstRunHealthAccess({ onVisibilityChange }: FirstRunHealthAcces
   const [visible, setVisible] = useState(false);
   const viewedRef = useRef(false);
 
-  const platformName = platform === "ios" ? "Apple Health" : "Health Connect";
-  const sourceName = "Your device and health data";
   const key = useMemo(
     () => (user?.id ? decisionKey(user.id, platform) : null),
     [platform, user?.id],
@@ -123,25 +121,25 @@ export function FirstRunHealthAccess({ onVisibilityChange }: FirstRunHealthAcces
             <div className="h-px bg-gradient-to-r from-transparent via-white/45 to-transparent" />
             <div className="px-6 pb-6 pt-7">
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground/55">
-                {platformName}
+                Device setup
               </p>
               <h2 id="health-access-title" className="mt-3 text-[27px] font-semibold leading-[1.08] tracking-tight">
-                Make today’s metrics personal
+                Connect what you already wear
               </h2>
               <p className="mt-4 text-[14px] leading-6 text-muted-foreground">
-                Sleep, HRV, resting heart rate and activity help Recovery and Readiness reflect how your day actually starts.
+                Choose your wearable once. LOOMA finds the right connection and updates Recovery and Readiness automatically.
               </p>
 
               <div className="mt-6 rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-4">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-[11px] text-foreground/70">{sourceName}</span>
+                  <span className="text-[11px] text-foreground/70">Signals used by your daily state</span>
                   <span className="text-[10px] uppercase tracking-[0.14em] text-foreground/40">Read only</span>
                 </div>
-                <div className="mt-3 flex items-center gap-2 text-[9px] font-semibold tracking-[0.14em] text-foreground/55">
-                  <span className="rounded-md border border-white/[0.08] px-2 py-1">SLP</span>
-                  <span className="rounded-md border border-white/[0.08] px-2 py-1">HRV</span>
-                  <span className="rounded-md border border-white/[0.08] px-2 py-1">RHR</span>
-                  <span className="rounded-md border border-white/[0.08] px-2 py-1">MOV</span>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-[9px] font-medium text-foreground/55">
+                  <span>Sleep</span>
+                  <span>HRV</span>
+                  <span>Resting heart rate</span>
+                  <span>Movement</span>
                 </div>
               </div>
 
@@ -160,7 +158,7 @@ export function FirstRunHealthAccess({ onVisibilityChange }: FirstRunHealthAcces
                 Not now
               </button>
               <p className="mt-2 text-center text-[9px] leading-relaxed text-muted-foreground/50">
-                Optional · choose each data type in the system screen · change access anytime
+                Optional · read only · change access anytime
               </p>
             </div>
           </motion.div>
