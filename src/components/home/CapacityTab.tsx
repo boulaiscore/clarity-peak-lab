@@ -4,15 +4,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-  MetricDetailHeader,
-  MetricInterpretationNote,
   MetricDetailNavigation,
   MetricFactorCard,
   MetricFactorsSection,
-  MetricScoreRing,
 } from "@/components/metrics/MetricDetail";
+import { RecoveryScoreBar } from "@/components/metrics/RecoveryScale";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
-import { METRIC_COLORS } from "@/lib/metricColors";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
 
 interface CapacityTabProps {
@@ -84,21 +81,23 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
     <div className="space-y-6 pb-8">
       {onBackToOverview && <MetricDetailNavigation onBack={onBackToOverview} />}
 
-      <MetricDetailHeader
-        title="Recovery"
-        description={subtitle}
-        context="Daily estimate · health, wearable and recovery actions"
-      />
+      <div className="space-y-1 px-1">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Recovery</h1>
+        <p className="max-w-sm text-sm leading-relaxed text-muted-foreground/80">{subtitle}</p>
+      </div>
 
-      <MetricScoreRing
+      <RecoveryScoreBar
         value={score}
         status={status}
-        color={METRIC_COLORS.recovery}
         isLoading={isLoading}
-        note={isNeutralEstimate ? "Neutral estimate" : undefined}
+        note={isNeutralEstimate
+          ? "Neutral estimate · connect Health or a wearable for a personal signal"
+          : "Daily estimate · Health, wearable data and recorded recovery actions"}
       />
 
-      <MetricInterpretationNote changeDrivers="rest, screen-free time, walking and daily conditions" />
+      <p className="px-1 text-[10px] leading-relaxed text-muted-foreground/55">
+        Personal state signal · changes with rest, screen-free time, walking and daily conditions.
+      </p>
 
       <MetricFactorsSection title="Displayed Recovery">
         <MetricFactorCard

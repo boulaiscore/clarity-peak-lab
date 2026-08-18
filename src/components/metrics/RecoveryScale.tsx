@@ -80,17 +80,17 @@ export function RecoveryScoreBar({
   const color = getRecoveryColor(normalized);
 
   return (
-    <section className="rounded-xl border border-border/40 bg-card/40 px-5 py-5">
-      <div className="mb-5 flex items-end justify-between gap-4">
+    <section className="rounded-xl border border-border/40 bg-card/40 px-4 py-4">
+      <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-foreground/75">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-foreground">
             Cognitive Recovery
           </p>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-5xl font-normal leading-none tracking-tight text-foreground tabular-nums">
+            <span className="text-[38px] font-normal leading-none tracking-tight text-foreground tabular-nums">
               {isLoading ? "—" : Math.round(normalized)}
             </span>
-            {!isLoading && <span className="text-lg text-muted-foreground/55">%</span>}
+            {!isLoading && <span className="text-base text-muted-foreground/55">%</span>}
           </div>
         </div>
 
@@ -102,7 +102,7 @@ export function RecoveryScoreBar({
         </span>
       </div>
 
-      <RecoveryScale value={normalized} isLoading={isLoading} size="hero" />
+      <RecoveryScale value={normalized} isLoading={isLoading} />
 
       {note && !isLoading && (
         <p className="mt-4 text-[10px] text-muted-foreground/60">{note}</p>
