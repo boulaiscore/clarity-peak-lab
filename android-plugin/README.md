@@ -114,7 +114,7 @@ npx cap run android
 
 1. User taps "Enable Usage Access" in the app
 2. Android opens Settings → Usage Access
-3. User enables toggle for NeuroLoop Pro
+3. User enables the toggle for LOOMA
 4. Returns to app → usage data is now available
 
 For blocking:

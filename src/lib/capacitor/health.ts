@@ -1,5 +1,5 @@
 /**
- * NeuroLoop Pro - Health Data Bridge API
+ * LOOMA - Health Data Bridge API
  * 
  * Unified interface for reading health data from:
  * - iOS: HealthKit (SDNN for HRV)

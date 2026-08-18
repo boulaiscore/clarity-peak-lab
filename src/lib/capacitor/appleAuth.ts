@@ -53,9 +53,9 @@ export async function signInWithApple(): Promise<AppleAuthResult> {
 
     // On web, the redirect happens automatically
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[AppleAuth] Sign in failed:', error);
-    return { success: false, error: error.message || 'Sign in with Apple failed' };
+    return { success: false, error: error instanceof Error ? error.message : 'Sign in with Apple failed' };
   }
 }
 
@@ -93,8 +93,8 @@ export async function handleAppleAuthCallback(url: string): Promise<AppleAuthRes
     }
 
     return { success: false, error: 'No auth tokens found in callback' };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[AppleAuth] Callback handling failed:', error);
-    return { success: false, error: error.message || 'Failed to process auth callback' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to process auth callback' };
   }
 }

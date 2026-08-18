@@ -71,24 +71,11 @@ export function getPasswordResetRedirectUrl(): string {
 }
 
 /**
- * Get redirect URLs for Stripe checkout
- */
-export function getStripeRedirectUrls(successPath: string, cancelPath: string): {
-  successUrl: string;
-  cancelUrl: string;
-} {
-  return {
-    successUrl: getRedirectUrl(successPath),
-    cancelUrl: getRedirectUrl(cancelPath),
-  };
-}
-
-/**
  * Parse a deep link URL and extract the path
  */
 export function parseDeepLink(url: string): { path: string; params: URLSearchParams } | null {
   try {
-    // Handle neuroloop:// scheme
+    // Handle looma:// scheme
     if (url.startsWith(`${URL_SCHEME}://`)) {
       const withoutScheme = url.replace(`${URL_SCHEME}://`, '');
       const [path, query] = withoutScheme.split('?');

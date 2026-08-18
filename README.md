@@ -1,16 +1,16 @@
 # LOOMA
 
-LOOMA is a cognitive-performance self-monitoring product for professionals doing high-impact work. A brief check combines task performance with user-reported recovery context to help users decide when to focus, analyze, or reset.
+LOOMA is a mobile cognitive-performance system for professionals doing high-impact work. It combines task performance, personal history, permitted phone-health and wearable signals, and privacy-safe usage aggregates to help users decide when to focus, analyze, train, or recover.
 
 LOOMA is not a medical device, diagnostic assessment, intelligence test, or predictor of decision outcomes. Scores are intended for within-person comparison and become more useful as a user's personal history grows.
 
 ## Product loop
 
-1. Complete a brief performance check.
-2. Compare the result with your personal baseline.
-3. Choose a focused-work or recovery action.
-4. Log the work outcome.
-5. Learn which contexts and interventions are associated with your strongest sessions.
+1. Build an initial cognitive baseline.
+2. Keep daily context current through permitted passive signals and LOOMA activity.
+3. Compare state metrics with the user's own history.
+4. Train or recover in Lab when the current signals justify it.
+5. Learn which contexts and interventions are associated with the user's strongest sessions.
 
 ## Local development
 
@@ -36,11 +36,14 @@ Analytics events intentionally exclude names, email addresses, cognitive scores,
 ## Verification
 
 ```sh
-npm run build
 npm run lint
+npm run test:metrics
+npm run test:coach
+npm run test:drills
+npm run test:subscriptions
+npm run test:outlook
+npm run build
 ```
-
-The repository currently contains pre-existing lint debt outside the conversion flow. Files changed for the focused baseline release should also be checked directly with ESLint before merge.
 
 ## Stack
 
@@ -52,11 +55,14 @@ The repository currently contains pre-existing lint debt outside the conversion 
 
 ## Key routes
 
-- `/#/` — public product landing page
-- `/#/auth?mode=signup&intent=baseline` — baseline signup
+- `/#/` — authentication/onboarding-aware entry redirect
+- `/#/auth` — sign in and registration
 - `/#/onboarding` — two-step context onboarding
 - `/#/app/calibration` — first performance check
-- `/#/app` — daily signal
+- `/#/app` — Home and daily cognitive state
+- `/#/neuro-lab` — Lab
+- `/#/app/dashboard` — Monitor
+- `/#/app/wearable` — Health and wearable connections
 
 ## Product principles
 

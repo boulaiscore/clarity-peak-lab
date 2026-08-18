@@ -117,7 +117,7 @@ export function useDailyTrainingStreak(userId: string | undefined) {
       // Check if trained today or yesterday to start counting
       if (dates[0] === today || dates[0] === yesterday) {
         streak = 1;
-        let expectedDate = new Date(dates[0]);
+        const expectedDate = new Date(dates[0]);
         
         for (let i = 1; i < dates.length; i++) {
           expectedDate.setDate(expectedDate.getDate() - 1);

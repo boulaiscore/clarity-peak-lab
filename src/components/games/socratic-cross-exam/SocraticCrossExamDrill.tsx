@@ -75,7 +75,7 @@ export function SocraticCrossExamDrill({ onComplete, onExit }: Props) {
     setSelectedContradiction(pairId);
     
     const correct = round.correctAssumptions;
-    const matchCount = selectedAssumptions.filter(a => correct.includes(a as any)).length;
+    const matchCount = selectedAssumptions.filter(a => correct.includes(a)).length;
     const assumptionScore = matchCount === 2 ? 100 : matchCount === 1 ? 60 : 0;
     
     // Check for decorative penalty

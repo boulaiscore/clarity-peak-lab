@@ -1,4 +1,4 @@
-// Push notification utilities for NeuroLoop Pro
+// Push notification utilities for LOOMA
 
 const VAPID_PUBLIC_KEY = ""; // Will be set when push notifications are configured
 const LAST_SESSION_KEY = "neuroloop_last_session_date";
@@ -212,13 +212,18 @@ export async function registerPeriodicSync(): Promise<boolean> {
     const registration = await navigator.serviceWorker.ready;
     
     // Check if periodicSync is supported
-    if ("periodicSync" in registration) {
+    const periodicSync = (
+      registration as ServiceWorkerRegistration & {
+        periodicSync?: { register(tag: string, options: { minInterval: number }): Promise<void> };
+      }
+    ).periodicSync;
+    if (periodicSync) {
       const status = await navigator.permissions.query({
         name: "periodic-background-sync" as PermissionName,
       });
       
       if (status.state === "granted") {
-        await (registration as any).periodicSync.register("training-reminder", {
+        await periodicSync.register("training-reminder", {
           minInterval: 4 * 60 * 60 * 1000, // Every 4 hours
         });
         console.log("Periodic sync registered");

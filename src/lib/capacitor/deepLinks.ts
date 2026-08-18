@@ -75,11 +75,10 @@ export function isAuthDeepLink(path: string, params: URLSearchParams): boolean {
 }
 
 /**
- * Handle Stripe payment deep link
- * Returns true if the URL was a payment callback
+ * Returns true when the deep link is a payment callback.
  */
 export function isPaymentDeepLink(path: string): boolean {
-  return path.includes('payment-success') || 
+  return path.includes('payment-success') ||
          path.includes('payment-cancel') ||
          path.includes('success=true') ||
          path.includes('canceled=true');

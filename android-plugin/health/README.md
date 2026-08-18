@@ -1,6 +1,6 @@
 # Health Connect Plugin Setup (Android)
 
-This folder contains the native Android code for the NeuroLoop Pro Health Connect Capacitor plugin.
+This folder contains the native Android code for the LOOMA Health Connect Capacitor plugin.
 
 ## Data Types Used
 
@@ -162,7 +162,7 @@ Your health data is encrypted in transit and at rest, stored with
 user-level access controls, and is never shared with third parties.
 
 You can revoke access at any time through Health Connect settings 
-or by contacting us at privacy@neuroloop.app.
+or by contacting us at support@neurolooplabs.com.
 ```
 
 ### 4. App Review Preparation

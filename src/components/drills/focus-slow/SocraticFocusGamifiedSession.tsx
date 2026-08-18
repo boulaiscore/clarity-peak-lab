@@ -5,7 +5,17 @@ import { ReversalSimulationGame } from "./ReversalSimulationGame";
 import { AttentionBudgetGame } from "./AttentionBudgetGame";
 import { HypothesisEliminatorGame } from "./HypothesisEliminatorGame";
 
-const SOCRATIC_FOCUS_EXERCISES = [
+interface SocraticFocusExercise {
+  id: string;
+  gameType: "hypothesis" | "reversal" | "budget";
+  context?: string;
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+const SOCRATIC_FOCUS_EXERCISES: SocraticFocusExercise[] = [
   {
     id: "SF1",
     gameType: "hypothesis",
@@ -197,7 +207,7 @@ export const SocraticFocusGamifiedSession = ({ exerciseCount = 1, onComplete }: 
       case "budget":
         return <AttentionBudgetGame {...props} />;
       case "hypothesis":
-        return <HypothesisEliminatorGame {...props} context={(currentExercise as any).context} />;
+        return <HypothesisEliminatorGame {...props} context={currentExercise.context} />;
       default:
         return <HypothesisEliminatorGame {...props} />;
     }

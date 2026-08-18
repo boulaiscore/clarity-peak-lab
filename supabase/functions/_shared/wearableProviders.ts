@@ -176,18 +176,57 @@ function clampScore(value: unknown): number | null {
   return number == null ? null : Math.max(0, Math.min(100, number));
 }
 
-async function providerGet(url: string, accessToken: string): Promise<any> {
+interface WhoopRecoveryRecord {
+  score_state?: string;
+  created_at?: string;
+  score?: { hrv_rmssd_milli?: unknown; resting_heart_rate?: unknown };
+}
+
+interface WhoopSleepRecord {
+  score_state?: string;
+  nap?: boolean;
+  end?: string;
+  score?: {
+    sleep_efficiency_percentage?: unknown;
+    stage_summary?: {
+      total_light_sleep_time_milli?: unknown;
+      total_slow_wave_sleep_time_milli?: unknown;
+      total_rem_sleep_time_milli?: unknown;
+    };
+  };
+}
+
+interface OuraSleepRecord {
+  day?: string;
+  total_sleep_duration?: unknown;
+  efficiency?: unknown;
+  average_hrv?: unknown;
+  lowest_heart_rate?: unknown;
+}
+
+interface OuraDailyRecord {
+  day?: string;
+  score?: unknown;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+async function providerGet<T>(url: string, accessToken: string): Promise<T> {
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  const payload = await response.json().catch(() => ({}));
+  const payload: unknown = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const detail = payload?.detail || payload?.error || `HTTP ${response.status}`;
+    const detail = isObject(payload)
+      ? payload.detail ?? payload.error ?? `HTTP ${response.status}`
+      : `HTTP ${response.status}`;
     const error = new Error(String(detail)) as Error & { status?: number };
     error.status = response.status;
     throw error;
   }
-  return payload;
+  return payload as T;
 }
 
 async function fetchWhoop(accessToken: string, startDate: string, endDate: string): Promise<NormalizedWearableDay[]> {
@@ -197,8 +236,8 @@ async function fetchWhoop(accessToken: string, startDate: string, endDate: strin
   const end = endBoundary.toISOString();
   const query = new URLSearchParams({ start, end, limit: "25" });
   const [recoveries, sleeps] = await Promise.all([
-    providerGet(`https://api.prod.whoop.com/developer/v2/recovery?${query}`, accessToken),
-    providerGet(`https://api.prod.whoop.com/developer/v2/activity/sleep?${query}`, accessToken),
+    providerGet<{ records?: WhoopRecoveryRecord[] }>(`https://api.prod.whoop.com/developer/v2/recovery?${query}`, accessToken),
+    providerGet<{ records?: WhoopSleepRecord[] }>(`https://api.prod.whoop.com/developer/v2/activity/sleep?${query}`, accessToken),
   ]);
 
   const byDate = new Map<string, NormalizedWearableDay>();
@@ -248,9 +287,9 @@ async function fetchWhoop(accessToken: string, startDate: string, endDate: strin
 async function fetchOura(accessToken: string, startDate: string, endDate: string): Promise<NormalizedWearableDay[]> {
   const query = new URLSearchParams({ start_date: startDate, end_date: endDate });
   const [sleeps, readiness, activity] = await Promise.all([
-    providerGet(`https://api.ouraring.com/v2/usercollection/sleep?${query}`, accessToken),
-    providerGet(`https://api.ouraring.com/v2/usercollection/daily_readiness?${query}`, accessToken),
-    providerGet(`https://api.ouraring.com/v2/usercollection/daily_activity?${query}`, accessToken),
+    providerGet<{ data?: OuraSleepRecord[] }>(`https://api.ouraring.com/v2/usercollection/sleep?${query}`, accessToken),
+    providerGet<{ data?: OuraDailyRecord[] }>(`https://api.ouraring.com/v2/usercollection/daily_readiness?${query}`, accessToken),
+    providerGet<{ data?: OuraDailyRecord[] }>(`https://api.ouraring.com/v2/usercollection/daily_activity?${query}`, accessToken),
   ]);
 
   const byDate = new Map<string, NormalizedWearableDay>();

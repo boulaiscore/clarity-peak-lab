@@ -183,7 +183,11 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
     nodesRef.current = [];
 
     if (gainNodeRef.current) {
-      try { gainNodeRef.current.disconnect(); } catch (e) {}
+      try {
+        gainNodeRef.current.disconnect();
+      } catch {
+        // Best-effort cleanup; the native audio node may already be detached.
+      }
       gainNodeRef.current = null;
     }
 
@@ -202,7 +206,11 @@ export function useFastChargeAudio(): UseFastChargeAudioReturn {
 
     try {
       // Create audio context
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextConstructor = window.AudioContext || (
+        window as Window & { webkitAudioContext?: typeof AudioContext }
+      ).webkitAudioContext;
+      if (!AudioContextConstructor) throw new Error("Web Audio is not supported");
+      const audioContext = new AudioContextConstructor();
       audioContextRef.current = audioContext;
 
       // Create master gain node

@@ -14,6 +14,21 @@ function getSupabase() {
 
 type PaidPlan = 'core' | 'pro' | 'founding_pro';
 
+interface PaddleItem {
+  price?: { id?: string; importMeta?: { externalId?: string } };
+  product?: { id?: string; importMeta?: { externalId?: string } };
+}
+
+interface PaddleSubscriptionData {
+  id: string;
+  customerId?: string;
+  items?: PaddleItem[];
+  status?: string;
+  currentBillingPeriod?: { startsAt?: string; endsAt?: string };
+  scheduledChange?: { action?: string };
+  customData?: Record<string, unknown>;
+}
+
 const PRICE_TO_TIER: Record<string, PaidPlan> = {
   // Legacy Paddle products retain their prices and move to the new names.
   looma_pro_monthly: 'core',
@@ -39,20 +54,20 @@ async function syncProfileTier(userId: string, tier: PaidPlan | 'free') {
     .eq('user_id', userId);
 }
 
-async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
+async function handleSubscriptionCreated(data: PaddleSubscriptionData, env: PaddleEnv) {
   const { id, customerId, items, status, currentBillingPeriod, customData } = data;
   const userId = customData?.userId;
   if (!userId) {
     console.error('No userId in customData');
     return;
   }
-  const item = items[0];
-  const priceId = item.price.importMeta?.externalId;
-  const productId = item.product.importMeta?.externalId;
+  const item = items?.[0];
+  const priceId = item?.price?.importMeta?.externalId;
+  const productId = item?.product?.importMeta?.externalId;
   if (!priceId || !productId) {
     console.warn('Skipping subscription: missing importMeta.externalId', {
-      rawPriceId: item.price.id,
-      rawProductId: item.product.id,
+      rawPriceId: item?.price?.id,
+      rawProductId: item?.product?.id,
     });
     return;
   }
@@ -78,7 +93,7 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
   }
 }
 
-async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
+async function handleSubscriptionUpdated(data: PaddleSubscriptionData, env: PaddleEnv) {
   const { id, status, currentBillingPeriod, scheduledChange, items, customData } = data;
   await getSupabase().from('subscriptions')
     .update({
@@ -104,7 +119,7 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
   }
 }
 
-async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
+async function handleSubscriptionCanceled(data: PaddleSubscriptionData, env: PaddleEnv) {
   // Access until current_period_end — keep tier; downgrade happens via cron or on next read.
   await getSupabase().from('subscriptions')
     .update({ status: 'canceled', updated_at: new Date().toISOString() })
@@ -116,22 +131,24 @@ async function handleWebhook(req: Request, env: PaddleEnv) {
   const event = await verifyWebhook(req, env);
   switch (event.eventType) {
     case EventName.SubscriptionCreated:
-      await handleSubscriptionCreated(event.data, env);
+      await handleSubscriptionCreated(event.data as PaddleSubscriptionData, env);
       break;
     case EventName.SubscriptionUpdated:
-      await handleSubscriptionUpdated(event.data, env);
+      await handleSubscriptionUpdated(event.data as PaddleSubscriptionData, env);
       break;
     case EventName.SubscriptionCanceled:
-      await handleSubscriptionCanceled(event.data, env);
+      await handleSubscriptionCanceled(event.data as PaddleSubscriptionData, env);
       break;
-    case EventName.TransactionPaymentFailed:
+    case EventName.TransactionPaymentFailed: {
       // Paddle will follow up with subscription.updated (status=past_due).
       // We only log here so the dunning state is observable in logs.
+      const failedTransaction = event.data as { id?: unknown; subscriptionId?: unknown };
       console.log('transaction.payment_failed', {
-        transactionId: (event.data as any)?.id,
-        subscriptionId: (event.data as any)?.subscriptionId,
+        transactionId: failedTransaction.id,
+        subscriptionId: failedTransaction.subscriptionId,
       });
       break;
+    }
     default:
       console.log('Unhandled event:', event.eventType);
   }

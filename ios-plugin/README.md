@@ -1,6 +1,6 @@
 # HealthKit Plugin Setup (iOS)
 
-This folder contains the native iOS code for the NeuroLoop Pro HealthKit Capacitor plugin.
+This folder contains the native iOS code for the LOOMA HealthKit Capacitor plugin.
 
 ## Data Types Used
 

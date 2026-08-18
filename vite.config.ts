@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
     mode === "development" && componentTagger(),
     !isNativeBuild && VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "icon-192.png", "icon-512.png", "sw-custom.js"],
+      includeAssets: ["icon-192.png", "icon-512.png", "sw-custom.js"],
       manifest: {
         name: "LOOMA",
         short_name: "LOOMA",

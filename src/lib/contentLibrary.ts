@@ -1,4 +1,4 @@
-// Content library for NeuroLoop Training Plans
+// Content library for LOOMA training plans
 // These are curated content pieces that can be assigned based on plan and session type
 
 export type ContentFormat = "podcast" | "reading" | "book";

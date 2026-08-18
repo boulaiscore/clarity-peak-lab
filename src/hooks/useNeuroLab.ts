@@ -141,7 +141,7 @@ export function useExercisesByCategories(categories: string[]) {
       const { data, error } = await supabase
         .from("cognitive_exercises")
         .select("*")
-        .in("category", categories as any[]);
+        .in("category", categories);
       
       if (error) throw error;
       return data;

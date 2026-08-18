@@ -1,4 +1,4 @@
-// NeuroLoop Pro - Custom Service Worker for Background Notifications
+// LOOMA - Custom Service Worker for Background Notifications
 
 // Store scheduled timers
 const scheduledTimers = new Map();
@@ -162,4 +162,4 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
-console.log('[SW] NeuroLoop Pro custom service worker loaded');
+console.log('[SW] LOOMA custom service worker loaded');

@@ -15,8 +15,8 @@ export function PastDueBanner() {
       });
       if (error || !data?.url) throw new Error(data?.error || error?.message || "");
       window.open(data.url, "_blank");
-    } catch (e: any) {
-      toast.error(e.message || "Could not open billing portal");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Could not open billing portal");
     }
   };
 

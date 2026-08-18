@@ -8,11 +8,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
+
 const InstallPage = () => {
   const navigate = useNavigate();
   const { permission, isSupported, isLoading, requestPermission, setDailyReminder } = useNotifications();
   const { user, updateUser } = useAuth();
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isMuting, setIsMuting] = useState(false);
   
@@ -23,7 +28,7 @@ const InstallPage = () => {
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
-      setInstallPrompt(e);
+      setInstallPrompt(e as BeforeInstallPromptEvent);
     };
     
     window.addEventListener("beforeinstallprompt", handler);
