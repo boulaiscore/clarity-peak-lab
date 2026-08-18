@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.initialize-cognitive-baseline]
 verify_jwt = false
+
+[functions.wearable-oauth-callback]
+verify_jwt = false

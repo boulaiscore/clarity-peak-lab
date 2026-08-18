@@ -208,7 +208,7 @@ export function useAdaptivePassiveFeatures(
           .gte("date", sinceDate)
           .order("date", { ascending: true }),
         supabase
-          .from("wearable_snapshots")
+          .from("wearable_daily_canonical")
           .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, activity_score, source")
           .eq("user_id", userId)
           .gte("date", sinceDate)

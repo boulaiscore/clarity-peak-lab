@@ -13,6 +13,7 @@ import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { usePhoneHealthSync } from "@/hooks/usePhoneHealthSync";
 import { useWearableSync } from "@/hooks/useWearableSync";
+import { useDirectWearableAutoSync } from "@/hooks/useDirectWearableAutoSync";
 import { useDeviceUsageSync } from "@/hooks/useDeviceUsageSync";
 import { useCalendarContextSync } from "@/hooks/useCalendarContextSync";
 import Auth from "./pages/Auth";
@@ -69,6 +70,7 @@ function AppInitProvider({ children }: { children: React.ReactNode }) {
   useNotificationInit();
   usePhoneHealthSync();
   useWearableSync();
+  useDirectWearableAutoSync();
   useDeviceUsageSync();
   useCalendarContextSync();
   return <>{children}</>;

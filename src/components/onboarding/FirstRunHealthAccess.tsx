@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWearableSync } from "@/hooks/useWearableSync";
-import {
-  getPlatform,
-  isNativePlatform,
-  openHealthSettings,
-} from "@/lib/capacitor/health";
+import { getPlatform, isNativePlatform } from "@/lib/capacitor/health";
 import { trackProductEvent } from "@/lib/productAnalytics";
 
 const HEALTH_PROMPT_KEY = "looma-health-access-prompt-v1";
@@ -22,16 +18,15 @@ function decisionKey(userId: string, platform: string): string {
 
 export function FirstRunHealthAccess({ onVisibilityChange }: FirstRunHealthAccessProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const wearable = useWearableSync();
   const platform = getPlatform();
   const native = isNativePlatform();
   const [visible, setVisible] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionFailed, setConnectionFailed] = useState(false);
   const viewedRef = useRef(false);
 
   const platformName = platform === "ios" ? "Apple Health" : "Health Connect";
-  const sourceName = platform === "ios" ? "iPhone and wearable data" : "Android and wearable data";
+  const sourceName = "Your device and health data";
   const key = useMemo(
     () => (user?.id ? decisionKey(user.id, platform) : null),
     [platform, user?.id],
@@ -85,41 +80,16 @@ export function FirstRunHealthAccess({ onVisibilityChange }: FirstRunHealthAcces
     });
   }, [platform, visible]);
 
-  const rememberDecision = useCallback((decision: "connected" | "deferred") => {
+  const rememberDecision = useCallback((decision: "device_selected" | "deferred") => {
     if (key) {
       localStorage.setItem(key, JSON.stringify({ decision, decidedAt: new Date().toISOString() }));
     }
   }, [key]);
 
-  const handleConnect = async () => {
-    setConnectionFailed(false);
-
-    if (!wearable.isAvailable) {
-      await openHealthSettings();
-      toast.message("Set up Health Connect, then return to LOOMA");
-      return;
-    }
-
-    setIsConnecting(true);
-    const connected = await wearable.connect();
-
-    if (!connected) {
-      setIsConnecting(false);
-      setConnectionFailed(true);
-      return;
-    }
-
-    rememberDecision("connected");
-    trackProductEvent("health_permission_prompt_connected", {
-      platform,
-      source: "first_home",
-    });
+  const handleChooseDevice = () => {
+    rememberDecision("device_selected");
     updateVisibility(false);
-    toast.success(`${platformName} connected`, {
-      description: "Today’s available health signals are being synced.",
-    });
-    await wearable.forceSync();
-    setIsConnecting(false);
+    navigate("/app/wearable");
   };
 
   const handleDefer = () => {
@@ -175,28 +145,16 @@ export function FirstRunHealthAccess({ onVisibilityChange }: FirstRunHealthAcces
                 </div>
               </div>
 
-              {connectionFailed && (
-                <p className="mt-4 text-[11px] leading-relaxed text-amber-300/80">
-                  Access wasn’t enabled. You can try again or connect later from Health &amp; wearables.
-                </p>
-              )}
-
               <button
                 type="button"
-                onClick={() => void handleConnect()}
-                disabled={isConnecting}
+                onClick={handleChooseDevice}
                 className="mt-6 w-full rounded-xl bg-foreground px-4 py-3.5 text-sm font-semibold text-background transition-opacity active:opacity-80 disabled:opacity-45"
               >
-                {isConnecting
-                  ? "Connecting…"
-                  : wearable.isAvailable
-                    ? `Connect ${platformName}`
-                    : "Set up Health Connect"}
+                Choose my device
               </button>
               <button
                 type="button"
                 onClick={handleDefer}
-                disabled={isConnecting}
                 className="mt-2 w-full px-4 py-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-45"
               >
                 Not now

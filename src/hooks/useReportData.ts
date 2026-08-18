@@ -101,9 +101,11 @@ type Badge = {
 };
 
 type WearableSnapshot = {
-  id: string;
+  id?: string;
   user_id: string;
-  created_at: string;
+  created_at?: string;
+  date?: string | null;
+  updated_at?: string | null;
   hrv_ms?: number | null;
   sleep_efficiency?: number | null;
   sleep_duration_min?: number | null;
@@ -222,10 +224,10 @@ export function useReportData(userId: string) {
             .limit(2000),
           supabase.from("user_badges").select("*").eq("user_id", userId).order("earned_at", { ascending: false }),
           supabase
-            .from("wearable_snapshots")
-            .select("*")
+            .from("wearable_daily_canonical")
+            .select("user_id, date, updated_at, hrv_ms, sleep_efficiency, sleep_duration_min, resting_hr, activity_score")
             .eq("user_id", userId)
-            .order("created_at", { ascending: false })
+            .order("date", { ascending: false })
             .limit(1)
             .maybeSingle(),
           supabase

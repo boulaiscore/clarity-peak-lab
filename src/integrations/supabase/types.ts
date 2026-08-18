@@ -2144,6 +2144,48 @@ export type Database = {
           },
         ]
       }
+      wearable_provider_connections: {
+        Row: {
+          connected_at: string
+          created_at: string
+          is_primary: boolean
+          last_error: string | null
+          last_sync_at: string | null
+          provider: string
+          provider_user_id: string | null
+          scopes: string[]
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string
+          created_at?: string
+          is_primary?: boolean
+          last_error?: string | null
+          last_sync_at?: string | null
+          provider: string
+          provider_user_id?: string | null
+          scopes?: string[]
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_at?: string
+          created_at?: string
+          is_primary?: boolean
+          last_error?: string | null
+          last_sync_at?: string | null
+          provider?: string
+          provider_user_id?: string | null
+          scopes?: string[]
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wearable_snapshots: {
         Row: {
           activity_score: number | null
@@ -2245,6 +2287,20 @@ export type Database = {
           training_plan: string | null
           user_id: string | null
           work_type: string | null
+        }
+        Relationships: []
+      }
+      wearable_daily_canonical: {
+        Row: {
+          activity_score: number | null
+          date: string | null
+          hrv_ms: number | null
+          resting_hr: number | null
+          sleep_duration_min: number | null
+          sleep_efficiency: number | null
+          source: string | null
+          updated_at: string | null
+          user_id: string | null
         }
         Relationships: []
       }

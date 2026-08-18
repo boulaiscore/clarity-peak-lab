@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { initializeDeepLinks, isAuthDeepLink, isPaymentDeepLink } from '@/lib/capacitor/deepLinks';
 import { isNative } from '@/lib/platformUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { Browser } from '@capacitor/browser';
 
 /**
  * Hook to handle deep links in the app
@@ -14,6 +15,13 @@ export function useDeepLinks() {
 
   const handleDeepLink = useCallback(async (path: string, params: URLSearchParams) => {
     console.log('[useDeepLinks] Handling deep link:', { path, params: params.toString() });
+
+    if (path.includes('wearable-connected')) {
+      await Browser.close().catch(() => undefined);
+      const query = params.toString();
+      navigate(`/app/wearable${query ? `?${query}` : ''}`, { replace: true });
+      return;
+    }
 
     // Handle auth deep links
     if (isAuthDeepLink(path, params)) {

@@ -61,7 +61,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
           .gte("date", startDate)
           .order("date", { ascending: true }),
         supabase
-          .from("wearable_snapshots")
+          .from("wearable_daily_canonical")
           .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency")
           .eq("user_id", user.id)
           .gte("date", startDate)
