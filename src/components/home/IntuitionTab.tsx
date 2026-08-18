@@ -13,6 +13,7 @@ import {
 } from "@/components/metrics/MetricDetail";
 import { PassiveStateFactors } from "@/components/metrics/PassiveStateFactors";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
 
 interface IntuitionTabProps {
@@ -77,7 +78,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       <MetricScoreRing
         value={sharpness}
         status={getSharpnessStatus(sharpness).label}
-        color="hsl(210, 100%, 60%)"
+        color={METRIC_COLORS.sharpness}
         isLoading={isLoading}
       />
 

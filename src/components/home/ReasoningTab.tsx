@@ -13,6 +13,7 @@ import {
 } from "@/components/metrics/MetricDetail";
 import { PassiveStateFactors } from "@/components/metrics/PassiveStateFactors";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { getReadinessStatus } from "@/lib/metricStatusLabels";
 
 interface ReasoningTabProps {
@@ -75,7 +76,7 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
       <MetricScoreRing
         value={readiness}
         status={getReadinessStatus(readiness).label}
-        color="hsl(245, 58%, 65%)"
+        color={METRIC_COLORS.readiness}
         isLoading={isLoading}
       />
 

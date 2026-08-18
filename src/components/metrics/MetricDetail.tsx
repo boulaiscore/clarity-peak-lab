@@ -66,12 +66,15 @@ export function MetricScoreRing({
   color,
   isLoading = false,
   note,
+  rings,
 }: {
   value: number | null;
   status: string;
   color: string;
   isLoading?: boolean;
   note?: string;
+  /** Optional concentric sub-rings rendered inside the main ring (e.g. S1 / S2). */
+  rings?: { label: string; value: number | null; color: string }[];
 }) {
   const size = 200;
   const strokeWidth = 12;
@@ -80,6 +83,20 @@ export function MetricScoreRing({
   const normalizedValue = value == null ? 0 : Math.max(0, Math.min(100, value));
   const strokeDashoffset = circumference - (normalizedValue / 100) * circumference;
   const displayValue = isLoading ? "—" : value == null ? "—" : Math.round(value).toString();
+
+  const subRings = (rings ?? []).map((ring, index) => {
+    const subStroke = 6;
+    const subRadius = radius - strokeWidth / 2 - 10 - index * (subStroke + 6);
+    const subCircumference = subRadius * 2 * Math.PI;
+    const subValue = ring.value == null ? 0 : Math.max(0, Math.min(100, ring.value));
+    return {
+      ...ring,
+      subStroke,
+      subRadius,
+      subCircumference,
+      subOffset: subCircumference - (subValue / 100) * subCircumference,
+    };
+  });
 
   return (
     <div className="flex flex-col items-center py-4">
@@ -110,13 +127,58 @@ export function MetricScoreRing({
             strokeDashoffset={strokeDashoffset}
             className="transition-all duration-1000 ease-out"
           />
+          {subRings.map((ring) => (
+            <g key={ring.label}>
+              <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={ring.subRadius}
+                fill="none"
+                stroke="hsl(var(--muted)/0.18)"
+                strokeWidth={ring.subStroke}
+              />
+              <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={ring.subRadius}
+                fill="none"
+                stroke={ring.color}
+                strokeWidth={ring.subStroke}
+                strokeLinecap="round"
+                strokeDasharray={ring.subCircumference}
+                strokeDashoffset={ring.subOffset}
+                className="transition-all duration-1000 ease-out"
+              />
+            </g>
+          ))}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-6xl font-bold tabular-nums text-foreground">{displayValue}</span>
+          <span className={`${subRings.length > 0 ? "text-5xl" : "text-6xl"} font-bold tabular-nums text-foreground`}>
+            {displayValue}
+          </span>
           <span className="text-xs text-muted-foreground/75 mt-1">{isLoading ? "Loading" : status}</span>
           <span className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground/40 mt-1">0–100</span>
         </div>
       </div>
+      {subRings.length > 0 && !isLoading && (
+        <div className="mt-3 flex items-center gap-5">
+          {subRings.map((ring) => (
+            <div key={ring.label} className="flex items-center gap-2">
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: ring.color }}
+                aria-hidden="true"
+              />
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60">
+                {ring.label}
+              </span>
+              <span className="text-[11px] tabular-nums text-foreground/80">
+                {ring.value == null ? "—" : Math.round(ring.value)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
       {note && !isLoading && (
         <p className="mt-3 text-[10px] text-muted-foreground/60">{note}</p>
       )}
@@ -172,6 +234,7 @@ interface MetricFactorCardProps {
   window: string;
   estimated?: boolean;
   contributionTone?: "default" | "negative" | "muted";
+  accentColor?: string;
   onClick?: () => void;
 }
 
@@ -197,6 +260,7 @@ export function MetricFactorCard({
   window,
   estimated = false,
   contributionTone = "default",
+  accentColor,
   onClick,
 }: MetricFactorCardProps) {
   const content = (
@@ -230,10 +294,11 @@ export function MetricFactorCard({
           label="Impact"
           value={formatContribution(contribution)}
           valueClassName={cn(
-            contributionTone === "default" && "text-primary/85",
+            contributionTone === "default" && !accentColor && "text-primary/85",
             contributionTone === "negative" && "text-amber-500",
             contributionTone === "muted" && "text-muted-foreground",
           )}
+          accentColor={contributionTone === "default" ? accentColor : undefined}
         />
         <FactorDatum label="Window" value={window} />
       </div>
@@ -258,15 +323,20 @@ function FactorDatum({
   label,
   value,
   valueClassName,
+  accentColor,
 }: {
   label: string;
   value: string;
   valueClassName?: string;
+  accentColor?: string;
 }) {
   return (
     <div className="min-w-0">
       <div className="text-[8px] uppercase tracking-[0.12em] text-muted-foreground/45">{label}</div>
-      <div className={cn("mt-1 text-[10px] leading-snug text-muted-foreground tabular-nums", valueClassName)}>
+      <div
+        className={cn("mt-1 text-[10px] leading-snug text-muted-foreground tabular-nums", valueClassName)}
+        style={accentColor ? { color: accentColor } : undefined}
+      >
         {value}
       </div>
     </div>

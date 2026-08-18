@@ -1,11 +1,12 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronDown, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { LAB_MODE_CARD_AMBIENCE_CLASS, LAB_MODE_CARD_CLASS } from "@/components/lab/labModeCardStyles";
 
+import { SystemNetworkVisual } from "./SystemNetworkVisual";
 import { ExercisePickerSheet } from "./ExercisePickerSheet";
 import { S1AEGameSelector } from "./S1AEGameSelector";
 import { S1RAGameSelector } from "./S1RAGameSelector";
@@ -68,311 +69,10 @@ const SYSTEMS = [
   },
 ];
 
-interface ProcessNode {
-  x: number;
-  y: number;
-  r: number;
-}
-
-const FAST_NODES: ProcessNode[] = [
-  { x: 12, y: 31, r: 1.2 }, { x: 19, y: 14, r: 0.8 }, { x: 22, y: 49, r: 1.0 },
-  { x: 33, y: 25, r: 1.35 }, { x: 40, y: 8, r: 0.85 }, { x: 43, y: 48, r: 1.1 },
-  { x: 55, y: 17, r: 1.15 }, { x: 58, y: 35, r: 0.85 }, { x: 61, y: 55, r: 1.0 },
-  { x: 73, y: 8, r: 1.05 }, { x: 76, y: 27, r: 1.3 }, { x: 78, y: 48, r: 0.85 },
-  { x: 89, y: 17, r: 0.9 }, { x: 93, y: 38, r: 1.2 }, { x: 99, y: 9, r: 0.8 },
-  { x: 101, y: 51, r: 1.05 }, { x: 31, y: 57, r: 0.75 }, { x: 102, y: 29, r: 0.85 },
-];
-
-const FAST_CONNECTIONS: [number, number][] = [
-  [0, 1], [0, 2], [0, 3], [1, 3], [1, 4], [2, 3], [2, 5], [3, 4], [3, 5],
-  [3, 6], [3, 7], [4, 6], [5, 7], [5, 8], [5, 16], [6, 7], [6, 9], [6, 10],
-  [7, 8], [7, 10], [7, 11], [8, 11], [9, 10], [9, 12], [9, 14], [10, 11],
-  [10, 12], [10, 13], [11, 13], [11, 15], [12, 13], [12, 14], [13, 15], [13, 17],
-  [14, 17], [15, 17],
-];
-
-const SLOW_NODES: ProcessNode[] = [
-  { x: 14, y: 12, r: 0.9 }, { x: 14, y: 32, r: 1.15 }, { x: 14, y: 52, r: 0.9 },
-  { x: 34, y: 8, r: 0.85 }, { x: 34, y: 23, r: 1.1 }, { x: 34, y: 41, r: 1.1 }, { x: 34, y: 56, r: 0.85 },
-  { x: 62, y: 14, r: 1.0 }, { x: 62, y: 32, r: 1.35 }, { x: 62, y: 50, r: 1.0 },
-  { x: 88, y: 22, r: 1.05 }, { x: 88, y: 42, r: 1.05 }, { x: 107, y: 32, r: 1.45 },
-];
-
-const SLOW_CONNECTIONS: [number, number][] = [
-  [0, 3], [0, 4], [1, 4], [1, 5], [2, 5], [2, 6],
-  [3, 7], [4, 7], [4, 8], [5, 8], [5, 9], [6, 9],
-  [7, 10], [8, 10], [8, 11], [9, 11], [10, 12], [11, 12],
-];
-
-const SLOW_SIGNAL_PATHS = [
-  "M 14 12 L 34 23 L 62 32 L 88 22 L 107 32",
-  "M 14 32 L 34 41 L 62 50 L 88 42 L 107 32",
-  "M 14 52 L 34 41 L 62 32 L 88 42 L 107 32",
-];
-
-// Complementary, deliberately stylized hemispheres. They communicate that S1
-// and S2 are two process modes of one system without suggesting anatomical
-// localization: the split is a visual metaphor, not a neuroscience claim.
-const HALF_BRAIN_PATHS: Record<ThinkingSystem, string> = {
-  fast: "M104 8 C93 2 81 2 70 7 C58 3 46 7 41 15 C30 16 23 24 26 32 C19 39 24 49 36 51 C40 59 53 63 65 58 C76 63 92 60 104 55 Z",
-  slow: "M12 8 C23 2 35 2 46 7 C58 3 70 7 75 15 C86 16 93 24 90 32 C97 39 92 49 80 51 C76 59 63 63 51 58 C40 63 24 60 12 55 Z",
-};
-
-const HALF_BRAIN_FOLDS: Record<ThinkingSystem, string[]> = {
-  fast: [
-    "M42 15 C48 20 47 27 39 31 C34 34 34 42 40 48",
-    "M68 7 C63 13 65 20 73 24 C80 28 79 37 71 42 C66 46 66 53 71 58",
-    "M27 32 C35 29 43 32 47 38 C52 45 60 45 66 40",
-  ],
-  slow: [
-    "M74 15 C68 20 69 27 77 31 C82 34 82 42 76 48",
-    "M48 7 C53 13 51 20 43 24 C36 28 37 37 45 42 C50 46 50 53 45 58",
-    "M89 32 C81 29 73 32 69 38 C64 45 56 45 50 40",
-  ],
-};
-
 function SystemProcessVisual({ system }: { system: ThinkingSystem }) {
-  const reduceMotion = useReducedMotion();
-  const isFast = system === "fast";
-  const id = useId().replace(/:/g, "");
-  const gradientId = `${id}-${isFast ? "fast" : "slow"}`;
-  const glowId = `${id}-glow`;
-  const softGlowId = `${id}-soft-glow`;
-  const brainClipId = `${id}-brain-clip`;
-  const pulseDuration = isFast ? 1.55 : 5.2;
-  const nodes = isFast ? FAST_NODES : SLOW_NODES;
-  const connections = isFast ? FAST_CONNECTIONS : SLOW_CONNECTIONS;
-  const brainPath = HALF_BRAIN_PATHS[system];
-  const folds = HALF_BRAIN_FOLDS[system];
-  const medialX = isFast ? 104 : 12;
-
-  return (
-    <div className="pointer-events-none relative h-[68px] w-[116px] shrink-0" aria-hidden="true">
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 116 64" fill="none">
-        <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={isFast ? "hsl(var(--area-fast))" : "hsl(var(--area-slow))"} stopOpacity="0.68" />
-            <stop offset="100%" stopColor={isFast ? "hsl(var(--area-fast))" : "hsl(var(--area-slow))"} />
-          </linearGradient>
-          <filter id={glowId} x="-35%" y="-35%" width="170%" height="170%">
-            <feGaussianBlur stdDeviation="1.15" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-          <filter id={softGlowId} x="-35%" y="-55%" width="170%" height="210%">
-            <feGaussianBlur stdDeviation={isFast ? "4.2" : "3.4"} />
-          </filter>
-          <clipPath id={brainClipId}>
-            <path d={brainPath} />
-          </clipPath>
-        </defs>
-
-        <g clipPath={`url(#${brainClipId})`}>
-          <motion.path
-            d={brainPath}
-            fill={`url(#${gradientId})`}
-            filter={`url(#${softGlowId})`}
-            animate={reduceMotion ? undefined : {
-              opacity: isFast ? [0.09, 0.28, 0.09] : [0.08, 0.2, 0.08],
-            }}
-            transition={reduceMotion ? undefined : {
-              duration: pulseDuration,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            style={reduceMotion ? { opacity: 0.14 } : undefined}
-          />
-
-          {!isFast && (
-          <g stroke="hsl(var(--area-slow))" strokeWidth="0.35" opacity="0.1">
-            <line x1="22" y1="4" x2="22" y2="60" />
-            <line x1="48" y1="4" x2="48" y2="60" />
-            <line x1="75" y1="4" x2="75" y2="60" />
-            <line x1="99" y1="4" x2="99" y2="60" />
-            <line x1="4" y1="18" x2="112" y2="18" />
-            <line x1="4" y1="32" x2="112" y2="32" />
-            <line x1="4" y1="46" x2="112" y2="46" />
-          </g>
-          )}
-
-          <g filter={`url(#${glowId})`}>
-          {connections.map(([from, to], index) => {
-            const start = nodes[from];
-            const end = nodes[to];
-            const baseOpacity = isFast ? 0.14 + (index % 4) * 0.055 : 0.2 + (index % 3) * 0.055;
-            return (
-              <line
-                key={`${from}-${to}-${index}`}
-                x1={start.x}
-                y1={start.y}
-                x2={end.x}
-                y2={end.y}
-                stroke={`url(#${gradientId})`}
-                strokeWidth={index % 6 === 0 ? 0.72 : 0.48}
-                opacity={baseOpacity}
-              >
-                {!reduceMotion && index % (isFast ? 3 : 4) === 0 && (
-                  <animate
-                    attributeName="opacity"
-                    values={`${(baseOpacity * 0.38).toFixed(2)};${Math.min(0.82, baseOpacity * 2.8).toFixed(2)};${(baseOpacity * 0.38).toFixed(2)}`}
-                    dur={`${(pulseDuration + (index % 3) * 0.32).toFixed(2)}s`}
-                    begin={`${((index % 5) * (isFast ? 0.14 : 0.48)).toFixed(2)}s`}
-                    repeatCount="indefinite"
-                  />
-                )}
-              </line>
-            );
-          })}
-
-          {!reduceMotion && isFast && connections.map(([from, to], index) => {
-            if (index % 4 !== 0) return null;
-            const start = nodes[from];
-            const end = nodes[to];
-            const duration = pulseDuration * 0.78 + (index % 3) * 0.18;
-            return (
-              <circle key={`signal-${from}-${to}-${index}`} r="0.95" fill={`url(#${gradientId})`}>
-                <animateMotion
-                  path={`M ${start.x} ${start.y} L ${end.x} ${end.y}`}
-                  dur={`${duration.toFixed(2)}s`}
-                  begin={`${((index % 6) * 0.22).toFixed(2)}s`}
-                  repeatCount="indefinite"
-                />
-                <animate
-                  attributeName="opacity"
-                  values="0;0.95;0"
-                  dur={`${duration.toFixed(2)}s`}
-                  begin={`${((index % 6) * 0.22).toFixed(2)}s`}
-                  repeatCount="indefinite"
-                />
-              </circle>
-            );
-          })}
-
-          {!reduceMotion && !isFast && SLOW_SIGNAL_PATHS.map((path, index) => (
-            <circle key={path} r={index === 0 ? 1.05 : 0.82} fill={`url(#${gradientId})`} opacity="0">
-              <animateMotion
-                path={path}
-                dur={`${(pulseDuration + index * 0.45).toFixed(2)}s`}
-                begin={`${(index * 1.15).toFixed(2)}s`}
-                repeatCount="indefinite"
-              />
-              <animate
-                attributeName="opacity"
-                values="0;0.9;0.9;0"
-                keyTimes="0;0.12;0.82;1"
-                dur={`${(pulseDuration + index * 0.45).toFixed(2)}s`}
-                begin={`${(index * 1.15).toFixed(2)}s`}
-                repeatCount="indefinite"
-              />
-            </circle>
-          ))}
-
-          {nodes.map((node, index) => (
-            <g key={`${node.x}-${node.y}`}>
-              {index % (isFast ? 4 : 3) === 0 && (
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={node.r * 2.4}
-                  fill="none"
-                  stroke={`url(#${gradientId})`}
-                  strokeWidth="0.45"
-                  opacity="0.2"
-                >
-                  {!reduceMotion && (
-                    <>
-                      <animate
-                        attributeName="r"
-                        values={`${(node.r * 1.6).toFixed(2)};${(node.r * (isFast ? 3.6 : 3.05)).toFixed(2)};${(node.r * 1.6).toFixed(2)}`}
-                        dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
-                        begin={`${((index % 5) * 0.2).toFixed(2)}s`}
-                        repeatCount="indefinite"
-                      />
-                      <animate
-                        attributeName="opacity"
-                        values="0.06;0.48;0.06"
-                        dur={`${(pulseDuration + (index % 4) * 0.28).toFixed(2)}s`}
-                        begin={`${((index % 5) * 0.2).toFixed(2)}s`}
-                        repeatCount="indefinite"
-                      />
-                    </>
-                  )}
-                </circle>
-              )}
-              <circle
-                cx={node.x}
-                cy={node.y}
-                r={node.r}
-                fill={`url(#${gradientId})`}
-                opacity={0.62 + (index % 3) * 0.1}
-              >
-                {!reduceMotion && index % (isFast ? 2 : 1) === 0 && (
-                  <>
-                    <animate
-                      attributeName="r"
-                      values={`${(node.r * 0.85).toFixed(2)};${(node.r * 1.42).toFixed(2)};${(node.r * 0.85).toFixed(2)}`}
-                      dur={`${(pulseDuration + (index % 4) * 0.21).toFixed(2)}s`}
-                      begin={`${((index % 6) * 0.16).toFixed(2)}s`}
-                      repeatCount="indefinite"
-                    />
-                    <animate
-                      attributeName="opacity"
-                      values="0.42;0.95;0.42"
-                      dur={`${(pulseDuration + (index % 4) * 0.21).toFixed(2)}s`}
-                      begin={`${((index % 6) * 0.16).toFixed(2)}s`}
-                      repeatCount="indefinite"
-                    />
-                  </>
-                )}
-              </circle>
-            </g>
-          ))}
-          </g>
-
-          {!isFast && (
-            <g fill="none" stroke="hsl(var(--area-slow))" strokeWidth="0.55" opacity="0.28">
-              <rect x="27.5" y="2.5" width="13" height="58" rx="3" strokeDasharray="1.5 2.5" />
-              <rect x="55.5" y="8" width="13" height="48" rx="3" strokeDasharray="1.5 2.5" />
-              <path d="M 81 15 H 94 M 81 49 H 94" />
-              {!reduceMotion && (
-                <animate attributeName="opacity" values="0.16;0.46;0.16" dur={`${pulseDuration}s`} repeatCount="indefinite" />
-              )}
-            </g>
-          )}
-        </g>
-
-        <motion.path
-          d={brainPath}
-          stroke={`url(#${gradientId})`}
-          strokeWidth="0.9"
-          animate={reduceMotion ? undefined : {
-            opacity: isFast ? [0.38, 0.88, 0.38] : [0.34, 0.68, 0.34],
-          }}
-          transition={reduceMotion ? undefined : {
-            duration: pulseDuration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          style={reduceMotion ? { opacity: 0.52 } : undefined}
-        />
-
-        <g stroke={`url(#${gradientId})`} strokeWidth="0.48" opacity={isFast ? 0.25 : 0.32}>
-          {folds.map((fold) => <path key={fold} d={fold} />)}
-        </g>
-
-        <line
-          x1={medialX}
-          y1="9"
-          x2={medialX}
-          y2="54"
-          stroke={`url(#${gradientId})`}
-          strokeWidth="1.15"
-          strokeLinecap="round"
-          opacity="0.58"
-        />
-      </svg>
-    </div>
-  );
+  return <SystemNetworkVisual system={system} score={system === "fast" ? 82 : 74} />;
 }
+
 
 export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
   const navigate = useNavigate();
@@ -452,13 +152,10 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               <div className={LAB_MODE_CARD_AMBIENCE_CLASS} />
               <div className="relative flex h-full flex-col">
                 <div className="flex h-4 shrink-0 items-start justify-between">
-                  <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground/60">
+                  <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground">
                     {system.label}
                   </span>
-                  <span className={cn(
-                    "text-[7px] font-semibold uppercase tracking-[0.16em]",
-                    isFast ? "text-amber-300/70" : "text-violet-200/65",
-                  )}>
+                  <span className="text-[7px] font-semibold uppercase tracking-[0.16em] text-foreground">
                     {isFast ? "Rapid" : "Structured"}
                   </span>
                 </div>
@@ -469,14 +166,11 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
                 <div className="h-[52px] shrink-0 border-t border-border/35 pt-2.5">
                   <p className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-foreground">
-                    {isFast ? "Fast · intuitive" : "Slow · analytical"}
+                    {isFast ? "Fast · intuitive" : "Slow · deliberate"}
                   </p>
                   <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
-                    <p className={cn(
-                      "min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none",
-                      isFast ? "text-amber-300/75" : "text-violet-200/70",
-                    )}>
-                      {isFast ? "Detect · react" : "Compare · model · decide"}
+                    <p className="min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none text-foreground">
+                      {isFast ? "Sense · react" : "Analyze · decide"}
                     </p>
                     <ChevronDown
                       className={cn(

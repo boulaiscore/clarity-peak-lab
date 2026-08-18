@@ -9,9 +9,10 @@ import {
   MetricDetailNavigation,
   MetricFactorCard,
   MetricFactorsSection,
+  MetricScoreRing,
 } from "@/components/metrics/MetricDetail";
-import { RecoveryScoreBar } from "@/components/metrics/RecoveryScale";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
 
 interface CapacityTabProps {
@@ -89,9 +90,10 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
         context="Daily estimate · health, wearable and recovery actions"
       />
 
-      <RecoveryScoreBar
+      <MetricScoreRing
         value={score}
         status={status}
+        color={METRIC_COLORS.recovery}
         isLoading={isLoading}
         note={isNeutralEstimate ? "Neutral estimate" : undefined}
       />

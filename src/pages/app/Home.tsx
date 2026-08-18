@@ -17,6 +17,7 @@ import { useTutorialState } from "@/hooks/useTutorialState";
 import { useActiveBooks } from "@/hooks/useActiveBooks";
 import { useActiveReasonSession } from "@/hooks/useReasonSessions";
 import { cn } from "@/lib/utils";
+import { METRIC_COLORS } from "@/lib/metricColors";
 import { getSharpnessStatus, getReadinessStatus, getReasoningQualityStatus } from "@/lib/metricStatusLabels";
 import { getMetricDisplayInfo } from "@/lib/metricDisplayLogic";
 import { HomeTabId } from "@/components/home/HomeTabs";
@@ -239,9 +240,9 @@ const Home = () => {
   } = useTutorialState();
   const hasProtocol = !!user?.trainingPlan;
 
-  const sharpnessColor = "hsl(210, 100%, 60%)";
-  const readinessColor = "hsl(245, 58%, 65%)";
-  const rqColor = "hsl(207, 44%, 55%)";
+  const sharpnessColor = METRIC_COLORS.sharpness;
+  const readinessColor = METRIC_COLORS.readiness;
+  const rqColor = METRIC_COLORS.reasoningQuality;
 
   // Baseline calibration not completed - show CTA to complete it
   if (!baselineLoading && !isCalibrated) {

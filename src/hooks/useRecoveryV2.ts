@@ -134,13 +134,23 @@ export function useRecoveryV2(): UseRecoveryV2Result {
     queryFn: async () => {
       if (!userId) return null;
       const today = format(new Date(), "yyyy-MM-dd");
+      // Accept the most recent snapshot from today or yesterday: overnight sync
+      // can land late, and physiology from <=36h ago is still the best signal.
+      const yesterday = format(new Date(Date.now() - 24 * 60 * 60 * 1000), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("wearable_daily_canonical")
         .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
         .eq("user_id", userId)
-        .eq("date", today)
+        .gte("date", yesterday)
+        .lte("date", today)
+        .order("date", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
+      if (!data) return null;
+      const ageMs = data.updated_at ? Date.now() - new Date(data.updated_at).getTime() : 0;
+      if (ageMs > 36 * 60 * 60 * 1000) return null;
       return data;
     },
     enabled: !!userId,
