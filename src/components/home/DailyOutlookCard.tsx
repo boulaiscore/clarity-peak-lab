@@ -22,6 +22,7 @@ interface DailyOutlookCardProps {
   activeSourceCount: number;
   passiveFeatures: PassiveFeaturePayload | null;
   isLoading: boolean;
+  personalizationPending?: boolean;
 }
 
 function greetingForNow(name: string | null): string {

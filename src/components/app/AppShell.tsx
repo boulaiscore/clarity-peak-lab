@@ -35,6 +35,22 @@ const menuItems = [
   { to: "/app/subscription", icon: CreditCard, label: "Subscription" },
 ];
 
+function DeferredAppIntelligence({
+  onCoachState,
+}: {
+  onCoachState: (state: AdaptiveCoachPassiveState) => void;
+}) {
+  useAutoMetricSnapshot();
+  const coachState = useAdaptiveCoachShadowRecorder();
+  useAdaptiveFocusShadowRecorder(coachState);
+
+  useEffect(() => {
+    if (!coachState.isLoading) onCoachState(coachState);
+  }, [coachState.isLoading, coachState.passiveFeatures, onCoachState]);
+
+  return null;
+}
+
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
   const { permission, checkReminders } = useNotifications();
@@ -42,17 +58,21 @@ export function AppShell({ children }: AppShellProps) {
   const subscription = useSubscription();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFirstProtocolPaywall, setShowFirstProtocolPaywall] = useState(false);
+  const [backgroundReady, setBackgroundReady] = useState(false);
+  const [adaptiveCoachState, setAdaptiveCoachState] = useState<AdaptiveCoachPassiveState>({
+    passiveFeatures: null,
+    isLoading: true,
+  });
   
   // Initialize decay notifications on app load
   useDecayNotificationInit();
   
-  // Auto-save daily metric snapshot (readiness, sharpness, recovery, RQ)
-  useAutoMetricSnapshot();
-
-  // Generate and persist explainable daily forecasts without changing any
-  // active recommendation, plan, gating rule, or difficulty.
-  const adaptiveCoachState = useAdaptiveCoachShadowRecorder();
-  useAdaptiveFocusShadowRecorder(adaptiveCoachState);
+  // Snapshot persistence and the 90-day coach analysis are background work.
+  // Give the active route and its core metrics the first render/network slot.
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setBackgroundReady(true), 450);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     trackProductEvent("app_route_viewed", {
@@ -82,6 +102,9 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="app-safe-frame min-h-[100dvh] flex flex-col">
+      {backgroundReady && (
+        <DeferredAppIntelligence onCoachState={setAdaptiveCoachState} />
+      )}
       <PaymentTestModeBanner />
       <PastDueBanner />
       <main className="flex-1 pb-28">

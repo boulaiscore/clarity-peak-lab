@@ -92,6 +92,15 @@ export interface UserCognitiveMetrics {
   cognitive_readiness_score: number | null;
   physio_component_score: number | null;
   readiness_classification: string | null;
+  // Recovery/readiness state lives on the same row. Keeping it in the shared
+  // user-metrics query prevents Home and its breakdowns from fetching the row
+  // two or three times under different cache keys.
+  rec_value: number | null;
+  rec_last_ts: string | null;
+  has_recovery_baseline: boolean | null;
+  low_rec_streak_days: number | null;
+  readiness_decay_applied: number | null;
+  readiness_decay_week_start: string | null;
   // Baseline fields (from initial assessment)
   baseline_fast_thinking: number | null;
   baseline_slow_thinking: number | null;

@@ -32,7 +32,7 @@
  * - Schedule density: from calendar_context_snapshots (never event content)
  */
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
@@ -53,7 +53,6 @@ import {
   calculateDailyRecoveryTarget,
   getCurrentRecovery,
   resolveRecoveryForMetrics,
-  RecoveryState,
 } from "@/lib/recoveryV2";
 import { format, subDays } from "date-fns";
 import {
@@ -65,6 +64,10 @@ import {
   calculateDigitalAttentionEstimate,
   type DigitalAttentionEstimate,
 } from "@/lib/digitalFragmentation";
+import {
+  usePhoneHealthDailyContext,
+  useWearableDailySnapshot,
+} from "@/hooks/useDailyRecoveryInputs";
 
 // Stale-types shim: these columns were added by migration 20260812183000_digital_fragmentation
 // and will be regenerated in src/integrations/supabase/types.ts on the next schema pull.
@@ -134,84 +137,33 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   const rollingStart = getRollingPeriodStart();
   const today = format(new Date(), "yyyy-MM-dd");
   const passiveHistoryStart = format(subDays(new Date(), 14), "yyyy-MM-dd");
-  
-  const { states, S1, S2, isLoading: statesLoading } = useCognitiveStates();
-  
-  // Fetch Recovery v2 state from user_cognitive_metrics
-  const { data: recoveryV2State, isLoading: recoveryV2Loading } = useQuery({
-    queryKey: ["recovery-v2-state", userId],
-    queryFn: async (): Promise<RecoveryState | null> => {
-      if (!userId) return null;
-      
-      const { data, error } = await supabase
-        .from("user_cognitive_metrics")
-        .select("rec_value, rec_last_ts, has_recovery_baseline")
-        .eq("user_id", userId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("[useTodayMetrics] Error fetching recovery state:", error);
-        return null;
-      }
-      
-      if (!data) return null;
-      
-      return {
-        recValue: data.rec_value as number | null,
-        recLastTs: data.rec_last_ts as string | null,
-        hasRecoveryBaseline: data.has_recovery_baseline ?? false,
-      };
-    },
-    enabled: !!userId,
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-  });
+  const [passiveContextReady, setPassiveContextReady] = useState(false);
 
-  // Use the same daily Recovery target as the action and gating flows.
-  const { data: phoneHealthSnapshot, isLoading: phoneHealthLoading } = useQuery({
-    queryKey: ["phone-health-daily-context", userId, today],
-    queryFn: async () => {
-      if (!userId) return null;
-      const { data, error } = await supabase
-        .from("phone_health_snapshots")
-        .select("target_rec, phi, confidence, sleep_min, updated_at")
-        .eq("user_id", userId)
-        .eq("date", today)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userId,
-    staleTime: 5 * 60_000,
-  });
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setPassiveContextReady(true), 250);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+  
+  const { states, S1, S2, rawMetrics, isLoading: statesLoading } = useCognitiveStates();
+
+  // Recovery and readiness decay live on the already-fetched cognitive row.
+  // Reusing it removes two duplicate Supabase requests from every Home mount.
+  const recoveryV2State = useMemo(() => rawMetrics ? {
+    recValue: rawMetrics.rec_value,
+    recLastTs: rawMetrics.rec_last_ts,
+    hasRecoveryBaseline: rawMetrics.has_recovery_baseline ?? false,
+  } : null, [rawMetrics]);
+
+  const { data: phoneHealthSnapshot, isLoading: phoneHealthLoading } =
+    usePhoneHealthDailyContext(userId, today);
   
   // REMOVED: Old weekly detox/walking minutes queries
   // Recovery is now calculated using the v2.0 continuous decay model
   
-  // Fetch today's wearable snapshot
-  const { data: wearableSnapshot, isLoading: wearableLoading } = useQuery({
-    queryKey: ["wearable-snapshot", userId, today],
-    queryFn: async () => {
-      if (!userId) return null;
-      
-      const { data, error } = await supabase
-        .from("wearable_daily_canonical")
-        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
-        .eq("user_id", userId)
-        .eq("date", today)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userId,
-    staleTime: 5 * 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
+  const { data: wearableSnapshot, isLoading: wearableLoading } =
+    useWearableDailySnapshot(userId, today);
 
-  const { data: passiveContext, isLoading: passiveContextLoading } = useQuery({
+  const { data: passiveContext } = useQuery({
     queryKey: ["today-passive-context", userId, passiveHistoryStart],
     queryFn: async () => {
       if (!userId) return { deviceRows: [], calendarRows: [] };
@@ -244,46 +196,20 @@ export function useTodayMetrics(): UseTodayMetricsResult {
         calendarRows: calendarResult.data ?? [],
       };
     },
-    enabled: !!userId,
+    enabled: !!userId && passiveContextReady,
     staleTime: 5 * 60_000,
-    refetchOnWindowFocus: true,
-  });
-  
-  // Fetch readiness decay tracking data
-  // NOTE: Using type cast because these columns are new and types.ts may not be updated yet
-  const { data: decayData, isLoading: decayLoading } = useQuery({
-    queryKey: ["readiness-decay-tracking", userId, rollingStart],
-    queryFn: async () => {
-      if (!userId) return null;
-      
-      const { data, error } = await supabase
-        .from("user_cognitive_metrics")
-        .select(`
-          low_rec_streak_days,
-          readiness_decay_applied,
-          readiness_decay_week_start
-        `)
-        .eq("user_id", userId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      
-      // Cast to expected shape
-      return data as {
-        low_rec_streak_days: number | null;
-        readiness_decay_applied: number | null;
-        readiness_decay_week_start: string | null;
-      } | null;
-    },
-    enabled: !!userId,
-    staleTime: 60_000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
   });
-  
-  // Check if all data sources are loaded
-  const allLoaded = !statesLoading && !recoveryV2Loading && !phoneHealthLoading &&
-    !wearableLoading && !passiveContextLoading && !decayLoading;
+
+  const decayData = rawMetrics ? {
+    low_rec_streak_days: rawMetrics.low_rec_streak_days,
+    readiness_decay_applied: rawMetrics.readiness_decay_applied,
+    readiness_decay_week_start: rawMetrics.readiness_decay_week_start,
+  } : null;
+
+  // Primary metrics render from their core inputs immediately. Device and
+  // calendar history enrich them progressively instead of blocking the screen.
+  const allLoaded = !statesLoading && !phoneHealthLoading && !wearableLoading;
   
   // Use ref to cache last valid result (prevents flicker during refetch)
   const cachedResultRef = useRef<UseTodayMetricsResult | null>(null);

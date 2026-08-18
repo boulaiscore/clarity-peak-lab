@@ -1,5 +1,4 @@
-import CognitiveReport from "@/pages/app/CognitiveReport";
-import ReportPreview from "@/pages/app/ReportPreview";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,72 +7,77 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "@/contexts/SessionContext";
-import { useAutoSeedExercises } from "@/hooks/useAutoSeedExercises";
-import { useNotificationInit } from "@/hooks/useNotificationInit";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
-import { usePhoneHealthSync } from "@/hooks/usePhoneHealthSync";
-import { useWearableSync } from "@/hooks/useWearableSync";
-import { useDirectWearableAutoSync } from "@/hooks/useDirectWearableAutoSync";
-import { useDeviceUsageSync } from "@/hooks/useDeviceUsageSync";
-import { useCalendarContextSync } from "@/hooks/useCalendarContextSync";
-import Auth from "./pages/Auth";
-import Onboarding from "./pages/Onboarding";
-import Home from "./pages/app/Home";
-import Dashboard from "./pages/app/Dashboard";
-import Protocol from "./pages/app/Protocol";
-
-import Premium from "./pages/app/Premium";
-import ProfilePage from "./pages/app/ProfilePage";
-import SettingsPage from "./pages/app/SettingsPage";
-import SubscriptionPage from "./pages/app/SubscriptionPage";
-import PaywallPage from "./pages/app/PaywallPage";
-import PremiumOnboarding from "./pages/app/PremiumOnboarding";
-import TrainingsList from "./pages/app/TrainingsList";
-import TrainingRunner from "./pages/app/TrainingRunner";
-import DynamicTrainingRunner from "./pages/app/DynamicTrainingRunner";
-import InstallPage from "./pages/app/Install";
-import NeuroLab from "./pages/app/NeuroLab";
-import Wearable from "./pages/app/Wearable";
-import NeuroLabArea from "./pages/app/NeuroLabArea";
-import NeuroLabSessionRunner from "./pages/app/NeuroLabSessionRunner";
-import OrbitLockRunner from "./pages/app/OrbitLockRunner";
-import FocusSwitchRunner from "./pages/app/FocusSwitchRunner";
-import ConstellationSnapRunner from "./pages/app/ConstellationSnapRunner";
-import SemanticDriftRunner from "./pages/app/SemanticDriftRunner";
-import CausalLedgerRunner from "./pages/app/CausalLedgerRunner";
-import CounterfactualAuditRunner from "./pages/app/CounterfactualAuditRunner";
-import SocraticCrossExamRunner from "./pages/app/SocraticCrossExamRunner";
-import SignalVsNoiseRunner from "./pages/app/SignalVsNoiseRunner";
-import HiddenRuleLabRunner from "./pages/app/HiddenRuleLabRunner";
-import NeuralResetRunner from "./pages/app/NeuralResetRunner";
-import RechargingRunner from "./pages/app/RechargingRunner";
-import DetoxSessionRunner from "./pages/app/DetoxSessionRunner";
-import DailySession from "./pages/app/DailySession";
-import NotFound from "./pages/NotFound";
-import QuickBaselineCalibration from "./pages/app/QuickBaselineCalibration";
-import ReasoningQualityImpact from "./pages/app/ReasoningQualityImpact";
-import RecoveryBreakdown from "./pages/app/RecoveryBreakdown";
-import AdaptiveCoach from "./pages/app/AdaptiveCoach";
-
-// Admin pages
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminUserDetail from "./pages/admin/AdminUserDetail";
-import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import { AdminRoute } from "./components/admin/AdminRoute";
 
 import { queryClient } from "@/lib/queryClient";
 
+// Route-level splitting keeps game runners, reports and admin tools out of the
+// Home startup bundle. Native builds still load these chunks locally on demand.
+const Auth = lazy(() => import("./pages/Auth"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Home = lazy(() => import("./pages/app/Home"));
+const Dashboard = lazy(() => import("./pages/app/Dashboard"));
+const Protocol = lazy(() => import("./pages/app/Protocol"));
+const CognitiveReport = lazy(() => import("./pages/app/CognitiveReport"));
+const ReportPreview = lazy(() => import("./pages/app/ReportPreview"));
+const Premium = lazy(() => import("./pages/app/Premium"));
+const ProfilePage = lazy(() => import("./pages/app/ProfilePage"));
+const SettingsPage = lazy(() => import("./pages/app/SettingsPage"));
+const SubscriptionPage = lazy(() => import("./pages/app/SubscriptionPage"));
+const PaywallPage = lazy(() => import("./pages/app/PaywallPage"));
+const PremiumOnboarding = lazy(() => import("./pages/app/PremiumOnboarding"));
+const TrainingsList = lazy(() => import("./pages/app/TrainingsList"));
+const TrainingRunner = lazy(() => import("./pages/app/TrainingRunner"));
+const DynamicTrainingRunner = lazy(() => import("./pages/app/DynamicTrainingRunner"));
+const InstallPage = lazy(() => import("./pages/app/Install"));
+const NeuroLab = lazy(() => import("./pages/app/NeuroLab"));
+const Wearable = lazy(() => import("./pages/app/Wearable"));
+const NeuroLabArea = lazy(() => import("./pages/app/NeuroLabArea"));
+const NeuroLabSessionRunner = lazy(() => import("./pages/app/NeuroLabSessionRunner"));
+const OrbitLockRunner = lazy(() => import("./pages/app/OrbitLockRunner"));
+const FocusSwitchRunner = lazy(() => import("./pages/app/FocusSwitchRunner"));
+const ConstellationSnapRunner = lazy(() => import("./pages/app/ConstellationSnapRunner"));
+const SemanticDriftRunner = lazy(() => import("./pages/app/SemanticDriftRunner"));
+const CausalLedgerRunner = lazy(() => import("./pages/app/CausalLedgerRunner"));
+const CounterfactualAuditRunner = lazy(() => import("./pages/app/CounterfactualAuditRunner"));
+const SocraticCrossExamRunner = lazy(() => import("./pages/app/SocraticCrossExamRunner"));
+const SignalVsNoiseRunner = lazy(() => import("./pages/app/SignalVsNoiseRunner"));
+const HiddenRuleLabRunner = lazy(() => import("./pages/app/HiddenRuleLabRunner"));
+const NeuralResetRunner = lazy(() => import("./pages/app/NeuralResetRunner"));
+const RechargingRunner = lazy(() => import("./pages/app/RechargingRunner"));
+const DetoxSessionRunner = lazy(() => import("./pages/app/DetoxSessionRunner"));
+const DailySession = lazy(() => import("./pages/app/DailySession"));
+const QuickBaselineCalibration = lazy(() => import("./pages/app/QuickBaselineCalibration"));
+const ReasoningQualityImpact = lazy(() => import("./pages/app/ReasoningQualityImpact"));
+const RecoveryBreakdown = lazy(() => import("./pages/app/RecoveryBreakdown"));
+const AdaptiveCoach = lazy(() => import("./pages/app/AdaptiveCoach"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminUserDetail = lazy(() => import("./pages/admin/AdminUserDetail"));
+const AdminSubscriptions = lazy(() => import("./pages/admin/AdminSubscriptions"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const DeferredSyncServices = lazy(() => import("./components/app/DeferredSyncServices"));
+
 // Component that handles auto-seeding and notification initialization (outside Router)
 function AppInitProvider({ children }: { children: React.ReactNode }) {
-  useAutoSeedExercises();
-  useNotificationInit();
-  usePhoneHealthSync();
-  useWearableSync();
-  useDirectWearableAutoSync();
-  useDeviceUsageSync();
-  useCalendarContextSync();
-  return <>{children}</>;
+  const [syncServicesReady, setSyncServicesReady] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setSyncServicesReady(true), 700);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  return (
+    <>
+      {children}
+      {syncServicesReady && (
+        <Suspense fallback={null}>
+          <DeferredSyncServices />
+        </Suspense>
+      )}
+    </>
+  );
 }
 
 // Component that handles deep links (inside Router)
@@ -136,6 +140,14 @@ function EntryRedirect() {
 
   if (!user) return <Navigate to="/auth" replace />;
   return <Navigate to={user.onboardingCompleted ? "/app" : "/onboarding"} replace />;
+}
+
+function RouteFallback() {
+  return (
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center">
+      <div className="h-6 w-6 rounded-full border border-foreground/20 border-t-foreground/80 animate-spin" />
+    </div>
+  );
 }
 
 function AppRoutes() {
@@ -471,7 +483,9 @@ const App = () => {
                 <HashRouter>
                   <ScrollToTop />
                   <DeepLinkHandler>
-                    <AppRoutes />
+                    <Suspense fallback={<RouteFallback />}>
+                      <AppRoutes />
+                    </Suspense>
                   </DeepLinkHandler>
                 </HashRouter>
               </TooltipProvider>

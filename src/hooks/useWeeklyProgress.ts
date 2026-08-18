@@ -119,8 +119,9 @@ export function useWeeklyProgress() {
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    // Re-entering tabs/routes must refresh if server data changed
-    refetchOnMount: "always",
+    // Completion mutations explicitly invalidate this key; route changes can
+    // reuse the warm result instead of issuing another request.
+    refetchOnMount: false,
     placeholderData: (prev) =>
       prev ??
       (userId
@@ -249,8 +250,8 @@ export function useWeeklyProgress() {
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    // Re-entering tabs/routes must refresh if server data changed
-    refetchOnMount: "always",
+    // Completion mutations explicitly invalidate this key.
+    refetchOnMount: false,
     placeholderData: (prev) => prev ?? { totalXP: 0, gamesXP: 0, contentXP: 0, completions: [] },
   });
 

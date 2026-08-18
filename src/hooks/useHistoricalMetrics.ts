@@ -29,9 +29,10 @@ export interface HistoricalMetrics {
 
 interface UseHistoricalMetricsOptions {
   date: string; // Format: yyyy-MM-dd
+  enabled?: boolean;
 }
 
-export function useHistoricalMetrics({ date }: UseHistoricalMetricsOptions) {
+export function useHistoricalMetrics({ date, enabled = true }: UseHistoricalMetricsOptions) {
   const { user } = useAuth();
 
   const { data, isLoading, error } = useQuery({
@@ -63,7 +64,7 @@ export function useHistoricalMetrics({ date }: UseHistoricalMetricsOptions) {
         inScore: snapshot.in_score != null ? Number(snapshot.in_score) : null,
       };
     },
-    enabled: !!user?.id && !!date,
+    enabled: enabled && !!user?.id && !!date,
     staleTime: 5 * 60_000,
   });
 

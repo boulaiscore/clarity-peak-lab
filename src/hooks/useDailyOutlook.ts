@@ -25,6 +25,7 @@ interface DailyOutlookHookInput {
   activeSourceCount: number;
   passiveFeatures: PassiveFeaturePayload | null;
   isLoading: boolean;
+  personalizationPending?: boolean;
 }
 
 interface GeneratedCopy {
@@ -291,6 +292,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
       subscription.isPro &&
       !subscription.loading &&
       !input.isLoading &&
+      !input.personalizationPending &&
       !personalizationLoading,
     ),
     staleTime: 24 * 60 * 60_000,
@@ -346,13 +348,13 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
       }
       return record(data);
     },
-    enabled: Boolean(user?.id && !input.isLoading),
+    enabled: Boolean(user?.id && !input.isLoading && !input.personalizationPending),
     staleTime: 60_000,
     retry: false,
   });
 
   useEffect(() => {
-    if (!user?.id || input.isLoading || personalizationLoading || subscription.loading) return;
+    if (!user?.id || input.isLoading || input.personalizationPending || personalizationLoading || subscription.loading) return;
     void persistOutlook().then((persisted) => {
       if (persisted) void queryClient.invalidateQueries({ queryKey: ["daily-outlook-record", user.id] });
     });
@@ -370,6 +372,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
   }, [
     copySource,
     input.isLoading,
+    input.personalizationPending,
     outlook.action.key,
     outlook.confidence,
     outlook.policyVersion,
@@ -417,7 +420,9 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     outlook,
     copySource,
     coachName: displayFirstName(user?.name, user?.email),
-    isLoading: input.isLoading || subscription.loading || personalizationLoading,
+    // The deterministic briefing is already valid from today's core metrics.
+    // Personal rhythm and coach history enhance it in place when ready.
+    isLoading: input.isLoading || subscription.loading,
     isGeneratingCopy: generatedCopyQuery.isLoading,
     markOpened,
     activateAction,

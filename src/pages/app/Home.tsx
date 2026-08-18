@@ -190,7 +190,8 @@ const Home = () => {
     metrics: historicalMetrics,
     isLoading: historicalLoading
   } = useHistoricalMetrics({
-    date: selectedDate
+    date: selectedDate,
+    enabled: !isViewingToday,
   });
 
   // Yesterday's metrics for delta calculation
@@ -374,7 +375,8 @@ const Home = () => {
               signalCoverage={signalCoverage}
               activeSourceCount={activeSourceCount}
               passiveFeatures={passiveFeatures}
-              isLoading={isDisplayLoading || passiveLoading}
+              isLoading={isDisplayLoading}
+              personalizationPending={passiveLoading}
             />
             <TodayActivitiesCard
               activeQualityTime={

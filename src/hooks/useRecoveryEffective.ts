@@ -31,11 +31,15 @@ import {
   calculateCurrentRecoveryBreakdown,
   calculateDailyRecoveryTargetBreakdown,
   hasValidRecoveryData,
-  RecoveryState,
 } from "@/lib/recoveryV2";
 import { calculatePhysioEstimate } from "@/lib/cognitiveEngine";
 import { getMediumPeriodStart } from "@/lib/temporalWindows";
 import { format } from "date-fns";
+import { useUserMetrics } from "@/hooks/useExercises";
+import {
+  usePhoneHealthDailyContext,
+  useWearableDailySnapshot,
+} from "@/hooks/useDailyRecoveryInputs";
 
 export interface UseRecoveryEffectiveResult {
   /** The effective recovery value for gating (0-100) */
@@ -92,85 +96,18 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   const userId = user?.id ?? session?.user?.id;
   const hasUser = !!userId;
   
-  // Fetch Recovery v2 state from user_cognitive_metrics
-  const { data: v2State, isLoading: v2Loading } = useQuery({
-    queryKey: ["recovery-v2-state", userId],
-    queryFn: async (): Promise<RecoveryState | null> => {
-      if (!userId) return null;
-      
-      const { data, error } = await supabase
-        .from("user_cognitive_metrics")
-        .select("rec_value, rec_last_ts, has_recovery_baseline")
-        .eq("user_id", userId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("[useRecoveryEffective] Error fetching v2 state:", error);
-        return null;
-      }
-      
-      if (!data) return null;
-      
-      return {
-        recValue: data.rec_value as number | null,
-        recLastTs: data.rec_last_ts as string | null,
-        hasRecoveryBaseline: data.has_recovery_baseline ?? false,
-      };
-    },
-    enabled: hasUser,
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-  });
+  const { data: rawMetrics, isLoading: v2Loading } = useUserMetrics(userId);
+  const v2State = useMemo(() => rawMetrics ? {
+    recValue: rawMetrics.rec_value,
+    recLastTs: rawMetrics.rec_last_ts,
+    hasRecoveryBaseline: rawMetrics.has_recovery_baseline ?? false,
+  } : null, [rawMetrics]);
 
   const today = format(new Date(), "yyyy-MM-dd");
-  const { data: phoneHealthTarget, isLoading: phoneTargetLoading } = useQuery({
-    queryKey: ["phone-health-target", userId, today],
-    queryFn: async (): Promise<{
-      targetRec: number | null;
-      sleepMin: number | null;
-      confidence: number;
-      availableSources: string[];
-      updatedAt: string | null;
-      source: string | null;
-    } | null> => {
-      if (!userId) return null;
-      const { data, error } = await supabase
-        .from("phone_health_snapshots")
-        .select("target_rec, sleep_min, confidence, available_sources, updated_at, source")
-        .eq("user_id", userId)
-        .eq("date", today)
-        .maybeSingle();
-      if (error) throw error;
-      return data ? {
-        targetRec: data.target_rec ?? null,
-        sleepMin: data.sleep_min ?? null,
-        confidence: data.confidence ?? 0,
-        availableSources: data.available_sources ?? [],
-        updatedAt: data.updated_at ?? null,
-        source: data.source ?? null,
-      } : null;
-    },
-    enabled: hasUser,
-    staleTime: 5 * 60_000,
-  });
-
-  const { data: wearableSnapshot, isLoading: wearableLoading } = useQuery({
-    queryKey: ["wearable-snapshot", userId, today],
-    queryFn: async () => {
-      if (!userId) return null;
-      const { data, error } = await supabase
-        .from("wearable_daily_canonical")
-        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at, source")
-        .eq("user_id", userId)
-        .eq("date", today)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: hasUser,
-    staleTime: 5 * 60_000,
-  });
+  const { data: phoneHealthTarget, isLoading: phoneTargetLoading } =
+    usePhoneHealthDailyContext(userId, today);
+  const { data: wearableSnapshot, isLoading: wearableLoading } =
+    useWearableDailySnapshot(userId, today);
 
   const wearablePhysioEstimate = useMemo(() => wearableSnapshot ? calculatePhysioEstimate({
       hrvMs: wearableSnapshot.hrv_ms,
@@ -178,17 +115,17 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       sleepDurationMin: wearableSnapshot.sleep_duration_min,
       sleepEfficiency: wearableSnapshot.sleep_efficiency,
     }, {
-      includeSleepDuration: phoneHealthTarget?.sleepMin == null,
-    }) : null, [phoneHealthTarget?.sleepMin, wearableSnapshot]);
+      includeSleepDuration: phoneHealthTarget?.sleep_min == null,
+    }) : null, [phoneHealthTarget?.sleep_min, wearableSnapshot]);
   const recoveryTargetBreakdown = useMemo(() => calculateDailyRecoveryTargetBreakdown(
-    phoneHealthTarget?.targetRec,
+    phoneHealthTarget?.target_rec,
     wearablePhysioEstimate,
   ), [phoneHealthTarget, wearablePhysioEstimate]);
   const combinedRecoveryTarget = recoveryTargetBreakdown.combinedTarget;
-  const hasPassiveRecoveryTarget = phoneHealthTarget?.targetRec != null || wearablePhysioEstimate !== null;
+  const hasPassiveRecoveryTarget = phoneHealthTarget?.target_rec != null || wearablePhysioEstimate !== null;
   
   // Fetch weekly breakdown for UI display (v2.0: still useful for breakdown)
-  const { data: weeklyData, isLoading: weeklyLoading } = useQuery({
+  const { data: weeklyData } = useQuery({
     queryKey: ["weekly-recovery-breakdown", userId],
     queryFn: async () => {
       if (!userId) return { detoxMinutes: 0, walkMinutes: 0 };
@@ -230,7 +167,9 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   // IMPORTANT: when userId is not resolved yet, React Query marks queries as not loading
   // (because they're disabled). We still want the UI to stay in a loading state instead
   // of falling back to 0%.
-  const isLoading = !hasUser || v2Loading || phoneTargetLoading || wearableLoading || weeklyLoading;
+  // Weekly action totals are supporting detail and must not hold the score or
+  // breakdown header behind a loading state.
+  const isLoading = !hasUser || v2Loading || phoneTargetLoading || wearableLoading;
   const weeklyDetoxMinutes = weeklyData?.detoxMinutes ?? 0;
   const weeklyWalkMinutes = weeklyData?.walkMinutes ?? 0;
   
@@ -263,8 +202,8 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         recoveryTarget: combinedRecoveryTarget,
         phoneHealthTarget: recoveryTargetBreakdown.phoneHealthTarget,
         phoneHealthConfidence: phoneHealthTarget?.confidence ?? 0,
-        phoneHealthAvailableSources: phoneHealthTarget?.availableSources ?? [],
-        phoneHealthUpdatedAt: phoneHealthTarget?.updatedAt ?? null,
+        phoneHealthAvailableSources: phoneHealthTarget?.available_sources ?? [],
+        phoneHealthUpdatedAt: phoneHealthTarget?.updated_at ?? null,
         phoneHealthSource: phoneHealthTarget?.source ?? null,
         wearableRawScore: recoveryTargetBreakdown.wearableRawScore,
         wearableTarget: recoveryTargetBreakdown.wearableTarget,
@@ -293,8 +232,8 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
         recoveryTarget: combinedRecoveryTarget,
         phoneHealthTarget: recoveryTargetBreakdown.phoneHealthTarget,
         phoneHealthConfidence: phoneHealthTarget?.confidence ?? 0,
-        phoneHealthAvailableSources: phoneHealthTarget?.availableSources ?? [],
-        phoneHealthUpdatedAt: phoneHealthTarget?.updatedAt ?? null,
+        phoneHealthAvailableSources: phoneHealthTarget?.available_sources ?? [],
+        phoneHealthUpdatedAt: phoneHealthTarget?.updated_at ?? null,
         phoneHealthSource: phoneHealthTarget?.source ?? null,
         wearableRawScore: recoveryTargetBreakdown.wearableRawScore,
         wearableTarget: recoveryTargetBreakdown.wearableTarget,
@@ -322,8 +261,8 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
       recoveryTarget: combinedRecoveryTarget,
       phoneHealthTarget: recoveryTargetBreakdown.phoneHealthTarget,
       phoneHealthConfidence: phoneHealthTarget?.confidence ?? 0,
-      phoneHealthAvailableSources: phoneHealthTarget?.availableSources ?? [],
-      phoneHealthUpdatedAt: phoneHealthTarget?.updatedAt ?? null,
+      phoneHealthAvailableSources: phoneHealthTarget?.available_sources ?? [],
+      phoneHealthUpdatedAt: phoneHealthTarget?.updated_at ?? null,
       phoneHealthSource: phoneHealthTarget?.source ?? null,
       wearableRawScore: recoveryTargetBreakdown.wearableRawScore,
       wearableTarget: recoveryTargetBreakdown.wearableTarget,
