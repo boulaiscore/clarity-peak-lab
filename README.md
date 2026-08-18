@@ -53,6 +53,14 @@ npm run build
 - Paddle web checkout
 - Capacitor and PWA support
 
+## Android release signing
+
+Release bundles are signed with the local LOOMA upload key. Gradle deliberately
+fails any release task when `android/keystore.properties` or its referenced
+keystore is missing. Both files are excluded from Git and must be restored from
+the secure project backup before building a Play Store update. Do not generate
+a different key after Google Play has registered the current upload certificate.
+
 ## Key routes
 
 - `/#/` — authentication/onboarding-aware entry redirect

@@ -13,6 +13,11 @@ dist-ssr
 *.local
 releases/*.aab
 
+# Android upload signing credentials (local only; never commit)
+android/keystore.properties
+android/signing/*.jks
+android/signing/*.keystore
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
