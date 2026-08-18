@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Home, LayoutDashboard, Activity, Menu, X, User, Settings, CreditCard, LogOut } from "lucide-react";
@@ -52,6 +53,7 @@ function DeferredAppIntelligence({
 }
 
 export function AppShell({ children }: AppShellProps) {
+  const isNativeApp = Capacitor.isNativePlatform();
   const location = useLocation();
   const { permission, checkReminders } = useNotifications();
   const { logout } = useAuth();
@@ -101,12 +103,16 @@ export function AppShell({ children }: AppShellProps) {
   }, [permission, checkReminders]);
 
   return (
-    <div className="app-safe-frame min-h-[100dvh] flex flex-col">
+    <div className="app-safe-frame min-h-[100dvh] flex flex-col bg-background">
       {backgroundReady && (
         <DeferredAppIntelligence onCoachState={setAdaptiveCoachState} />
       )}
-      <PaymentTestModeBanner />
-      <PastDueBanner />
+      {!isNativeApp && (
+        <>
+          <PaymentTestModeBanner />
+          <PastDueBanner />
+        </>
+      )}
       <main className="flex-1 pb-28">
         {typeof children === "function" ? children(adaptiveCoachState) : children}
       </main>
