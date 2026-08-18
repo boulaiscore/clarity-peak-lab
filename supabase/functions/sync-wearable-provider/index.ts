@@ -69,7 +69,6 @@ serve(async (req) => {
           sleep_duration_min: day.sleepDurationMin,
           sleep_efficiency: day.sleepEfficiency,
           activity_score: day.activityScore,
-          raw_json: day.rawJson,
           updated_at: new Date().toISOString(),
         })),
         { onConflict: "user_id,date,source" },
@@ -101,4 +100,3 @@ serve(async (req) => {
     });
   }
 });
-

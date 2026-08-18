@@ -32,6 +32,7 @@ import {
   type HRVRecord,
   type RHRRecord,
 } from "@/lib/capacitor/health";
+import { recordHealthPermissionEvent } from "@/lib/dataLineage";
 
 // ============================================================================
 // Constants
@@ -213,6 +214,19 @@ export function useWearableSync() {
     if (permissions) {
       const isConnected = applyPermissionState(permissions);
 
+      if (user?.id) {
+        const source = getPlatform() === "ios" ? "healthkit" : "health_connect";
+        void recordHealthPermissionEvent({
+          userId: user.id,
+          source,
+          permissions,
+        }).catch((error) => {
+          // Permission state remains authoritative on-device. An audit write
+          // must never make a successful native connection appear to fail.
+          console.warn("[WearableSync] Permission audit unavailable:", error);
+        });
+      }
+
       if (isConnected) {
         window.dispatchEvent(new Event("looma:health-permissions-changed"));
       }
@@ -223,7 +237,7 @@ export function useWearableSync() {
     // Defensive fallback for older native bundles that do not yet return the
     // permission payload. A lifecycle refresh will also run on app resume.
     return refreshConnection();
-  }, [state.isAvailable, applyPermissionState, refreshConnection]);
+  }, [state.isAvailable, applyPermissionState, refreshConnection, user?.id]);
 
   // -------------------------------------------------------------------------
   // Sync data from wearable

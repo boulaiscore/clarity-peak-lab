@@ -48,14 +48,17 @@ create table if not exists public.team_waitlist (
 
 alter table public.team_waitlist enable row level security;
 
+drop policy if exists "Users can join team waitlist" on public.team_waitlist;
 create policy "Users can join team waitlist"
   on public.team_waitlist for insert
   with check (auth.uid() = user_id or user_id is null);
 
+drop policy if exists "Users can view own team waitlist entry" on public.team_waitlist;
 create policy "Users can view own team waitlist entry"
   on public.team_waitlist for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can update own team waitlist entry" on public.team_waitlist;
 create policy "Users can update own team waitlist entry"
   on public.team_waitlist for update
   using (auth.uid() = user_id)

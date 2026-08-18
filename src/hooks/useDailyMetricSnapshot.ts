@@ -18,6 +18,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import type { Json } from "@/integrations/supabase/types";
+import { CANONICAL_METRIC_FORMULA_VERSION } from "@/lib/dataLineage";
 
 interface DailyMetricSnapshotInput {
   readiness: number | null;
@@ -30,6 +32,10 @@ interface DailyMetricSnapshotInput {
   ra?: number | null;
   ct?: number | null;
   inScore?: number | null;
+  signalCoverage?: number | null;
+  confidence?: number | null;
+  sourceFreshness?: Json;
+  timezone?: string | null;
 }
 
 function getUserLocalDate(): string {
@@ -86,6 +92,11 @@ export function useDailyMetricSnapshot() {
             ra: input.ra ?? null,
             ct: input.ct ?? null,
             in_score: input.inScore ?? null,
+            formula_version: CANONICAL_METRIC_FORMULA_VERSION,
+            signal_coverage: input.signalCoverage ?? null,
+            confidence: input.confidence ?? null,
+            source_freshness: input.sourceFreshness ?? {},
+            timezone: input.timezone ?? null,
           },
           {
             onConflict: "user_id,snapshot_date",

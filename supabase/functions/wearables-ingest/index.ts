@@ -14,7 +14,6 @@ interface WearableIngestPayload {
   sleepDurationMin?: number | null;
   sleepEfficiency?: number | null;
   activityScore?: number | null;
-  rawJson?: Record<string, unknown> | null;
 }
 
 serve(async (req) => {
@@ -52,7 +51,11 @@ serve(async (req) => {
 
     // Parse request body
     const payload: WearableIngestPayload = await req.json();
-    console.log("Received wearable data:", { userId: user.id, payload });
+    console.log("Received normalized wearable data:", {
+      userId: user.id,
+      date: payload.date,
+      source: payload.source,
+    });
 
     // Validate required fields
     if (!payload.date || !payload.source) {
@@ -75,7 +78,6 @@ serve(async (req) => {
           sleep_duration_min: payload.sleepDurationMin ?? null,
           sleep_efficiency: payload.sleepEfficiency ?? null,
           activity_score: payload.activityScore ?? null,
-          raw_json: payload.rawJson ?? null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id,date,source" }

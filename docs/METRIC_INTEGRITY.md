@@ -99,6 +99,15 @@ Cognitive Age.
 - Live values come from `useTodayMetrics`, `useReasoningQuality`,
   `useCognitiveNetworkScore`, and `useCognitiveAge`.
 - Daily values are upserted to `daily_metric_snapshots` by local user date.
+- Every changed daily value and persistent AE/RA/CT/IN/REC/RQ state is also
+  appended to `metric_estimates` with formula version, calculation ID,
+  timestamp, coverage and source lineage. Mutable snapshots are projections;
+  they are not the historical source of truth.
+- Health, wearable, aggregate digital, aggregate calendar and adaptive-feature
+  upserts append privacy-safe revisions to `canonical_observation_revisions`.
+  Provider-native raw payloads are not copied or accepted in new writes.
+- Explicit Health/Health Connect and direct-provider permission changes append
+  to `data_consent_events`; revocation is a new event, never an overwritten flag.
 - On Android, watches and rings feed LOOMA through their companion app and
   Health Connect; on iOS the equivalent hub is Apple Health. A granted system
   permission is distinct from a successfully stored daily cloud snapshot, and

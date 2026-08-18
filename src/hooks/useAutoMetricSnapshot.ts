@@ -32,6 +32,10 @@ export function useAutoMetricSnapshot() {
     RA,
     CT,
     IN,
+    signalCoverage,
+    signalCoverageLevel,
+    signalUpdatedAt,
+    signalSources,
     isLoading: metricsLoading 
   } = useTodayMetrics();
   
@@ -89,6 +93,18 @@ export function useAutoMetricSnapshot() {
       ra: RA,
       ct: CT,
       inScore: IN,
+      signalCoverage,
+      sourceFreshness: {
+        coverage_level: signalCoverageLevel,
+        latest_observed_at: signalUpdatedAt,
+        sources: signalSources.map((source) => ({
+          source: source.id,
+          status: source.status,
+          confidence: source.confidence,
+          updated_at: source.updatedAt,
+        })),
+      },
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
     }).then(() => {
       // Record an intraday event so 1d trend charts reflect decay/metric changes on app open
       recordMetricsSnapshot('app_open', { trigger: 'auto_snapshot' }, 500);
@@ -117,6 +133,10 @@ export function useAutoMetricSnapshot() {
     RA,
     CT,
     IN,
+    signalCoverage,
+    signalCoverageLevel,
+    signalUpdatedAt,
+    signalSources,
     todaySnapshot,
     saveSnapshot,
     persistRQ,
