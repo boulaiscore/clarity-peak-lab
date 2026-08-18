@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:native": "LOOMA_NATIVE_BUILD=1 vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "test:metrics": "node scripts/run-metric-formula-tests.mjs",
@@ -14,9 +15,9 @@
     "test:subscriptions": "node scripts/run-subscription-entitlement-tests.mjs",
     "test:outlook": "node scripts/run-daily-outlook-tests.mjs",
     "preview": "vite preview",
-    "cap:sync": "npm run build && npx cap sync",
-    "cap:ios": "npm run build && npx cap sync ios && npx cap open ios",
-    "cap:android": "npm run build && npx cap sync android && npx cap open android"
+    "cap:sync": "npm run build:native && npx cap sync",
+    "cap:ios": "npm run build:native && npx cap sync ios && npx cap open ios",
+    "cap:android": "npm run build:native && npx cap sync android && npx cap open android"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",

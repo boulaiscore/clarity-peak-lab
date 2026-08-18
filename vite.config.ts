@@ -5,7 +5,10 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  const isNativeBuild = process.env.LOOMA_NATIVE_BUILD === "1";
+
+  return ({
   server: {
     host: "::",
     port: 8080,
@@ -14,7 +17,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    VitePWA({
+    !isNativeBuild && VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "icon-192.png", "icon-512.png", "sw-custom.js"],
       manifest: {
@@ -89,4 +92,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-}));
+  });
+});
