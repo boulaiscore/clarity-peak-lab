@@ -405,9 +405,11 @@ export type Database = {
       daily_metric_snapshots: {
         Row: {
           ae: number | null
+          confidence: number | null
           created_at: string
           ct: number | null
           did_training: boolean | null
+          formula_version: string | null
           id: string
           in_score: number | null
           ra: number | null
@@ -417,14 +419,19 @@ export type Database = {
           s1: number | null
           s2: number | null
           sharpness: number | null
+          signal_coverage: number | null
           snapshot_date: string
+          source_freshness: Json | null
+          timezone: string | null
           user_id: string
         }
         Insert: {
           ae?: number | null
+          confidence?: number | null
           created_at?: string
           ct?: number | null
           did_training?: boolean | null
+          formula_version?: string | null
           id?: string
           in_score?: number | null
           ra?: number | null
@@ -434,14 +441,19 @@ export type Database = {
           s1?: number | null
           s2?: number | null
           sharpness?: number | null
+          signal_coverage?: number | null
           snapshot_date: string
+          source_freshness?: Json | null
+          timezone?: string | null
           user_id: string
         }
         Update: {
           ae?: number | null
+          confidence?: number | null
           created_at?: string
           ct?: number | null
           did_training?: boolean | null
+          formula_version?: string | null
           id?: string
           in_score?: number | null
           ra?: number | null
@@ -451,7 +463,10 @@ export type Database = {
           s1?: number | null
           s2?: number | null
           sharpness?: number | null
+          signal_coverage?: number | null
           snapshot_date?: string
+          source_freshness?: Json | null
+          timezone?: string | null
           user_id?: string
         }
         Relationships: []
