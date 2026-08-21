@@ -176,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const cachedUser = useState(() => readCachedUser())[0];
   const [user, setUser] = useState<User | null>(cachedUser);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(cachedUser === null);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
   // Native WebViews can remain suspended for hours. Pause token rotation while
