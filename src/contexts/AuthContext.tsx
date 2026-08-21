@@ -461,6 +461,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // CRITICAL: Clear all cached queries so the next login starts fresh
     queryClient.clear();
     clearPersistedQueryCache();
+    writeCachedUser(null);
   };
 
   const updateUser = async (updates: Partial<User>) => {
