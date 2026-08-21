@@ -21,6 +21,9 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(CalendarContextPlugin.class);
         registerPlugin(AppBlockerPlugin.class);
 
+        // Never allow an OEM/AppCompat title surface above the WebView.
+        getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+
         // Configure the window before BridgeActivity creates the WebView.
         // Applying edge-to-edge after super.onCreate is too late on some
         // Samsung builds and leaves opaque system-bar bands around the app.
@@ -32,6 +35,9 @@ public class MainActivity extends BridgeActivity {
         // final appearance and give the WebView a dark backdrop. Replacing the
         // drawable prevents old splash pixels from surviving in OEM inset gaps.
         getWindow().setBackgroundDrawable(new ColorDrawable(LOOMA_BACKGROUND));
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
         applyLoomaSystemBars();
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().setBackgroundColor(LOOMA_BACKGROUND);

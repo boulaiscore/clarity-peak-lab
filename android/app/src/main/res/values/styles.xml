@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <!--
+      Keep every native surface title-less.  MainActivity is a full-screen
+      Capacitor WebView; a platform ActionBar would otherwise appear as a
+      white strip carrying the application label on some OEM builds.
+    -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowBackground">#0A0B0F</item>
         <item name="android:colorBackground">#0A0B0F</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
@@ -25,24 +26,7 @@
         <item name="android:enforceStatusBarContrast">false</item>
     </style>
 
-
-    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <!-- Never use the legacy full-canvas splash PNG as a window background.
-             On some Samsung devices it remains visible in the inset above the
-             Capacitor WebView and looks like a white banner with a stretched logo. -->
-        <item name="windowSplashScreenBackground">#0A0B0F</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
-        <item name="windowSplashScreenIconBackgroundColor">#0A0B0F</item>
-        <item name="android:windowBackground">#0A0B0F</item>
-        <item name="android:colorBackground">#0A0B0F</item>
-        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
-        <item name="android:enforceStatusBarContrast">false</item>
+    <!-- Kept as a stable alias for native activities and older manifests. -->
+    <style name="AppTheme.NoActionBar" parent="AppTheme">
     </style>
 </resources>
