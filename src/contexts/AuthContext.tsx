@@ -142,10 +142,41 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
   };
 }
 
+// Native cold starts read the Supabase session from the device keystore and
+// then fetch the profile over the network before anything can render. Caching
+// the last resolved user lets the shell paint immediately while that
+// verification happens in the background. Only non-sensitive profile fields
+// are stored here; tokens stay in secure storage.
+const CACHED_USER_KEY = "looma:auth-user:v1";
+
+function readCachedUser(): User | null {
+  try {
+    const raw = window.localStorage.getItem(CACHED_USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as User & { createdAt: string };
+    return { ...parsed, createdAt: new Date(parsed.createdAt) };
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedUser(user: User | null): void {
+  try {
+    if (!user) {
+      window.localStorage.removeItem(CACHED_USER_KEY);
+      return;
+    }
+    window.localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user));
+  } catch {
+    // The cache is only an accelerator; failures must never block auth.
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const cachedUser = useState(() => readCachedUser())[0];
+  const [user, setUser] = useState<User | null>(cachedUser);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(cachedUser === null);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
   // Native WebViews can remain suspended for hours. Pause token rotation while
@@ -282,6 +313,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  // Commit the freshly verified user and refresh the cold-start cache. If the
+  // profile request failed while a cached profile for the same account exists,
+  // keep the cached one so a flaky network cannot bounce the user back into
+  // onboarding.
+  const applyResolvedUser = (supabaseUser: SupabaseUser, profile: UserProfile | null) => {
+    const cached = readCachedUser();
+    if (!profile && cached && cached.id === supabaseUser.id) {
+      setUser(cached);
+      return;
+    }
+    const resolved = mapProfileToUser(supabaseUser, profile);
+    setUser(resolved);
+    writeCachedUser(resolved);
+  };
+
+
+
   useEffect(() => {
     let isMounted = true;
     let initialLoadDone = false;
@@ -302,7 +350,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!isMounted) return;
             const profile = await fetchProfile(newSession.user.id);
             if (!isMounted) return;
-            setUser(mapProfileToUser(newSession.user, profile));
+            applyResolvedUser(newSession.user, profile);
             setProfileLoaded(true);
 
               // Defer to avoid doing more Supabase calls inside auth callback turn.
@@ -314,6 +362,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setUser(null);
+          writeCachedUser(null);
           setProfileLoaded(false);
           setIsLoading(false);
         }
@@ -330,13 +379,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (existingSession?.user) {
         const profile = await fetchProfile(existingSession.user.id);
         if (!isMounted) return;
-        setUser(mapProfileToUser(existingSession.user, profile));
+        applyResolvedUser(existingSession.user, profile);
         setProfileLoaded(true);
 
         // Fire-and-forget baseline bootstrap for Recovery.
         setTimeout(() => {
           ensureRecoveryBaseline(existingSession.user.id, profile);
         }, 0);
+      } else {
+        setUser(null);
+        writeCachedUser(null);
       }
       setIsLoading(false);
     });
@@ -409,6 +461,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // CRITICAL: Clear all cached queries so the next login starts fresh
     queryClient.clear();
     clearPersistedQueryCache();
+    writeCachedUser(null);
   };
 
   const updateUser = async (updates: Partial<User>) => {
@@ -477,11 +530,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Update local state
-    setUser(prev => prev ? {
-      ...prev,
-      ...updates,
-      trainingPlan: DEFAULT_TRAINING_PLAN_ID,
-    } : null);
+    setUser(prev => {
+      const next = prev
+        ? { ...prev, ...updates, trainingPlan: DEFAULT_TRAINING_PLAN_ID }
+        : null;
+      writeCachedUser(next);
+      return next;
+    });
   };
 
   const upgradeToPremium = async () => {
