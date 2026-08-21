@@ -2168,6 +2168,119 @@ export type Database = {
           },
         ]
       }
+      wearable_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          provider: string
+          return_url: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          provider: string
+          return_url: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          provider?: string
+          return_url?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wearable_provider_connections: {
+        Row: {
+          connected_at: string
+          created_at: string
+          is_primary: boolean
+          last_error: string | null
+          last_sync_at: string | null
+          provider: string
+          provider_user_id: string | null
+          scopes: string[]
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string
+          created_at?: string
+          is_primary?: boolean
+          last_error?: string | null
+          last_sync_at?: string | null
+          provider: string
+          provider_user_id?: string | null
+          scopes?: string[]
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_at?: string
+          created_at?: string
+          is_primary?: boolean
+          last_error?: string | null
+          last_sync_at?: string | null
+          provider?: string
+          provider_user_id?: string | null
+          scopes?: string[]
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wearable_provider_tokens: {
+        Row: {
+          access_token_encrypted: string
+          created_at: string
+          expires_at: string | null
+          provider: string
+          refresh_token_encrypted: string | null
+          scopes: string[]
+          token_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          created_at?: string
+          expires_at?: string | null
+          provider: string
+          refresh_token_encrypted?: string | null
+          scopes?: string[]
+          token_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          created_at?: string
+          expires_at?: string | null
+          provider?: string
+          refresh_token_encrypted?: string | null
+          scopes?: string[]
+          token_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wearable_provider_tokens_user_id_provider_fkey"
+            columns: ["user_id", "provider"]
+            isOneToOne: true
+            referencedRelation: "wearable_provider_connections"
+            referencedColumns: ["user_id", "provider"]
+          },
+        ]
+      }
       wearable_snapshots: {
         Row: {
           activity_score: number | null
@@ -2269,6 +2382,20 @@ export type Database = {
           training_plan: string | null
           user_id: string | null
           work_type: string | null
+        }
+        Relationships: []
+      }
+      wearable_daily_canonical: {
+        Row: {
+          activity_score: number | null
+          date: string | null
+          hrv_ms: number | null
+          resting_hr: number | null
+          sleep_duration_min: number | null
+          sleep_efficiency: number | null
+          source: string | null
+          updated_at: string | null
+          user_id: string | null
         }
         Relationships: []
       }
