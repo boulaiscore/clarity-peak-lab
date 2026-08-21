@@ -530,11 +530,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Update local state
-    setUser(prev => prev ? {
-      ...prev,
-      ...updates,
-      trainingPlan: DEFAULT_TRAINING_PLAN_ID,
-    } : null);
+    setUser(prev => {
+      const next = prev
+        ? { ...prev, ...updates, trainingPlan: DEFAULT_TRAINING_PLAN_ID }
+        : null;
+      writeCachedUser(next);
+      return next;
+    });
   };
 
   const upgradeToPremium = async () => {
