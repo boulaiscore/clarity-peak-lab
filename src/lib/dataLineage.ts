@@ -43,12 +43,10 @@ export async function recordHealthPermissionEvent({
     source,
     purpose: "personalized_cognitive_metrics",
     action,
-    scopes: grantedScopes,
+    scopes: grantedScopes as string[],
     policy_version: HEALTH_PERMISSION_POLICY_VERSION,
     actor: "user",
-    metadata: {
-      permission_states: permissions,
-    },
+    metadata: { permission_states: permissions } as never,
   });
 
   if (error) throw error;

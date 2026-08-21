@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -46,9 +46,17 @@ function DeferredAppIntelligence({
   const coachState = useAdaptiveCoachShadowRecorder();
   useAdaptiveFocusShadowRecorder(coachState);
 
+  // The hook returns a new object each render, so publish upward only when the
+  // serialized payload actually changes. Otherwise the parent setState feeds
+  // back into this effect and the app render-loops (frozen UI).
+  const lastPublishedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!coachState.isLoading) onCoachState(coachState);
-  }, [coachState.isLoading, coachState.passiveFeatures, onCoachState]);
+    if (coachState.isLoading) return;
+    const signature = JSON.stringify(coachState.passiveFeatures ?? null);
+    if (lastPublishedRef.current === signature) return;
+    lastPublishedRef.current = signature;
+    onCoachState(coachState);
+  }, [coachState, onCoachState]);
 
   return null;
 }

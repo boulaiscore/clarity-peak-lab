@@ -114,8 +114,8 @@ export function useAutoMetricSnapshot() {
       });
     }).catch((err) => {
       console.error("[useAutoMetricSnapshot] Failed to save snapshot:", err);
-      // Allow retry
-      lastSaveRef.current = 0;
+      // Keep the debounce window so a persistent failure cannot trigger a
+      // render/save loop that freezes the UI. Retry on the next window.
     });
   }, [
     user?.id,

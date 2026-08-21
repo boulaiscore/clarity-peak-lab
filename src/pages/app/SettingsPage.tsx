@@ -224,7 +224,7 @@ const SettingsPage = () => {
     if (!result.success) {
       toast({
         title: enabled ? "App lock not enabled" : "App lock unchanged",
-        description: result.error,
+        description: "error" in result ? result.error : undefined,
         variant: "destructive",
       });
       return;

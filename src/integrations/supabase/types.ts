@@ -457,9 +457,9 @@ export type Database = {
           created_at: string
           ct: number | null
           did_training: boolean | null
+          formula_version: string
           id: string
           in_score: number | null
-          formula_version: string
           ra: number | null
           readiness: number | null
           reasoning_quality: number | null
@@ -480,9 +480,9 @@ export type Database = {
           created_at?: string
           ct?: number | null
           did_training?: boolean | null
+          formula_version?: string
           id?: string
           in_score?: number | null
-          formula_version?: string
           ra?: number | null
           readiness?: number | null
           reasoning_quality?: number | null
@@ -503,9 +503,9 @@ export type Database = {
           created_at?: string
           ct?: number | null
           did_training?: boolean | null
+          formula_version?: string
           id?: string
           in_score?: number | null
-          formula_version?: string
           ra?: number | null
           readiness?: number | null
           reasoning_quality?: number | null
@@ -518,48 +518,6 @@ export type Database = {
           source_freshness?: Json
           timezone?: string | null
           updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      data_consent_events: {
-        Row: {
-          action: string
-          actor: string
-          created_at: string
-          id: string
-          metadata: Json
-          occurred_at: string
-          policy_version: string
-          purpose: string
-          scopes: string[]
-          source: string
-          user_id: string
-        }
-        Insert: {
-          action: string
-          actor?: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          occurred_at?: string
-          policy_version: string
-          purpose: string
-          scopes?: string[]
-          source: string
-          user_id: string
-        }
-        Update: {
-          action?: string
-          actor?: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          occurred_at?: string
-          policy_version?: string
-          purpose?: string
-          scopes?: string[]
-          source?: string
           user_id?: string
         }
         Relationships: []
@@ -719,6 +677,48 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      data_consent_events: {
+        Row: {
+          action: string
+          actor: string
+          created_at: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          policy_version: string
+          purpose: string
+          scopes: string[]
+          source: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          actor?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          policy_version: string
+          purpose: string
+          scopes?: string[]
+          source: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          actor?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          policy_version?: string
+          purpose?: string
+          scopes?: string[]
+          source?: string
           user_id?: string
         }
         Relationships: []
@@ -2315,6 +2315,33 @@ export type Database = {
           },
         ]
       }
+      wearable_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          provider: string
+          return_url: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          provider: string
+          return_url: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          provider?: string
+          return_url?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wearable_provider_connections: {
         Row: {
           connected_at: string
@@ -2356,6 +2383,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wearable_provider_tokens: {
+        Row: {
+          access_token_encrypted: string
+          created_at: string
+          expires_at: string | null
+          provider: string
+          refresh_token_encrypted: string | null
+          scopes: string[]
+          token_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          created_at?: string
+          expires_at?: string | null
+          provider: string
+          refresh_token_encrypted?: string | null
+          scopes?: string[]
+          token_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          created_at?: string
+          expires_at?: string | null
+          provider?: string
+          refresh_token_encrypted?: string | null
+          scopes?: string[]
+          token_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wearable_provider_tokens_user_id_provider_fkey"
+            columns: ["user_id", "provider"]
+            isOneToOne: true
+            referencedRelation: "wearable_provider_connections"
+            referencedColumns: ["user_id", "provider"]
+          },
+        ]
       }
       wearable_snapshots: {
         Row: {
@@ -2434,21 +2505,6 @@ export type Database = {
       }
     }
     Views: {
-      current_data_consents: {
-        Row: {
-          action: string | null
-          actor: string | null
-          id: string | null
-          metadata: Json | null
-          occurred_at: string | null
-          policy_version: string | null
-          purpose: string | null
-          scopes: string[] | null
-          source: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       admin_user_overview: {
         Row: {
           age: number | null
@@ -2473,6 +2529,21 @@ export type Database = {
           training_plan: string | null
           user_id: string | null
           work_type: string | null
+        }
+        Relationships: []
+      }
+      current_data_consents: {
+        Row: {
+          action: string | null
+          actor: string | null
+          id: string | null
+          metadata: Json | null
+          occurred_at: string | null
+          policy_version: string | null
+          purpose: string | null
+          scopes: string[] | null
+          source: string | null
+          user_id: string | null
         }
         Relationships: []
       }
