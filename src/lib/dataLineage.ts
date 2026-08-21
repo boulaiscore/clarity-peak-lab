@@ -48,7 +48,7 @@ export async function recordHealthPermissionEvent({
     actor: "user",
     metadata: {
       permission_states: permissions,
-    },
+    } as unknown as Record<string, unknown>,
   });
 
   if (error) throw error;

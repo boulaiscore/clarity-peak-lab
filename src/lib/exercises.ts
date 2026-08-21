@@ -89,6 +89,7 @@ export interface UserCognitiveMetrics {
   spatial_reasoning: number;
   total_sessions: number;
   cognitive_performance_score: number | null;
+  reasoning_quality: number | null;
   cognitive_readiness_score: number | null;
   physio_component_score: number | null;
   readiness_classification: string | null;

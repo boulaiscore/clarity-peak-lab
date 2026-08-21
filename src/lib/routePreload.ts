@@ -24,8 +24,11 @@ export function preloadPrimaryRoutes(): void {
 
 function schedule(callback: () => void): void {
   if (typeof window === "undefined") return;
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(callback, { timeout: 1_200 });
+  const idle = (window as unknown as {
+    requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => void;
+  }).requestIdleCallback;
+  if (typeof idle === "function") {
+    idle(callback, { timeout: 1_200 });
     return;
   }
   window.setTimeout(callback, 250);

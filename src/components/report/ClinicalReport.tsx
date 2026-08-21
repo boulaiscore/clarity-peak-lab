@@ -102,7 +102,7 @@ interface ClinicalReportProps {
     hasWearableData: boolean;
   };
   wearable?: {
-    created_at: string;
+    created_at?: string;
     hrv_ms?: number | null;
     sleep_efficiency?: number | null;
     sleep_duration_min?: number | null;

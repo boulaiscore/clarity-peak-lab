@@ -42,7 +42,8 @@ export type ProductEventName =
   | "daily_outlook_action_started"
   | "health_permission_prompt_viewed"
   | "health_permission_prompt_connected"
-  | "health_permission_prompt_deferred";
+  | "health_permission_prompt_deferred"
+  | "wearable_device_selected";
 
 type EventProperties = Record<string, string | number | boolean | null>;
 
