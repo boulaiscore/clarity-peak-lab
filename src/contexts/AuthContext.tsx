@@ -362,13 +362,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (existingSession?.user) {
         const profile = await fetchProfile(existingSession.user.id);
         if (!isMounted) return;
-        setUser(mapProfileToUser(existingSession.user, profile));
+        applyResolvedUser(existingSession.user, profile);
         setProfileLoaded(true);
 
         // Fire-and-forget baseline bootstrap for Recovery.
         setTimeout(() => {
           ensureRecoveryBaseline(existingSession.user.id, profile);
         }, 0);
+      } else {
+        setUser(null);
+        writeCachedUser(null);
       }
       setIsLoading(false);
     });
