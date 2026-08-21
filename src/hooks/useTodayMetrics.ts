@@ -122,6 +122,8 @@ export interface UseTodayMetricsResult {
   // Status
   hasWearableData: boolean;
   isRecoveryInitialized: boolean;
+  /** True while Recovery's optional Health/wearable target is still refreshing. */
+  isRecoverySyncing: boolean;
   isLoading: boolean;
 }
 
@@ -207,9 +209,10 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     readiness_decay_week_start: rawMetrics.readiness_decay_week_start,
   } : null;
 
-  // Primary metrics render from their core inputs immediately. Device and
-  // calendar history enrich them progressively instead of blocking the screen.
-  const allLoaded = !statesLoading && !phoneHealthLoading && !wearableLoading;
+  // The cognitive row is sufficient for a correct baseline display. Health and
+  // wearable inputs enrich the daily state progressively and must never hold
+  // the Home screen behind several independent network requests.
+  const displayReady = !statesLoading;
   
   // Use ref to cache last valid result (prevents flicker during refetch)
   const cachedResultRef = useRef<UseTodayMetricsResult | null>(null);
@@ -362,6 +365,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       consecutiveLowRecDays,
       hasWearableData: physioEstimate !== null,
       isRecoveryInitialized,
+      isRecoverySyncing: phoneHealthLoading || wearableLoading,
       AE: states.AE,
       RA: states.RA,
       CT: states.CT,
@@ -378,17 +382,18 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       digitalAttention,
       sharpnessBreakdown,
       readinessBreakdown,
-      isLoading: !allLoaded,
+      isLoading: !displayReady,
     };
-  }, [states, S1, S2, recoveryV2State, phoneHealthSnapshot, wearableSnapshot, passiveContext, today, decayData, rollingStart, allLoaded]);
+  }, [states, S1, S2, recoveryV2State, phoneHealthSnapshot, phoneHealthLoading, wearableSnapshot, wearableLoading, passiveContext, today, decayData, rollingStart, displayReady]);
   
-  // Update cached result only when all data is loaded
-  if (allLoaded) {
+  // Update the display cache as soon as core metrics are available. Optional
+  // sources update the same result in place when their requests resolve.
+  if (displayReady) {
     cachedResultRef.current = freshResult;
   }
   
   // STABILITY: Return cached result while loading to prevent flicker
-  if (!allLoaded && cachedResultRef.current) {
+  if (!displayReady && cachedResultRef.current) {
     return {
       ...cachedResultRef.current,
       isLoading: true,

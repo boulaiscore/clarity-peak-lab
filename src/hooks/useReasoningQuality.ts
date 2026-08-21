@@ -75,7 +75,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
   const userId = user?.id;
   const queryClient = useQueryClient();
   
-  const { S2, isLoading: statesLoading } = useCognitiveStates();
+  const { S2, rawMetrics, isLoading: statesLoading } = useCognitiveStates();
   
   // Fetch persisted RQ and tracking dates
   const { data: persistedData, isLoading: persistedLoading } = useQuery({
@@ -280,8 +280,10 @@ export function useReasoningQuality(): UseReasoningQualityResult {
     const isLoadingState = statesLoading || persistedLoading || scoresLoading || tasksLoading || sessionsLoading;
     
     if (isLoadingState && !cachedResultRef.current) {
+      const persistedRQ = Number(rawMetrics?.reasoning_quality);
+      const fallbackRQ = Number.isFinite(persistedRQ) ? persistedRQ : 50;
       return {
-        rq: 50,
+        rq: fallbackRQ,
         s2Core: 50,
         s2Consistency: 50,
         taskPriming: 0,
@@ -314,7 +316,7 @@ export function useReasoningQuality(): UseReasoningQualityResult {
     
     cachedResultRef.current = computed;
     return computed;
-  }, [S2, s2GameScores, taskCompletions, sessionWeightedMinutes, persistedData, statesLoading, persistedLoading, scoresLoading, tasksLoading, sessionsLoading]);
+  }, [S2, rawMetrics?.reasoning_quality, s2GameScores, taskCompletions, sessionWeightedMinutes, persistedData, statesLoading, persistedLoading, scoresLoading, tasksLoading, sessionsLoading]);
   
   // Check if today's RQ is already persisted
   const isPersisted = useMemo(() => {

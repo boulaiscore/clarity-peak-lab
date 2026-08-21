@@ -1,6 +1,7 @@
 package com.neurolooplabs.looma;
 
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
@@ -27,7 +28,10 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
 
         // BridgeActivity can update the decor while creating the WebView, so
-        // re-assert the final appearance and give the WebView a dark backdrop.
+        // replace the launch drawable (not only the decor color), re-assert the
+        // final appearance and give the WebView a dark backdrop. Replacing the
+        // drawable prevents old splash pixels from surviving in OEM inset gaps.
+        getWindow().setBackgroundDrawable(new ColorDrawable(LOOMA_BACKGROUND));
         applyLoomaSystemBars();
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().setBackgroundColor(LOOMA_BACKGROUND);

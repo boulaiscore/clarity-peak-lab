@@ -129,6 +129,7 @@ const Home = () => {
     signalCoverageLevel,
     signalUpdatedAt,
     signalSources,
+    isRecoverySyncing,
     isLoading: metricsLoading
   } = useTodayMetrics();
 
@@ -147,14 +148,14 @@ const Home = () => {
   // Persist daily REC snapshot on mount (once per day only)
   useEffect(() => {
     // Only run if metrics are loaded and snapshot hasn't been taken today
-    if (!metricsLoading && !isSnapshotCurrentToday()) {
+    if (!metricsLoading && !isRecoverySyncing && !isSnapshotCurrentToday()) {
       // IMPORTANT: Snapshot must use real recovery (REC_raw), not RRI
       // If not initialized yet, the hook will skip persisting.
       persistDailySnapshot(recoveryRaw).catch(err => {
         console.error("[Home] Failed to persist daily snapshot:", err);
       });
     }
-  }, [metricsLoading, recoveryRaw, persistDailySnapshot, isSnapshotCurrentToday]);
+  }, [metricsLoading, isRecoverySyncing, recoveryRaw, persistDailySnapshot, isSnapshotCurrentToday]);
   const [activeTab, setActiveTab] = useState<HomeTabId>("overview");
 
   // Scroll to top whenever the active sub-tab changes (smooth, consistent navigation)

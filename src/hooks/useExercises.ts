@@ -10,6 +10,31 @@ import type {
 import { getExerciseCountForDuration, shuffleArray } from "@/lib/exercises";
 import { calculateSystemScores, type CognitiveStates } from "@/lib/cognitiveEngine";
 
+const USER_METRICS_CACHE_VERSION = "v1";
+
+function userMetricsCacheKey(userId: string): string {
+  return `looma:user-metrics:${USER_METRICS_CACHE_VERSION}:${userId}`;
+}
+
+function readCachedUserMetrics(userId: string | undefined): UserCognitiveMetrics | undefined {
+  if (!userId || typeof window === "undefined") return undefined;
+  try {
+    const raw = window.localStorage.getItem(userMetricsCacheKey(userId));
+    return raw ? JSON.parse(raw) as UserCognitiveMetrics : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeCachedUserMetrics(userId: string, metrics: UserCognitiveMetrics | null): void {
+  if (!metrics || typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(userMetricsCacheKey(userId), JSON.stringify(metrics));
+  } catch {
+    // Storage is an acceleration layer only; cloud remains authoritative.
+  }
+}
+
 // Fetch all exercises
 export function useExercises() {
   return useQuery({
@@ -168,9 +193,15 @@ export function useUserMetrics(userId: string | undefined) {
         .maybeSingle();
       
       if (error) throw error;
-      return data as UserCognitiveMetrics | null;
+      const metrics = data as UserCognitiveMetrics | null;
+      writeCachedUserMetrics(userId, metrics);
+      return metrics;
     },
     enabled: !!userId,
+    // Cold native launches render the last cloud-confirmed row immediately,
+    // while React Query refreshes it in the background.
+    initialData: () => readCachedUserMetrics(userId),
+    initialDataUpdatedAt: 0,
     staleTime: 60_000, // 1 minute - prevent refetch on every mount
     refetchOnWindowFocus: false,
     // A baseline or training write can happen while this query is inactive.
@@ -345,7 +376,9 @@ export function useUpdateUserMetrics() {
         return data;
       }
     },
-    onSuccess: (_, { userId }) => {
+    onSuccess: (metrics, { userId }) => {
+      writeCachedUserMetrics(userId, metrics as UserCognitiveMetrics);
+      queryClient.setQueryData(["user-metrics", userId], metrics);
       queryClient.invalidateQueries({ queryKey: ["user-metrics", userId] });
       queryClient.invalidateQueries({ queryKey: ["cognitive-metrics"] });
     },
