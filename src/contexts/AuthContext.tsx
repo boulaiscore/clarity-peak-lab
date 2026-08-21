@@ -142,8 +142,39 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
   };
 }
 
+// Native cold starts read the Supabase session from the device keystore and
+// then fetch the profile over the network before anything can render. Caching
+// the last resolved user lets the shell paint immediately while that
+// verification happens in the background. Only non-sensitive profile fields
+// are stored here; tokens stay in secure storage.
+const CACHED_USER_KEY = "looma:auth-user:v1";
+
+function readCachedUser(): User | null {
+  try {
+    const raw = window.localStorage.getItem(CACHED_USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as User & { createdAt: string };
+    return { ...parsed, createdAt: new Date(parsed.createdAt) };
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedUser(user: User | null): void {
+  try {
+    if (!user) {
+      window.localStorage.removeItem(CACHED_USER_KEY);
+      return;
+    }
+    window.localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user));
+  } catch {
+    // The cache is only an accelerator; failures must never block auth.
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const cachedUser = useState(() => readCachedUser())[0];
+  const [user, setUser] = useState<User | null>(cachedUser);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profileLoaded, setProfileLoaded] = useState(false);
