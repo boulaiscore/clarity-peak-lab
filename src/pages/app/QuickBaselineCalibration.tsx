@@ -243,8 +243,15 @@ export default function QuickBaselineCalibration() {
             <CalibrationIntro 
               onBegin={handleIntroComplete}
               onSkip={async () => {
-                if (!user?.id) return;
+                if (!user?.id) {
+                  toast.error("You need to be signed in to continue");
+                  return;
+                }
+                if (isSaving) return;
+                setIsSaving(true);
+                try {
                 trackProductEvent("calibration_skipped");
+                
                 
                 // Compute demographic-only baseline (calibration skipped)
                 const demographicInput: DemographicInput = {
