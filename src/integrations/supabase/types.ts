@@ -345,6 +345,54 @@ export type Database = {
         }
         Relationships: []
       }
+      canonical_observation_revisions: {
+        Row: {
+          created_at: string
+          domain: string
+          fingerprint: string
+          id: string
+          observation_date: string
+          payload: Json
+          quality: Json
+          recorded_at: string
+          schema_version: string
+          source: string
+          source_record_id: string
+          source_table: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          fingerprint: string
+          id?: string
+          observation_date: string
+          payload: Json
+          quality?: Json
+          recorded_at: string
+          schema_version: string
+          source: string
+          source_record_id: string
+          source_table: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          fingerprint?: string
+          id?: string
+          observation_date?: string
+          payload?: Json
+          quality?: Json
+          recorded_at?: string
+          schema_version?: string
+          source?: string
+          source_record_id?: string
+          source_table?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cognitive_exercises: {
         Row: {
           category: Database["public"]["Enums"]["exercise_category"]
@@ -409,7 +457,7 @@ export type Database = {
           created_at: string
           ct: number | null
           did_training: boolean | null
-          formula_version: string | null
+          formula_version: string
           id: string
           in_score: number | null
           ra: number | null
@@ -421,8 +469,9 @@ export type Database = {
           sharpness: number | null
           signal_coverage: number | null
           snapshot_date: string
-          source_freshness: Json | null
+          source_freshness: Json
           timezone: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -431,7 +480,7 @@ export type Database = {
           created_at?: string
           ct?: number | null
           did_training?: boolean | null
-          formula_version?: string | null
+          formula_version?: string
           id?: string
           in_score?: number | null
           ra?: number | null
@@ -443,8 +492,9 @@ export type Database = {
           sharpness?: number | null
           signal_coverage?: number | null
           snapshot_date: string
-          source_freshness?: Json | null
+          source_freshness?: Json
           timezone?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -453,7 +503,7 @@ export type Database = {
           created_at?: string
           ct?: number | null
           did_training?: boolean | null
-          formula_version?: string | null
+          formula_version?: string
           id?: string
           in_score?: number | null
           ra?: number | null
@@ -465,8 +515,9 @@ export type Database = {
           sharpness?: number | null
           signal_coverage?: number | null
           snapshot_date?: string
-          source_freshness?: Json | null
+          source_freshness?: Json
           timezone?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -626,6 +677,48 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      data_consent_events: {
+        Row: {
+          action: string
+          actor: string
+          created_at: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          policy_version: string
+          purpose: string
+          scopes: string[]
+          source: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          actor?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          policy_version: string
+          purpose: string
+          scopes?: string[]
+          source: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          actor?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          policy_version?: string
+          purpose?: string
+          scopes?: string[]
+          source?: string
           user_id?: string
         }
         Relationships: []
@@ -939,6 +1032,60 @@ export type Database = {
           recovery?: number | null
           sharpness?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      metric_estimates: {
+        Row: {
+          calculation_id: string
+          confidence: number | null
+          coverage: number | null
+          created_at: string
+          effective_at: string
+          event_kind: string
+          formula_version: string
+          id: string
+          lineage: Json
+          local_date: string | null
+          metric_code: string
+          source_record_id: string
+          source_table: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          calculation_id: string
+          confidence?: number | null
+          coverage?: number | null
+          created_at?: string
+          effective_at: string
+          event_kind: string
+          formula_version: string
+          id?: string
+          lineage?: Json
+          local_date?: string | null
+          metric_code: string
+          source_record_id: string
+          source_table: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          calculation_id?: string
+          confidence?: number | null
+          coverage?: number | null
+          created_at?: string
+          effective_at?: string
+          event_kind?: string
+          formula_version?: string
+          id?: string
+          lineage?: Json
+          local_date?: string | null
+          metric_code?: string
+          source_record_id?: string
+          source_table?: string
+          user_id?: string
+          value?: number
         }
         Relationships: []
       }
@@ -2382,6 +2529,39 @@ export type Database = {
           training_plan: string | null
           user_id: string | null
           work_type: string | null
+        }
+        Relationships: []
+      }
+      current_data_consents: {
+        Row: {
+          action: string | null
+          actor: string | null
+          id: string | null
+          metadata: Json | null
+          occurred_at: string | null
+          policy_version: string | null
+          purpose: string | null
+          scopes: string[] | null
+          source: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      user_metric_latest: {
+        Row: {
+          calculation_id: string | null
+          confidence: number | null
+          coverage: number | null
+          effective_at: string | null
+          formula_version: string | null
+          id: string | null
+          lineage: Json | null
+          local_date: string | null
+          metric_code: string | null
+          source_record_id: string | null
+          source_table: string | null
+          user_id: string | null
+          value: number | null
         }
         Relationships: []
       }
