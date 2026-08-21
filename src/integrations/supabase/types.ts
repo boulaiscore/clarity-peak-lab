@@ -345,54 +345,6 @@ export type Database = {
         }
         Relationships: []
       }
-      canonical_observation_revisions: {
-        Row: {
-          created_at: string
-          domain: string
-          fingerprint: string
-          id: string
-          observation_date: string
-          payload: Json
-          quality: Json
-          recorded_at: string
-          schema_version: string
-          source: string
-          source_record_id: string
-          source_table: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          domain: string
-          fingerprint: string
-          id?: string
-          observation_date: string
-          payload: Json
-          quality?: Json
-          recorded_at: string
-          schema_version: string
-          source: string
-          source_record_id: string
-          source_table: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          domain?: string
-          fingerprint?: string
-          id?: string
-          observation_date?: string
-          payload?: Json
-          quality?: Json
-          recorded_at?: string
-          schema_version?: string
-          source?: string
-          source_record_id?: string
-          source_table?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       cognitive_exercises: {
         Row: {
           category: Database["public"]["Enums"]["exercise_category"]
@@ -453,13 +405,11 @@ export type Database = {
       daily_metric_snapshots: {
         Row: {
           ae: number | null
-          confidence: number | null
           created_at: string
           ct: number | null
           did_training: boolean | null
           id: string
           in_score: number | null
-          formula_version: string
           ra: number | null
           readiness: number | null
           reasoning_quality: number | null
@@ -467,22 +417,16 @@ export type Database = {
           s1: number | null
           s2: number | null
           sharpness: number | null
-          signal_coverage: number | null
           snapshot_date: string
-          source_freshness: Json
-          timezone: string | null
-          updated_at: string
           user_id: string
         }
         Insert: {
           ae?: number | null
-          confidence?: number | null
           created_at?: string
           ct?: number | null
           did_training?: boolean | null
           id?: string
           in_score?: number | null
-          formula_version?: string
           ra?: number | null
           readiness?: number | null
           reasoning_quality?: number | null
@@ -490,22 +434,16 @@ export type Database = {
           s1?: number | null
           s2?: number | null
           sharpness?: number | null
-          signal_coverage?: number | null
           snapshot_date: string
-          source_freshness?: Json
-          timezone?: string | null
-          updated_at?: string
           user_id: string
         }
         Update: {
           ae?: number | null
-          confidence?: number | null
           created_at?: string
           ct?: number | null
           did_training?: boolean | null
           id?: string
           in_score?: number | null
-          formula_version?: string
           ra?: number | null
           readiness?: number | null
           reasoning_quality?: number | null
@@ -513,53 +451,7 @@ export type Database = {
           s1?: number | null
           s2?: number | null
           sharpness?: number | null
-          signal_coverage?: number | null
           snapshot_date?: string
-          source_freshness?: Json
-          timezone?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      data_consent_events: {
-        Row: {
-          action: string
-          actor: string
-          created_at: string
-          id: string
-          metadata: Json
-          occurred_at: string
-          policy_version: string
-          purpose: string
-          scopes: string[]
-          source: string
-          user_id: string
-        }
-        Insert: {
-          action: string
-          actor?: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          occurred_at?: string
-          policy_version: string
-          purpose: string
-          scopes?: string[]
-          source: string
-          user_id: string
-        }
-        Update: {
-          action?: string
-          actor?: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          occurred_at?: string
-          policy_version?: string
-          purpose?: string
-          scopes?: string[]
-          source?: string
           user_id?: string
         }
         Relationships: []
@@ -1032,60 +924,6 @@ export type Database = {
           recovery?: number | null
           sharpness?: number | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      metric_estimates: {
-        Row: {
-          calculation_id: string
-          confidence: number | null
-          coverage: number | null
-          created_at: string
-          effective_at: string
-          event_kind: string
-          formula_version: string
-          id: string
-          lineage: Json
-          local_date: string | null
-          metric_code: string
-          source_record_id: string
-          source_table: string
-          user_id: string
-          value: number
-        }
-        Insert: {
-          calculation_id: string
-          confidence?: number | null
-          coverage?: number | null
-          created_at?: string
-          effective_at: string
-          event_kind: string
-          formula_version: string
-          id?: string
-          lineage?: Json
-          local_date?: string | null
-          metric_code: string
-          source_record_id: string
-          source_table: string
-          user_id: string
-          value: number
-        }
-        Update: {
-          calculation_id?: string
-          confidence?: number | null
-          coverage?: number | null
-          created_at?: string
-          effective_at?: string
-          event_kind?: string
-          formula_version?: string
-          id?: string
-          lineage?: Json
-          local_date?: string | null
-          metric_code?: string
-          source_record_id?: string
-          source_table?: string
-          user_id?: string
-          value?: number
         }
         Relationships: []
       }
@@ -2315,48 +2153,6 @@ export type Database = {
           },
         ]
       }
-      wearable_provider_connections: {
-        Row: {
-          connected_at: string
-          created_at: string
-          is_primary: boolean
-          last_error: string | null
-          last_sync_at: string | null
-          provider: string
-          provider_user_id: string | null
-          scopes: string[]
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          connected_at?: string
-          created_at?: string
-          is_primary?: boolean
-          last_error?: string | null
-          last_sync_at?: string | null
-          provider: string
-          provider_user_id?: string | null
-          scopes?: string[]
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          connected_at?: string
-          created_at?: string
-          is_primary?: boolean
-          last_error?: string | null
-          last_sync_at?: string | null
-          provider?: string
-          provider_user_id?: string | null
-          scopes?: string[]
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       wearable_snapshots: {
         Row: {
           activity_score: number | null
@@ -2434,21 +2230,6 @@ export type Database = {
       }
     }
     Views: {
-      current_data_consents: {
-        Row: {
-          action: string | null
-          actor: string | null
-          id: string | null
-          metadata: Json | null
-          occurred_at: string | null
-          policy_version: string | null
-          purpose: string | null
-          scopes: string[] | null
-          source: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       admin_user_overview: {
         Row: {
           age: number | null
@@ -2473,38 +2254,6 @@ export type Database = {
           training_plan: string | null
           user_id: string | null
           work_type: string | null
-        }
-        Relationships: []
-      }
-      user_metric_latest: {
-        Row: {
-          calculation_id: string | null
-          confidence: number | null
-          coverage: number | null
-          effective_at: string | null
-          formula_version: string | null
-          id: string | null
-          lineage: Json | null
-          local_date: string | null
-          metric_code: string | null
-          source_record_id: string | null
-          source_table: string | null
-          user_id: string | null
-          value: number | null
-        }
-        Relationships: []
-      }
-      wearable_daily_canonical: {
-        Row: {
-          activity_score: number | null
-          date: string | null
-          hrv_ms: number | null
-          resting_hr: number | null
-          sleep_duration_min: number | null
-          sleep_efficiency: number | null
-          source: string | null
-          updated_at: string | null
-          user_id: string | null
         }
         Relationships: []
       }
