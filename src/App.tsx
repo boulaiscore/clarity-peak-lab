@@ -12,6 +12,8 @@ import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { AdminRoute } from "./components/admin/AdminRoute";
 
 import { queryClient } from "@/lib/queryClient";
+import { preloadPrimaryRoutes } from "@/lib/routePreload";
+import { SubscriptionProvider } from "@/hooks/useSubscription";
 
 // Route-level splitting keeps game runners, reports and admin tools out of the
 // Home startup bundle. Native builds still load these chunks locally on demand.
@@ -65,7 +67,14 @@ function AppInitProvider({ children }: { children: React.ReactNode }) {
   const [syncServicesReady, setSyncServicesReady] = useState(false);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => setSyncServicesReady(true), 700);
+    // Native Health and device sync are important, but they should start only
+    // after the visible route and its navigation targets are ready.
+    const timeoutId = window.setTimeout(() => setSyncServicesReady(true), 2_200);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(preloadPrimaryRoutes, 500);
     return () => window.clearTimeout(timeoutId);
   }, []);
 
@@ -476,24 +485,26 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <NativeSecurityProvider>
-          <SessionProvider>
-            <AppInitProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <HashRouter>
-                    <ScrollToTop />
-                    <DeepLinkHandler>
-                      <Suspense fallback={<RouteFallback />}>
-                        <AppRoutes />
-                      </Suspense>
-                    </DeepLinkHandler>
-                  </HashRouter>
-                </TooltipProvider>
-            </AppInitProvider>
-          </SessionProvider>
-        </NativeSecurityProvider>
+        <SubscriptionProvider>
+          <NativeSecurityProvider>
+            <SessionProvider>
+              <AppInitProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    <HashRouter>
+                      <ScrollToTop />
+                      <DeepLinkHandler>
+                        <Suspense fallback={<RouteFallback />}>
+                          <AppRoutes />
+                        </Suspense>
+                      </DeepLinkHandler>
+                    </HashRouter>
+                  </TooltipProvider>
+              </AppInitProvider>
+            </SessionProvider>
+          </NativeSecurityProvider>
+        </SubscriptionProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

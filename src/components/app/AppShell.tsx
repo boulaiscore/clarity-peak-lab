@@ -18,6 +18,7 @@ import { useAdaptiveFocusShadowRecorder } from "@/hooks/useAdaptiveFocusCoach";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumPaywall } from "@/components/app/PremiumPaywall";
 import { FIRST_PROTOCOL_PAYWALL_PENDING_KEY } from "@/lib/productAnalytics";
+import { preloadAppRoute } from "@/lib/routePreload";
 
 interface AppShellProps {
   children: ReactNode | ((coachState: AdaptiveCoachPassiveState) => ReactNode);
@@ -127,6 +128,8 @@ export function AppShell({ children }: AppShellProps) {
                 key={item.to}
                 to={item.to}
                 aria-current={isActive ? "page" : undefined}
+                onPointerDown={() => preloadAppRoute(item.to)}
+                onFocus={() => preloadAppRoute(item.to)}
                 className={cn(
                   "flex min-w-[52px] flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30",
                   isActive

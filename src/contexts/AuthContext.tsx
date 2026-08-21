@@ -400,7 +400,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     // Import from dedicated file to avoid circular dependency
-    const { queryClient } = await import("@/lib/queryClient");
+    const { queryClient, clearPersistedQueryCache } = await import("@/lib/queryClient");
     
     await supabase.auth.signOut();
     setUser(null);
@@ -408,6 +408,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // CRITICAL: Clear all cached queries so the next login starts fresh
     queryClient.clear();
+    clearPersistedQueryCache();
   };
 
   const updateUser = async (updates: Partial<User>) => {

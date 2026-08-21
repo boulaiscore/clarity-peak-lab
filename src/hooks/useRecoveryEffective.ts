@@ -104,10 +104,8 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   } : null, [rawMetrics]);
 
   const today = format(new Date(), "yyyy-MM-dd");
-  const { data: phoneHealthTarget, isLoading: phoneTargetLoading } =
-    usePhoneHealthDailyContext(userId, today);
-  const { data: wearableSnapshot, isLoading: wearableLoading } =
-    useWearableDailySnapshot(userId, today);
+  const { data: phoneHealthTarget } = usePhoneHealthDailyContext(userId, today);
+  const { data: wearableSnapshot } = useWearableDailySnapshot(userId, today);
 
   const wearablePhysioEstimate = useMemo(() => wearableSnapshot ? calculatePhysioEstimate({
       hrvMs: wearableSnapshot.hrv_ms,
@@ -167,9 +165,9 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   // IMPORTANT: when userId is not resolved yet, React Query marks queries as not loading
   // (because they're disabled). We still want the UI to stay in a loading state instead
   // of falling back to 0%.
-  // Weekly action totals are supporting detail and must not hold the score or
-  // breakdown header behind a loading state.
-  const isLoading = !hasUser || v2Loading || phoneTargetLoading || wearableLoading;
+  // Health, wearable and weekly action totals progressively enrich Recovery.
+  // They must never hold the already-known canonical state behind a loader.
+  const isLoading = !hasUser || v2Loading;
   const weeklyDetoxMinutes = weeklyData?.detoxMinutes ?? 0;
   const weeklyWalkMinutes = weeklyData?.walkMinutes ?? 0;
   
@@ -180,14 +178,8 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     const currentRecovery = calculateCurrentRecoveryBreakdown(v2State, combinedRecoveryTarget);
     const recoveryV2 = isV2Initialized ? currentRecovery.currentValue : null;
     
-    console.log("[useRecoveryEffective v2] Computing:", {
-      isV2Initialized,
-      recoveryV2,
-    });
-    
     // PRIORITY 1: Use v2 recovery if initialized
     if (isV2Initialized && recoveryV2 !== null) {
-      console.log("[useRecoveryEffective v2] Using REC v2:", recoveryV2);
       return {
         recoveryEffective: recoveryV2,
         isUsingRRI: false,
@@ -246,7 +238,6 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
     }
 
     // PRIORITY 3: missing evidence is neutral, never zero capacity.
-    console.log("[useRecoveryEffective v2] No recovery data; using neutral target");
     return {
       recoveryEffective: combinedRecoveryTarget,
       isUsingRRI: false,

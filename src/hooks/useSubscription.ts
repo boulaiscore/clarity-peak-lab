@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPaddleEnvironment } from "@/lib/paddle";
@@ -85,7 +93,14 @@ function activeEntitlementPlan(entitlements: string[]): Tier | null {
   return null;
 }
 
-export function useSubscription() {
+type SubscriptionContextValue = SubscriptionInfo & {
+  loading: boolean;
+  refetch: () => Promise<void>;
+};
+
+const SubscriptionContext = createContext<SubscriptionContextValue | null>(null);
+
+function useSubscriptionState(): SubscriptionContextValue {
   const { user } = useAuth();
   const [info, setInfo] = useState<SubscriptionInfo>(FREE);
   const [loading, setLoading] = useState(true);
@@ -172,8 +187,24 @@ export function useSubscription() {
   }, [user]);
 
   useEffect(() => {
+    if (!user) {
+      setInfo(FREE);
+      setLoading(false);
+      return;
+    }
+
+    // The already-loaded profile is sufficient for the first paint. Provider
+    // verification happens in the background and replaces this optimistic
+    // value if RevenueCat/Paddle has a newer authoritative state.
+    const fallback = normalizeLegacyProfileTier(user.subscriptionStatus);
+    const fallbackTier = fallback === "team_waitlist" ? "free" : fallback;
+    setInfo(fallbackTier === "free" ? FREE : fromPlan(fallbackTier, {
+      status: "active",
+      provider: "profile",
+    }));
+    setLoading(false);
     void refetch();
-  }, [refetch]);
+  }, [user, refetch]);
 
   useEffect(() => {
     if (!user) return;
@@ -197,4 +228,17 @@ export function useSubscription() {
   }, [refetch]);
 
   return { ...info, loading, refetch };
+}
+
+export function SubscriptionProvider({ children }: { children: ReactNode }) {
+  const value = useSubscriptionState();
+  return createElement(SubscriptionContext.Provider, { value }, children);
+}
+
+export function useSubscription(): SubscriptionContextValue {
+  const value = useContext(SubscriptionContext);
+  if (!value) {
+    throw new Error("useSubscription must be used inside SubscriptionProvider");
+  }
+  return value;
 }
