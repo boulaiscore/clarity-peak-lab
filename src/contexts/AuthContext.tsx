@@ -313,6 +313,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  // Commit the freshly verified user and refresh the cold-start cache. If the
+  // profile request failed while a cached profile for the same account exists,
+  // keep the cached one so a flaky network cannot bounce the user back into
+  // onboarding.
+  const applyResolvedUser = (supabaseUser: SupabaseUser, profile: UserProfile | null) => {
+    const cached = readCachedUser();
+    if (!profile && cached && cached.id === supabaseUser.id) {
+      setUser(cached);
+      return;
+    }
+    const resolved = mapProfileToUser(supabaseUser, profile);
+    setUser(resolved);
+    writeCachedUser(resolved);
+  };
+
+
+
   useEffect(() => {
     let isMounted = true;
     let initialLoadDone = false;
