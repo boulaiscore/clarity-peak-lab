@@ -333,7 +333,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!isMounted) return;
             const profile = await fetchProfile(newSession.user.id);
             if (!isMounted) return;
-            setUser(mapProfileToUser(newSession.user, profile));
+            applyResolvedUser(newSession.user, profile);
             setProfileLoaded(true);
 
               // Defer to avoid doing more Supabase calls inside auth callback turn.
@@ -345,6 +345,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setUser(null);
+          writeCachedUser(null);
           setProfileLoaded(false);
           setIsLoading(false);
         }
