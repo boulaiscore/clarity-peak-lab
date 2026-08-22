@@ -7,6 +7,7 @@ import { sendWelcomeEmail } from "@/lib/emailService";
 import { getAuthRedirectUrl } from "@/lib/platformUtils";
 import { DEFAULT_TRAINING_PLAN_ID, TrainingPlanId } from "@/lib/trainingPlans";
 import { calculateRRI, initializeRecoveryBaseline } from "@/lib/recoveryV2";
+import { flushPendingCalibration } from "@/lib/calibrationPersistence";
 
 export type TrainingGoal = "fast_thinking" | "slow_thinking";
 export type SessionDuration = "30s" | "2min" | "5min" | "7min";
@@ -107,6 +108,32 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const PENDING_ONBOARDING_PREFIX = "looma:pending-onboarding:v1:";
+
+function pendingOnboardingKey(userId: string): string {
+  return `${PENDING_ONBOARDING_PREFIX}${userId}`;
+}
+
+function hasPendingOnboarding(userId: string): boolean {
+  try {
+    return window.localStorage.getItem(pendingOnboardingKey(userId)) === "complete";
+  } catch {
+    return false;
+  }
+}
+
+function setPendingOnboarding(userId: string, pending: boolean): void {
+  try {
+    if (pending) {
+      window.localStorage.setItem(pendingOnboardingKey(userId), "complete");
+    } else {
+      window.localStorage.removeItem(pendingOnboardingKey(userId));
+    }
+  } catch {
+    // Local persistence is a resilience layer, never a navigation blocker.
+  }
+}
+
 function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | null): User {
   const storedPrimaryOutcome = typeof window !== "undefined"
     ? localStorage.getItem("looma_primary_outcome") as PrimaryOutcome | null
@@ -138,7 +165,9 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     rriMentalState: profile?.rri_mental_state || undefined,
     rriValue: profile?.rri_value || undefined,
     rriSetAt: profile?.rri_set_at || undefined,
-    onboardingCompleted: profile?.onboarding_completed || false,
+    // Keep a locally completed onboarding accessible while a transient auth or
+    // network failure is waiting to sync the durable profile flag.
+    onboardingCompleted: profile?.onboarding_completed || hasPendingOnboarding(supabaseUser.id),
   };
 }
 
@@ -170,6 +199,29 @@ function writeCachedUser(user: User | null): void {
   } catch {
     // The cache is only an accelerator; failures must never block auth.
   }
+}
+
+async function flushPendingOnboarding(userId: string): Promise<void> {
+  if (!hasPendingOnboarding(userId)) return;
+
+  const { error } = await supabase
+    .from("profiles")
+    .upsert(
+      { user_id: userId, onboarding_completed: true },
+      { onConflict: "user_id" },
+    );
+
+  if (error) {
+    console.warn("[Auth] Pending onboarding sync deferred:", error.message, error.code);
+    return;
+  }
+
+  setPendingOnboarding(userId, false);
+}
+
+function flushPendingUserState(userId: string): void {
+  void flushPendingOnboarding(userId);
+  void flushPendingCalibration(userId);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -353,6 +405,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             applyResolvedUser(newSession.user, profile);
             setProfileLoaded(true);
 
+            flushPendingUserState(newSession.user.id);
+
               // Defer to avoid doing more Supabase calls inside auth callback turn.
               setTimeout(() => {
                 ensureRecoveryBaseline(newSession.user.id, profile);
@@ -381,6 +435,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isMounted) return;
         applyResolvedUser(existingSession.user, profile);
         setProfileLoaded(true);
+
+        flushPendingUserState(existingSession.user.id);
 
         // Fire-and-forget baseline bootstrap for Recovery.
         setTimeout(() => {
@@ -465,7 +521,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = async (updates: Partial<User>) => {
-    if (!user || !session) return false;
+    if (!user) return false;
+
+    const completesOnboarding = updates.onboardingCompleted === true;
+
+    // Onboarding is navigation-critical. Commit it to the device first so an
+    // auth hydration race or a brief outage can never trap the user in the
+    // calibration wizard. The pending marker is cleared after cloud sync.
+    if (completesOnboarding) {
+      setPendingOnboarding(user.id, true);
+      setUser(prev => {
+        const next = prev
+          ? { ...prev, ...updates, trainingPlan: DEFAULT_TRAINING_PLAN_ID }
+          : null;
+        writeCachedUser(next);
+        return next;
+      });
+    } else if (updates.onboardingCompleted === false) {
+      setPendingOnboarding(user.id, false);
+    }
+
+    // A cached user can render before React receives the restored native
+    // session. Ask the Supabase client directly instead of rejecting the write.
+    const activeSession = session ?? (await supabase.auth.getSession()).data.session;
+    if (!activeSession) return false;
 
     // Map User updates to profile column names
     const profileUpdates: Record<string, unknown> = {};
@@ -525,18 +604,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
+    if (completesOnboarding) {
+      setPendingOnboarding(user.id, false);
+    }
+
     if (updates.primaryOutcome !== undefined) {
       localStorage.setItem("looma_primary_outcome", updates.primaryOutcome);
     }
 
     // Update local state
-    setUser(prev => {
-      const next = prev
-        ? { ...prev, ...updates, trainingPlan: DEFAULT_TRAINING_PLAN_ID }
-        : null;
-      writeCachedUser(next);
-      return next;
-    });
+    if (!completesOnboarding) {
+      setUser(prev => {
+        const next = prev
+          ? { ...prev, ...updates, trainingPlan: DEFAULT_TRAINING_PLAN_ID }
+          : null;
+        writeCachedUser(next);
+        return next;
+      });
+    }
     return true;
   };
 

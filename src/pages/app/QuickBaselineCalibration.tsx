@@ -15,6 +15,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  clearPendingCalibration,
+  savePendingCalibration,
+  type CognitiveMetricsInsert,
+} from "@/lib/calibrationPersistence";
 
 // Drill components
 import { CalibrationIntro } from "@/components/calibration/CalibrationIntro";
@@ -130,15 +135,19 @@ export default function QuickBaselineCalibration() {
       
       const baselinePayload = prepareBaselineDbPayload(baselineResult);
       
-      // Read the previous baseline and current skills so calibration can replace
-      // the neutral prior without discarding genuine movement since that prior.
-      const { data: currentMetrics, error: currentMetricsError } = await supabase
-        .from("user_cognitive_metrics")
-        .select("focus_stability, fast_thinking, reasoning_accuracy, slow_thinking, baseline_eff_focus, baseline_eff_fast_thinking, baseline_eff_reasoning, baseline_eff_slow_thinking")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (currentMetricsError) throw currentMetricsError;
+      // Use the last locally available metrics instead of blocking this button
+      // on a network read. During first onboarding this is normally null; when
+      // recalibrating later it preserves genuine movement from the old prior.
+      const currentMetrics = queryClient.getQueryData<{
+        focus_stability?: number | null;
+        fast_thinking?: number | null;
+        reasoning_accuracy?: number | null;
+        slow_thinking?: number | null;
+        baseline_eff_focus?: number | null;
+        baseline_eff_fast_thinking?: number | null;
+        baseline_eff_reasoning?: number | null;
+        baseline_eff_slow_thinking?: number | null;
+      }>(["user-metrics", user.id]) ?? null;
       
       const skillsPayload: Record<string, number> = {};
       
@@ -192,35 +201,21 @@ export default function QuickBaselineCalibration() {
         // Derived
         cognitive_performance_score: baselinePerformanceAvg,
         updated_at: new Date().toISOString(),
-      };
+      } as CognitiveMetricsInsert;
 
-      const { error: metricsError } = await supabase
-        .from("user_cognitive_metrics")
-        .upsert(metricsPayload, {
-          onConflict: "user_id",
-        });
+      // Device-first commit: results survive navigation and are retried on the
+      // next authenticated refresh if the cloud is temporarily unavailable.
+      savePendingCalibration(user.id, metricsPayload);
 
-      if (metricsError) throw metricsError;
-
-      // Publish the committed values immediately. Requiring a returned row here
-      // used to turn a successful write into a false failure when PostgREST did
-      // not return a representation for an upsert.
+      // Publish the device commit immediately. Cloud persistence follows in the
+      // background and can retry from local storage on a later app launch.
       queryClient.setQueryData(["user-metrics", user.id], (current: unknown) => (
-        current && typeof current === "object" ? { ...current, ...metricsPayload } : current
+        current && typeof current === "object" ? { ...current, ...metricsPayload } : metricsPayload
       ));
 
-      // CRITICAL: Update AuthContext state to mark onboarding complete
-      const onboardingSaved = await updateUser({ onboardingCompleted: true });
-      if (!onboardingSaved) throw new Error("Could not finish onboarding");
-
-      // Refresh every view derived from the baseline. Inactive queries are
-      // included so returning from Subscription cannot revive the old values.
-      void Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
-        queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
-        queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
-        queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
-      ]).catch((error) => console.warn("[Calibration] Cache refresh deferred:", error));
+      // updateUser applies this flag to local state before its first await, so
+      // the protected destination can render even while native auth hydrates.
+      const onboardingSync = updateUser({ onboardingCompleted: true });
 
       toast.success("Calibration complete");
       trackProductEvent("calibration_completed");
@@ -229,6 +224,31 @@ export default function QuickBaselineCalibration() {
         primaryBottleneck: user.primaryOutcome ?? null,
       });
       navigate("/app/subscription?source=onboarding");
+
+      void (async () => {
+        const [{ error: metricsError }, onboardingSaved] = await Promise.all([
+          supabase
+            .from("user_cognitive_metrics")
+            .upsert(metricsPayload, { onConflict: "user_id" }),
+          onboardingSync,
+        ]);
+
+        if (metricsError) {
+          console.warn("[Calibration] Cloud metric sync deferred:", metricsError);
+        } else {
+          clearPendingCalibration(user.id);
+        }
+        if (!onboardingSaved) {
+          console.warn("[Calibration] Cloud onboarding sync deferred");
+        }
+
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
+          queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
+          queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
+          queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
+        ]);
+      })().catch((error) => console.warn("[Calibration] Background sync deferred:", error));
       
     } catch (error) {
       console.error("Error saving calibration:", error);
@@ -272,38 +292,48 @@ export default function QuickBaselineCalibration() {
         baseline_cognitive_age: user.age || 35,
         cognitive_performance_score: calculateCalibrationOverall(effective),
         updated_at: new Date().toISOString(),
-      };
+      } as CognitiveMetricsInsert;
 
-      // A skipped check uses a neutral prior. Saving that prior is best-effort:
-      // a temporary metrics-write failure must never trap the user in onboarding.
-      const { error: metricsError } = await supabase
-        .from("user_cognitive_metrics")
-        .upsert(metricsPayload, { onConflict: "user_id" });
+      savePendingCalibration(user.id, metricsPayload);
 
-      if (metricsError) {
-        console.warn("[Calibration] Neutral baseline will be retried later:", metricsError);
-      } else {
-        queryClient.setQueryData(["user-metrics", user.id], (current: unknown) => (
-          current && typeof current === "object" ? { ...current, ...metricsPayload } : current
-        ));
-      }
+      queryClient.setQueryData(["user-metrics", user.id], (current: unknown) => (
+        current && typeof current === "object" ? { ...current, ...metricsPayload } : metricsPayload
+      ));
 
-      // This is the durable skip flag. The app can use a neutral prior until
-      // the user chooses to take the check later from Settings.
-      const onboardingSaved = await updateUser({ onboardingCompleted: true });
-      if (!onboardingSaved) throw new Error("Could not finish onboarding");
+      // Both calls start after the device state is committed; neither is on the
+      // critical navigation path.
+      const onboardingSync = updateUser({ onboardingCompleted: true });
 
-      void Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
-        queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
-        queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
-        queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
-      ]).catch((error) => console.warn("[Calibration] Cache refresh deferred:", error));
       trackProductEvent("onboarding_completed", {
         cognitiveRole: user.workType ?? null,
         primaryBottleneck: user.primaryOutcome ?? null,
       });
       navigate("/app/subscription?source=onboarding");
+
+      void (async () => {
+        const [{ error: metricsError }, onboardingSaved] = await Promise.all([
+          supabase
+            .from("user_cognitive_metrics")
+            .upsert(metricsPayload, { onConflict: "user_id" }),
+          onboardingSync,
+        ]);
+
+        if (metricsError) {
+          console.warn("[Calibration] Neutral baseline sync deferred:", metricsError);
+        } else {
+          clearPendingCalibration(user.id);
+        }
+        if (!onboardingSaved) {
+          console.warn("[Calibration] Cloud onboarding sync deferred");
+        }
+
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
+          queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
+          queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
+          queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
+        ]);
+      })().catch((error) => console.warn("[Calibration] Background skip sync deferred:", error));
     } catch (error) {
       console.error("Error skipping calibration:", error);
       toast.error("Could not continue", {

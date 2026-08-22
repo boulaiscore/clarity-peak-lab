@@ -16,6 +16,7 @@ const settingsSource = read("src/pages/app/SettingsPage.tsx");
 const calibrationSource = read("src/pages/app/QuickBaselineCalibration.tsx");
 const calibrationIntroSource = read("src/components/calibration/CalibrationIntro.tsx");
 const calibrationResultsSource = read("src/components/calibration/CalibrationResults.tsx");
+const authContextSource = read("src/contexts/AuthContext.tsx");
 
 assert.ok(calibrationIntroSource.includes("Skip for now"), "Initial calibration must offer a real skip action");
 assert.doesNotMatch(calibrationResultsSource, /7-day baseline/i, "Calibration must not promise a nonexistent 7-day flow");
@@ -25,8 +26,24 @@ assert.doesNotMatch(
   "Calibration persistence must not turn a successful upsert into a false failure when no row is returned",
 );
 assert.ok(
-  calibrationSource.includes('if (!onboardingSaved) throw new Error("Could not finish onboarding")'),
-  "Calibration must verify that the durable onboarding flag was saved",
+  calibrationSource.includes("savePendingCalibration") &&
+    calibrationSource.includes("navigate(\"/app/subscription?source=onboarding\")"),
+  "Calibration must commit locally and never block navigation on cloud persistence",
+);
+assert.doesNotMatch(
+  calibrationSource,
+  /if \(!onboardingSaved\) throw/,
+  "A transient onboarding sync failure must not trap the user in calibration",
+);
+assert.ok(
+  authContextSource.indexOf("setPendingOnboarding(user.id, true)") <
+    authContextSource.indexOf("await supabase.auth.getSession()"),
+  "Onboarding must be committed locally before native session hydration",
+);
+assert.doesNotMatch(
+  authContextSource,
+  /if \(!user \|\| !session\) return false/,
+  "A cached authenticated user must not be rejected while React restores the native session",
 );
 
 assert.match(

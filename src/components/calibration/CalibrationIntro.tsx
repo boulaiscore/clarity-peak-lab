@@ -15,14 +15,14 @@ interface CalibrationIntroProps {
 
 export function CalibrationIntro({ onBegin, onSkip, isSkipping = false }: CalibrationIntroProps) {
   return (
-    <div className="h-full flex flex-col items-center justify-center px-6 py-10">
+    <div className="h-full overflow-y-auto px-6">
       {/* Background effect */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px]" />
       </div>
 
       <motion.div
-        className="relative z-10 flex flex-col items-center text-center max-w-md"
+        className="relative z-10 mx-auto flex min-h-full max-w-md flex-col items-center justify-center py-8 text-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -87,7 +87,7 @@ export function CalibrationIntro({ onBegin, onSkip, isSkipping = false }: Calibr
           <button
             onClick={onSkip}
             disabled={isSkipping}
-            className="mt-4 text-xs text-muted-foreground/50 transition-colors hover:text-muted-foreground disabled:cursor-wait disabled:opacity-60"
+            className="mt-4 min-h-11 px-5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:cursor-wait disabled:opacity-60"
           >
             {isSkipping ? "Continuing..." : "Skip for now"}
           </button>
