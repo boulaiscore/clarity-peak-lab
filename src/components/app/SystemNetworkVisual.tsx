@@ -90,7 +90,7 @@ export function SystemNetworkVisual({ system, score = 78 }: SystemNetworkVisualP
           <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation={isFast ? 2.6 : 4.2} result="blur" />
             <feComponentTransfer in="blur" result="boosted">
-              <feFuncA type="linear" slope="1.35" intercept="0.08" />
+              <feFuncA type="linear" slope="1.5" intercept="0" />
             </feComponentTransfer>
             <feMerge><feMergeNode in="boosted" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
