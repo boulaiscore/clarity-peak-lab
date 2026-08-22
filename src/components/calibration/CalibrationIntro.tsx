@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button";
 interface CalibrationIntroProps {
   onBegin: () => void;
   onSkip?: () => void;
+  isSkipping?: boolean;
 }
 
-export function CalibrationIntro({ onBegin, onSkip }: CalibrationIntroProps) {
+export function CalibrationIntro({ onBegin, onSkip, isSkipping = false }: CalibrationIntroProps) {
   return (
     <div className="h-full flex flex-col items-center justify-center px-6 py-10">
       {/* Background effect */}
@@ -73,6 +74,7 @@ export function CalibrationIntro({ onBegin, onSkip }: CalibrationIntroProps) {
         {/* Begin button */}
         <Button
           onClick={onBegin}
+          disabled={isSkipping}
           className="w-full py-6 text-sm font-semibold"
           size="lg"
         >
@@ -84,9 +86,10 @@ export function CalibrationIntro({ onBegin, onSkip }: CalibrationIntroProps) {
         {onSkip && (
           <button
             onClick={onSkip}
-            className="mt-4 text-xs text-muted-foreground/40 hover:text-muted-foreground/60 transition-colors"
+            disabled={isSkipping}
+            className="mt-4 text-xs text-muted-foreground/50 transition-colors hover:text-muted-foreground disabled:cursor-wait disabled:opacity-60"
           >
-            Do this later
+            {isSkipping ? "Continuing..." : "Skip for now"}
           </button>
         )}
       </motion.div>

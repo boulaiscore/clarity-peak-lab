@@ -107,9 +107,15 @@ export function useBaselineStatus(): BaselineStatus {
   });
   
   // Get calibration status with fallback logic
-  const calibrationStatus: CalibrationStatus = 
-    (data?.calibration_status as CalibrationStatus) ?? 
-    (data?.baseline_captured_at ? "completed" : "not_started");
+  // An explicitly completed onboarding may legitimately have no measured
+  // baseline yet: the user chose "Skip for now". Keep the app accessible and
+  // use the neutral prior until calibration is completed later.
+  const isDeferredByOnboarding = user?.onboardingCompleted === true && !data?.baseline_captured_at;
+  const storedCalibrationStatus = data?.calibration_status as CalibrationStatus | null | undefined;
+  const calibrationStatus: CalibrationStatus = isDeferredByOnboarding &&
+    (!storedCalibrationStatus || storedCalibrationStatus === "not_started")
+      ? "skipped"
+      : storedCalibrationStatus ?? (data?.baseline_captured_at ? "completed" : "not_started");
   
   // Use effective baseline, fallback to legacy baseline columns
   const AE0_eff = data?.baseline_eff_focus ?? data?.baseline_focus ?? null;
@@ -122,7 +128,7 @@ export function useBaselineStatus(): BaselineStatus {
   const isLegacyCalibrated = data?.hasLegacySessions === true;
   
   return {
-    isCalibrated: !!data?.baseline_captured_at || isLegacyCalibrated,
+    isCalibrated: !!data?.baseline_captured_at || isLegacyCalibrated || isDeferredByOnboarding,
     calibrationStatus,
     baselineCapturedAt: data?.baseline_captured_at ?? null,
     isEstimated: isLegacyCalibrated ? false : (data?.baseline_is_estimated ?? true),

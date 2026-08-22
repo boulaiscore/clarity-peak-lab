@@ -101,7 +101,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  updateUser: (updates: Partial<User>) => Promise<void>;
+  updateUser: (updates: Partial<User>) => Promise<boolean>;
   upgradeToPremium: () => Promise<void>;
 }
 
@@ -465,7 +465,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = async (updates: Partial<User>) => {
-    if (!user || !session) return;
+    if (!user || !session) return false;
 
     // Map User updates to profile column names
     const profileUpdates: Record<string, unknown> = {};
@@ -522,7 +522,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error("Error updating profile:", error.message, error.code, error.details);
-      return;
+      return false;
     }
 
     if (updates.primaryOutcome !== undefined) {
@@ -537,6 +537,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       writeCachedUser(next);
       return next;
     });
+    return true;
   };
 
   const upgradeToPremium = async () => {

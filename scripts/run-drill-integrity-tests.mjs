@@ -13,6 +13,21 @@ const selectorSource = selectors.map(read).join("\n");
 const trainingPlansSource = read("src/lib/trainingPlans.ts");
 const labSource = read("src/pages/app/NeuroLab.tsx");
 const settingsSource = read("src/pages/app/SettingsPage.tsx");
+const calibrationSource = read("src/pages/app/QuickBaselineCalibration.tsx");
+const calibrationIntroSource = read("src/components/calibration/CalibrationIntro.tsx");
+const calibrationResultsSource = read("src/components/calibration/CalibrationResults.tsx");
+
+assert.ok(calibrationIntroSource.includes("Skip for now"), "Initial calibration must offer a real skip action");
+assert.doesNotMatch(calibrationResultsSource, /7-day baseline/i, "Calibration must not promise a nonexistent 7-day flow");
+assert.doesNotMatch(
+  calibrationSource,
+  /\.upsert\(metricsPayload[\s\S]{0,180}\.select\([^)]*\)[\s\S]{0,80}\.single\(/,
+  "Calibration persistence must not turn a successful upsert into a false failure when no row is returned",
+);
+assert.ok(
+  calibrationSource.includes('if (!onboardingSaved) throw new Error("Could not finish onboarding")'),
+  "Calibration must verify that the durable onboarding flag was saved",
+);
 
 assert.match(
   trainingPlansSource,

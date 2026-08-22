@@ -55,6 +55,15 @@ interface CalibrationState {
   IN?: DrillResult;
 }
 
+function describeCalibrationError(error: unknown): string {
+  const message = error && typeof error === "object" && "message" in error
+    ? String(error.message)
+    : "";
+  return /network|fetch|offline/i.test(message)
+    ? "Check your connection, then tap Continue to retry."
+    : "Your results are still here. Tap Continue to retry.";
+}
+
 export default function QuickBaselineCalibration() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
@@ -123,11 +132,13 @@ export default function QuickBaselineCalibration() {
       
       // Read the previous baseline and current skills so calibration can replace
       // the neutral prior without discarding genuine movement since that prior.
-      const { data: currentMetrics } = await supabase
+      const { data: currentMetrics, error: currentMetricsError } = await supabase
         .from("user_cognitive_metrics")
         .select("focus_stability, fast_thinking, reasoning_accuracy, slow_thinking, baseline_eff_focus, baseline_eff_fast_thinking, baseline_eff_reasoning, baseline_eff_slow_thinking")
         .eq("user_id", user.id)
         .maybeSingle();
+
+      if (currentMetricsError) throw currentMetricsError;
       
       const skillsPayload: Record<string, number> = {};
       
@@ -171,41 +182,45 @@ export default function QuickBaselineCalibration() {
       const baselineCognitiveAge = user.age || 35;
 
       // Update user_cognitive_metrics with all baseline data
-      const { data: savedMetrics, error: metricsError } = await supabase
+      const metricsPayload = {
+        user_id: user.id,
+        // Current skills rebased onto the measured baseline.
+        ...skillsPayload,
+        // All baseline columns
+        ...baselinePayload,
+        baseline_cognitive_age: baselineCognitiveAge,
+        // Derived
+        cognitive_performance_score: baselinePerformanceAvg,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error: metricsError } = await supabase
         .from("user_cognitive_metrics")
-        .upsert({
-          user_id: user.id,
-          // Current skills rebased onto the measured baseline.
-          ...skillsPayload,
-          // All baseline columns
-          ...baselinePayload,
-          baseline_cognitive_age: baselineCognitiveAge,
-          // Derived
-          cognitive_performance_score: baselinePerformanceAvg,
-          updated_at: new Date().toISOString(),
-        }, {
+        .upsert(metricsPayload, {
           onConflict: "user_id",
-        })
-        .select("*")
-        .single();
+        });
 
       if (metricsError) throw metricsError;
 
-      // Publish the committed row immediately. Home and Monitor derive every
-      // visible metric from this exact cache key.
-      queryClient.setQueryData(["user-metrics", user.id], savedMetrics);
+      // Publish the committed values immediately. Requiring a returned row here
+      // used to turn a successful write into a false failure when PostgREST did
+      // not return a representation for an upsert.
+      queryClient.setQueryData(["user-metrics", user.id], (current: unknown) => (
+        current && typeof current === "object" ? { ...current, ...metricsPayload } : current
+      ));
 
       // CRITICAL: Update AuthContext state to mark onboarding complete
-      await updateUser({ onboardingCompleted: true });
+      const onboardingSaved = await updateUser({ onboardingCompleted: true });
+      if (!onboardingSaved) throw new Error("Could not finish onboarding");
 
       // Refresh every view derived from the baseline. Inactive queries are
       // included so returning from Subscription cannot revive the old values.
-      await Promise.all([
+      void Promise.all([
         queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
         queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
         queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
         queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
-      ]);
+      ]).catch((error) => console.warn("[Calibration] Cache refresh deferred:", error));
 
       toast.success("Calibration complete");
       trackProductEvent("calibration_completed");
@@ -217,7 +232,83 @@ export default function QuickBaselineCalibration() {
       
     } catch (error) {
       console.error("Error saving calibration:", error);
-      toast.error("Failed to save calibration");
+      toast.error("Could not save your first reading", {
+        description: describeCalibrationError(error),
+      });
+      setIsSaving(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    if (!user?.id) {
+      toast.error("You need to be signed in to continue");
+      return;
+    }
+    if (isSaving) return;
+
+    setIsSaving(true);
+
+    try {
+      trackProductEvent("calibration_skipped");
+
+      const demographicInput: DemographicInput = {
+        birthDate: user.birthDate ?? null,
+        age: user.age ?? null,
+        educationLevel: user.educationLevel ?? null,
+        workType: user.workType ?? null,
+      };
+      const demographic = computeDemographicBaseline(demographicInput);
+      const effective = computeEffectiveBaseline(demographic, null, "skipped");
+      const baselinePayload = prepareBaselineDbPayload({
+        demographic,
+        calibration: null,
+        effective,
+        calibrationStatus: "skipped",
+      });
+      const metricsPayload = {
+        user_id: user.id,
+        ...prepareInitialSkillsPayload(effective),
+        ...baselinePayload,
+        baseline_cognitive_age: user.age || 35,
+        cognitive_performance_score: calculateCalibrationOverall(effective),
+        updated_at: new Date().toISOString(),
+      };
+
+      // A skipped check uses a neutral prior. Saving that prior is best-effort:
+      // a temporary metrics-write failure must never trap the user in onboarding.
+      const { error: metricsError } = await supabase
+        .from("user_cognitive_metrics")
+        .upsert(metricsPayload, { onConflict: "user_id" });
+
+      if (metricsError) {
+        console.warn("[Calibration] Neutral baseline will be retried later:", metricsError);
+      } else {
+        queryClient.setQueryData(["user-metrics", user.id], (current: unknown) => (
+          current && typeof current === "object" ? { ...current, ...metricsPayload } : current
+        ));
+      }
+
+      // This is the durable skip flag. The app can use a neutral prior until
+      // the user chooses to take the check later from Settings.
+      const onboardingSaved = await updateUser({ onboardingCompleted: true });
+      if (!onboardingSaved) throw new Error("Could not finish onboarding");
+
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
+      ]).catch((error) => console.warn("[Calibration] Cache refresh deferred:", error));
+      trackProductEvent("onboarding_completed", {
+        cognitiveRole: user.workType ?? null,
+        primaryBottleneck: user.primaryOutcome ?? null,
+      });
+      navigate("/app/subscription?source=onboarding");
+    } catch (error) {
+      console.error("Error skipping calibration:", error);
+      toast.error("Could not continue", {
+        description: describeCalibrationError(error),
+      });
       setIsSaving(false);
     }
   };
@@ -242,76 +333,8 @@ export default function QuickBaselineCalibration() {
           >
             <CalibrationIntro 
               onBegin={handleIntroComplete}
-              onSkip={async () => {
-                if (!user?.id) {
-                  toast.error("You need to be signed in to continue");
-                  return;
-                }
-                if (isSaving) return;
-                setIsSaving(true);
-                try {
-                trackProductEvent("calibration_skipped");
-                
-                
-                // Compute demographic-only baseline (calibration skipped)
-                const demographicInput: DemographicInput = {
-                  birthDate: user.birthDate ?? null,
-                  age: user.age ?? null,
-                  educationLevel: user.educationLevel ?? null,
-                  workType: user.workType ?? null,
-                };
-                
-                const demographic = computeDemographicBaseline(demographicInput);
-                const effective = computeEffectiveBaseline(demographic, null, "skipped");
-                
-                const baselineResult = {
-                  demographic,
-                  calibration: null,
-                  effective,
-                  calibrationStatus: "skipped" as const,
-                };
-                
-                const baselinePayload = prepareBaselineDbPayload(baselineResult);
-                const skillsPayload = prepareInitialSkillsPayload(effective);
-                
-                // Upsert with demographic-only baseline
-                const { data: savedMetrics, error: metricsError } = await supabase
-                  .from("user_cognitive_metrics")
-                  .upsert({
-                    user_id: user.id,
-                    ...skillsPayload,
-                    ...baselinePayload,
-                    baseline_cognitive_age: user.age || 35,
-                    cognitive_performance_score: calculateCalibrationOverall(effective),
-                    updated_at: new Date().toISOString(),
-                  }, { onConflict: "user_id" })
-                  .select("*")
-                  .single();
-
-                if (metricsError) throw metricsError;
-                queryClient.setQueryData(["user-metrics", user.id], savedMetrics);
-                
-                // Mark onboarding complete
-                await updateUser({ onboardingCompleted: true });
-                
-                // Invalidate dependent caches, including currently inactive views.
-                await Promise.all([
-                  queryClient.invalidateQueries({ queryKey: ["baseline-status", user.id], refetchType: "all" }),
-                  queryClient.invalidateQueries({ queryKey: ["user-cognitive-metrics"], refetchType: "all" }),
-                  queryClient.invalidateQueries({ queryKey: ["today-metrics", user.id], refetchType: "all" }),
-                  queryClient.invalidateQueries({ queryKey: ["reasoning-quality-persisted", user.id], refetchType: "all" }),
-                ]);
-                trackProductEvent("onboarding_completed", {
-                  cognitiveRole: user.workType ?? null,
-                  primaryBottleneck: user.primaryOutcome ?? null,
-                });
-                navigate("/app/subscription?source=onboarding");
-                } catch (error) {
-                  console.error("Error skipping calibration:", error);
-                  toast.error("Could not skip the check. Please try again.");
-                  setIsSaving(false);
-                }
-              }}
+              isSkipping={isSaving}
+              onSkip={handleSkip}
             />
           </motion.div>
         )}

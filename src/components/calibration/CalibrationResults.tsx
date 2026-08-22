@@ -168,7 +168,7 @@ export function CalibrationResults({
             className="w-full py-6 text-sm font-semibold"
             size="lg"
           >
-            {isSaving ? "Saving..." : "Start my 7-day baseline"}
+            {isSaving ? "Saving..." : "Continue"}
             {!isSaving && <ChevronRight className="w-4 h-4 ml-2" />}
           </Button>
         </motion.div>
