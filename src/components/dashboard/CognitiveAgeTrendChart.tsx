@@ -15,8 +15,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, subDays } from "date-fns";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart, LabelList } from "recharts";
 import {
+  applyLongInactivityFloor,
   calculateChronologicalAgeAtDate,
   calculateCognitiveAgeFromPerformance,
+  calculateInactivityAgePenalty,
+  getInactiveDays,
+  maxIsoDate,
 } from "@/lib/cognitiveAge";
 import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 
@@ -113,7 +117,7 @@ export function CognitiveAgeTrendChart() {
       // from the user's most recent prior cognitive state.
       const lookbackStart = format(subDays(new Date(), 30 + 60), "yyyy-MM-dd");
 
-      const [weeklyResult, baselineResult, profileResult, dailyResult] = await Promise.all([
+      const [weeklyResult, baselineResult, profileResult, dailyResult, gameResult, reasonResult, detoxResult, walkResult] = await Promise.all([
         supabase
           .from("user_cognitive_age_weekly")
           .select("week_start, cognitive_age")
@@ -136,13 +140,24 @@ export function CognitiveAgeTrendChart() {
           .eq("user_id", user.id)
           .gte("snapshot_date", lookbackStart)
           .order("snapshot_date", { ascending: true }),
+        supabase.from("game_sessions").select("completed_at").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("reason_sessions").select("ended_at").eq("user_id", user.id).not("ended_at", "is", null).order("ended_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("detox_completions").select("completed_at").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("walking_sessions").select("completed_at").eq("user_id", user.id).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
+
 
       return {
         weekly: weeklyResult.data || [],
         baseline: baselineResult.data,
         profile: profileResult.data,
         daily: dailyResult.data || [],
+        lastActivityAt: maxIsoDate([
+          gameResult.data?.completed_at,
+          reasonResult.data?.ended_at,
+          detoxResult.data?.completed_at,
+          walkResult.data?.completed_at,
+        ]),
       };
     },
     enabled: !!user?.id,
@@ -218,6 +233,20 @@ export function CognitiveAgeTrendChart() {
     for (const point of skeletonDays) {
       if (point.cognitiveAge !== null) lastCogAge = point.cognitiveAge;
       else if (lastCogAge !== null) point.cognitiveAge = lastCogAge;
+    }
+
+    // Third pass: apply the same inactivity penalty the headline uses, per day.
+    // Without this the history stays flat and the last point jumps vertically
+    // to the live value, which reads as a data glitch.
+    for (const point of skeletonDays) {
+      if (point.cognitiveAge === null) continue;
+      const inactiveDays = getInactiveDays({
+        lastMeaningfulActivityAt: chartSources.lastActivityAt,
+        targetDate: point.date,
+      });
+      const penalised = point.cognitiveAge + calculateInactivityAgePenalty(inactiveDays);
+      const floored = applyLongInactivityFloor(penalised, point.realAge, inactiveDays);
+      point.cognitiveAge = Math.round(Math.min(point.realAge + 15, floored) * 10) / 10;
     }
 
     const allDays = skeletonDays.slice(-RENDER);
