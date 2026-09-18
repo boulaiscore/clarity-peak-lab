@@ -132,11 +132,18 @@ export default function Onboarding() {
         onboardingCompleted: false,
       });
       trackProductEvent("onboarding_step_completed", { step: 2 });
-      navigate("/app/calibration");
+      // On native, ask for Health access before the calibration check.
+      if (isNativePlatform()) {
+        setStep(3);
+      } else {
+        navigate("/app/calibration");
+      }
     } finally {
       setIsSaving(false);
     }
   };
+
+  const totalSteps = isNativePlatform() ? 3 : 2;
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -149,15 +156,17 @@ export default function Onboarding() {
           <LoomaLogo size={24} className="text-foreground" />
           <span className="text-xs font-semibold tracking-[0.18em]">LOOMA</span>
         </div>
-        <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Step {step} of 2</span>
+        <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Step {step} of {totalSteps}</span>
       </header>
 
       <div className="relative z-10 mx-auto h-1 w-[calc(100%-2.5rem)] max-w-md overflow-hidden rounded-full bg-muted/50">
-        <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${step * 50}%` }} />
+        <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${(step / totalSteps) * 100}%` }} />
       </div>
 
       <main className="relative z-10 mx-auto flex min-h-[calc(100vh-74px)] w-full max-w-md items-center px-5 py-10">
-        {step === 1 ? (
+        {step === 3 ? (
+          <HealthPermissionStep onDone={() => navigate("/app/calibration")} />
+        ) : step === 1 ? (
           <section className="w-full animate-fade-in">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Your working edge</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">What should LOOMA help you protect?</h1>
