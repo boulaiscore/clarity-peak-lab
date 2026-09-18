@@ -334,14 +334,34 @@ const Home = () => {
             
             <motion.section initial={false} className="mb-3">
               <div className="flex justify-center gap-5 mb-5">
-                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={88} strokeWidth={6} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
-                <ProgressRing value={displayReadiness} max={100} size={88} strokeWidth={6} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
-                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={88} strokeWidth={6} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
+                <ProgressRing value={ringsLocked || isDisplayLoading ? 0 : displaySharpness} max={100} size={88} strokeWidth={6} color={ringsLocked ? "hsl(var(--muted-foreground) / 0.35)" : sharpnessColor} label="Sharpness" displayValue={ringsLocked || isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={ringsLocked || isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={ringsLocked || isDisplayLoading ? null : sharpnessDelta} onClick={ringsLocked ? () => navigate("/app/calibration") : isViewingToday ? () => setActiveTab("intuition") : undefined} />
+                <ProgressRing value={ringsLocked ? 0 : displayReadiness} max={100} size={88} strokeWidth={6} color={ringsLocked ? "hsl(var(--muted-foreground) / 0.35)" : readinessColor} label="Readiness" displayValue={ringsLocked || isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={ringsLocked || isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={ringsLocked || isDisplayLoading ? null : readinessDelta} onClick={ringsLocked ? () => navigate("/app/calibration") : isViewingToday ? () => setActiveTab("reasoning") : undefined} />
+                <ProgressRing value={ringsLocked || isDisplayLoading ? 0 : displayRQ} max={100} size={88} strokeWidth={6} color={ringsLocked ? "hsl(var(--muted-foreground) / 0.35)" : rqColor} label="Reasoning" displayValue={ringsLocked || isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={ringsLocked || isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={ringsLocked || isDisplayLoading ? null : rqDelta} onClick={ringsLocked ? () => navigate("/app/calibration") : isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
 
-              <p className="mb-5 text-center text-[10px] leading-relaxed text-muted-foreground/60">
-                Personal state signals · changeable over time · no comparison with other people
-              </p>
+              {ringsLocked ? (
+                <button
+                  type="button"
+                  onClick={() => navigate("/app/calibration")}
+                  className="mx-auto mb-5 block text-center text-[10px] font-medium uppercase tracking-[0.12em] text-primary/90 transition-colors hover:text-primary"
+                >
+                  Unlock with a 2-minute check →
+                </button>
+              ) : (
+                <p className="mb-5 text-center text-[10px] leading-relaxed text-muted-foreground/60">
+                  Personal state signals · changeable over time · no comparison with other people
+                </p>
+              )}
+
+              {isViewingToday && !ringsLocked && signalCoverageLevel === "Basic" && !metricsLoading && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/app/wearable")}
+                  className="mx-auto -mt-3 mb-5 block text-center text-[10px] leading-relaxed text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+                >
+                  Estimated · connect Health or a wearable for precision
+                </button>
+              )}
 
               {isViewingToday && totalProgress >= 100 && <div className="text-center mb-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
