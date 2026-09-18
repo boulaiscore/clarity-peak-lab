@@ -15,8 +15,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, subDays } from "date-fns";
 import { Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, ComposedChart, LabelList } from "recharts";
 import {
+  applyLongInactivityFloor,
   calculateChronologicalAgeAtDate,
   calculateCognitiveAgeFromPerformance,
+  calculateInactivityAgePenalty,
+  getInactiveDays,
+  maxIsoDate,
 } from "@/lib/cognitiveAge";
 import { useCognitiveAge } from "@/hooks/useCognitiveAge";
 
