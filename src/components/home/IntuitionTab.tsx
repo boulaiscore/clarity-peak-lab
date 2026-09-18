@@ -82,6 +82,12 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
         isLoading={isLoading}
       />
 
+      {!isLoading && signalCoverageLevel === "Basic" && (
+        <p className="px-1 text-center text-[10px] leading-relaxed text-muted-foreground/60">
+          Estimated — connect Health or a wearable to make this signal responsive to your actual day.
+        </p>
+      )}
+
       <MetricInterpretationNote changeDrivers="recovery and fast-processing or reasoning practice" />
 
       <MetricFactorsSection>

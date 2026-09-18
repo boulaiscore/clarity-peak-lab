@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
-import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } from "date-fns";
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
 import { useYesterdayMetrics, formatDeltaPercent } from "@/hooks/useYesterdayMetrics";
@@ -246,33 +245,11 @@ const Home = () => {
   const readinessColor = METRIC_COLORS.readiness;
   const rqColor = METRIC_COLORS.reasoningQuality;
 
-  // Baseline calibration not completed - show CTA to complete it
-  if (!baselineLoading && !isCalibrated) {
-    return <AppShell>
-        <main className="flex flex-col items-center justify-center min-h-[calc(100dvh-theme(spacing.14))] px-6">
-          <motion.div initial={{
-          opacity: 0,
-          y: 10
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} className="text-center max-w-sm">
-            <div className="w-16 h-16 rounded-2xl bg-black flex items-center justify-center mx-auto mb-6">
-              <LoomaLogo size={32} className="text-white" />
-            </div>
-            <h1 className="text-xl font-semibold mb-2">Complete Calibration</h1>
-            <p className="text-sm text-muted-foreground/70 mb-8 leading-relaxed">
-              A 2-minute cognitive baseline is required before Train begins. 
-              This establishes your personalized skill references.
-            </p>
-            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center rounded-xl border border-foreground/15 bg-foreground px-6 py-3.5 text-sm font-semibold text-background shadow-[0_12px_28px_-18px_rgba(0,0,0,0.9)] transition-all hover:bg-foreground/90 active:scale-[0.98]">
-              Begin Calibration
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </button>
-          </motion.div>
-        </main>
-      </AppShell>;
-  }
+  // Monitoring works without calibration: passive metrics (Recovery, Daily Outlook)
+  // stay visible; the three performance rings stay locked until the 2-minute check.
+  const ringsLocked = !baselineLoading && !isCalibrated;
+
+
 
   // No protocol configured
   if (!hasProtocol) {
@@ -329,6 +306,21 @@ const Home = () => {
               />
             )}
 
+            {/* My day first — one outlook, one action; rings are supporting detail */}
+            {isViewingToday && (
+              <DailyOutlookCard
+                sharpness={sharpness}
+                readiness={readiness}
+                recovery={recoveryWithBoost}
+                reasoningQuality={rq}
+                signalCoverage={signalCoverage}
+                activeSourceCount={activeSourceCount}
+                passiveFeatures={passiveFeatures}
+                isLoading={isDisplayLoading}
+                personalizationPending={passiveLoading}
+              />
+            )}
+
             {/* No data warning for historical dates */}
             {!isViewingToday && !historicalLoading && !hasHistoricalData && <motion.div initial={{
           opacity: 0
@@ -342,16 +334,36 @@ const Home = () => {
             
             <motion.section initial={false} className="mb-3">
               <div className="flex justify-center gap-5 mb-5">
-                <ProgressRing value={isDisplayLoading ? 0 : displaySharpness} max={100} size={88} strokeWidth={6} color={sharpnessColor} label="Sharpness" displayValue={isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : sharpnessDelta} onClick={isViewingToday ? () => setActiveTab("intuition") : undefined} />
-                <ProgressRing value={displayReadiness} max={100} size={88} strokeWidth={6} color={readinessColor} label="Readiness" displayValue={isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={isDisplayLoading ? null : readinessDelta} onClick={isViewingToday ? () => setActiveTab("reasoning") : undefined} />
-                <ProgressRing value={isDisplayLoading ? 0 : displayRQ} max={100} size={88} strokeWidth={6} color={rqColor} label="Reasoning" displayValue={isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={isDisplayLoading ? null : rqDelta} onClick={isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
+                <ProgressRing value={ringsLocked || isDisplayLoading ? 0 : displaySharpness} max={100} size={88} strokeWidth={6} color={ringsLocked ? "hsl(var(--muted-foreground) / 0.35)" : sharpnessColor} label="Sharpness" displayValue={ringsLocked || isDisplayLoading ? "—" : `${Math.round(displaySharpness)}`} dynamicIndicator={ringsLocked || isDisplayLoading ? undefined : getMetricDisplayInfo(getSharpnessStatus(displaySharpness).label, getSharpnessStatus(displaySharpness).level, null, null).text} deltaIndicator={ringsLocked || isDisplayLoading ? null : sharpnessDelta} onClick={ringsLocked ? () => navigate("/app/calibration") : isViewingToday ? () => setActiveTab("intuition") : undefined} />
+                <ProgressRing value={ringsLocked ? 0 : displayReadiness} max={100} size={88} strokeWidth={6} color={ringsLocked ? "hsl(var(--muted-foreground) / 0.35)" : readinessColor} label="Readiness" displayValue={ringsLocked || isDisplayLoading ? "—" : `${Math.round(displayReadiness)}`} dynamicIndicator={ringsLocked || isDisplayLoading ? undefined : getMetricDisplayInfo(getReadinessStatus(displayReadiness).label, getReadinessStatus(displayReadiness).level, null, null).text} deltaIndicator={ringsLocked || isDisplayLoading ? null : readinessDelta} onClick={ringsLocked ? () => navigate("/app/calibration") : isViewingToday ? () => setActiveTab("reasoning") : undefined} />
+                <ProgressRing value={ringsLocked || isDisplayLoading ? 0 : displayRQ} max={100} size={88} strokeWidth={6} color={ringsLocked ? "hsl(var(--muted-foreground) / 0.35)" : rqColor} label="Reasoning" displayValue={ringsLocked || isDisplayLoading ? "—" : `${Math.round(displayRQ)}`} dynamicIndicator={ringsLocked || isDisplayLoading ? undefined : getMetricDisplayInfo(getReasoningQualityStatus(displayRQ).label, getReasoningQualityStatus(displayRQ).level, null, null).text} deltaIndicator={ringsLocked || isDisplayLoading ? null : rqDelta} onClick={ringsLocked ? () => navigate("/app/calibration") : isViewingToday ? () => navigate("/app/reasoning-quality-impact") : undefined} />
               </div>
 
-              <p className="mb-5 text-center text-[10px] leading-relaxed text-muted-foreground/60">
-                Personal state signals · changeable over time · no comparison with other people
-              </p>
+              {ringsLocked ? (
+                <button
+                  type="button"
+                  onClick={() => navigate("/app/calibration")}
+                  className="mx-auto mb-5 block text-center text-[10px] font-medium uppercase tracking-[0.12em] text-primary/90 transition-colors hover:text-primary"
+                >
+                  Unlock with a 2-minute check →
+                </button>
+              ) : (
+                <p className="mb-5 text-center text-[10px] leading-relaxed text-muted-foreground/60">
+                  Personal state signals · changeable over time · no comparison with other people
+                </p>
+              )}
 
-              {isViewingToday && totalProgress >= 100 && <div className="text-center mb-4">
+              {isViewingToday && !ringsLocked && signalCoverageLevel === "Basic" && !metricsLoading && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/app/wearable")}
+                  className="mx-auto -mt-3 mb-5 block text-center text-[10px] leading-relaxed text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+                >
+                  Estimated · connect Health or a wearable for precision
+                </button>
+              )}
+
+              {isViewingToday && !ringsLocked && totalProgress >= 100 && <div className="text-center mb-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
                     <span className="text-xs font-medium text-emerald-400">Weekly Target Reached</span>
@@ -365,30 +377,17 @@ const Home = () => {
             </motion.section>
 
 
-        {/* My Day — one outlook, then observed activity */}
+        {/* Observed activity */}
         {isViewingToday && (
-          <>
-            <DailyOutlookCard
-              sharpness={sharpness}
-              readiness={readiness}
-              recovery={recoveryWithBoost}
-              reasoningQuality={rq}
-              signalCoverage={signalCoverage}
-              activeSourceCount={activeSourceCount}
-              passiveFeatures={passiveFeatures}
-              isLoading={isDisplayLoading}
-              personalizationPending={passiveLoading}
-            />
-            <TodayActivitiesCard
-              activeQualityTime={
-                activeReasonSession
-                  ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
-                  : activeBooks.length > 0
-                  ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
-                  : null
-              }
-            />
-          </>
+          <TodayActivitiesCard
+            activeQualityTime={
+              activeReasonSession
+                ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
+                : activeBooks.length > 0
+                ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
+                : null
+            }
+          />
         )}
           </>}
 
