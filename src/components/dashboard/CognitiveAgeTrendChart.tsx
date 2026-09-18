@@ -136,7 +136,12 @@ export function CognitiveAgeTrendChart() {
           .eq("user_id", user.id)
           .gte("snapshot_date", lookbackStart)
           .order("snapshot_date", { ascending: true }),
+        supabase.from("game_sessions").select("completed_at").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("reason_sessions").select("ended_at").eq("user_id", user.id).not("ended_at", "is", null).order("ended_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("detox_completions").select("completed_at").eq("user_id", user.id).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("walking_sessions").select("completed_at").eq("user_id", user.id).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
+
 
       return {
         weekly: weeklyResult.data || [],
