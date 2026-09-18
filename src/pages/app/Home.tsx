@@ -363,7 +363,7 @@ const Home = () => {
                 </button>
               )}
 
-              {isViewingToday && totalProgress >= 100 && <div className="text-center mb-4">
+              {isViewingToday && !ringsLocked && totalProgress >= 100 && <div className="text-center mb-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
                     <span className="text-xs font-medium text-emerald-400">Weekly Target Reached</span>
@@ -377,30 +377,17 @@ const Home = () => {
             </motion.section>
 
 
-        {/* My Day — one outlook, then observed activity */}
+        {/* Observed activity */}
         {isViewingToday && (
-          <>
-            <DailyOutlookCard
-              sharpness={sharpness}
-              readiness={readiness}
-              recovery={recoveryWithBoost}
-              reasoningQuality={rq}
-              signalCoverage={signalCoverage}
-              activeSourceCount={activeSourceCount}
-              passiveFeatures={passiveFeatures}
-              isLoading={isDisplayLoading}
-              personalizationPending={passiveLoading}
-            />
-            <TodayActivitiesCard
-              activeQualityTime={
-                activeReasonSession
-                  ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
-                  : activeBooks.length > 0
-                  ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
-                  : null
-              }
-            />
-          </>
+          <TodayActivitiesCard
+            activeQualityTime={
+              activeReasonSession
+                ? { type: activeReasonSession.session_type, isLive: true, bookTitle: null, count: 0 }
+                : activeBooks.length > 0
+                ? { type: "reading", isLive: false, bookTitle: activeBooks.length === 1 ? activeBooks[0].title : null, count: activeBooks.length }
+                : null
+            }
+          />
         )}
           </>}
 
