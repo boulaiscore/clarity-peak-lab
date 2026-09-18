@@ -22,7 +22,7 @@ import {
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { DEFAULT_TRAINING_PLAN_ID } from "@/lib/trainingPlans";
 
-type Step = 1 | 2;
+type Step = 1 | 2 | 3;
 const outcomes: Array<{
   value: PrimaryOutcome;
   title: string;
