@@ -23,7 +23,7 @@ export function HealthPermissionStep({ onDone }: HealthPermissionStepProps) {
   const [isRequesting, setIsRequesting] = useState(false);
 
   const finish = (outcome: "granted" | "denied" | "skipped") => {
-    trackProductEvent("onboarding_health_permission", { outcome });
+    trackProductEvent("onboarding_step_completed", { step: 3, outcome });
     // Let phone-health sync retry immediately after a grant.
     window.dispatchEvent(new Event("looma:health-permissions-changed"));
     onDone();
