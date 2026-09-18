@@ -113,7 +113,7 @@ export function CognitiveAgeTrendChart() {
       // from the user's most recent prior cognitive state.
       const lookbackStart = format(subDays(new Date(), 30 + 60), "yyyy-MM-dd");
 
-      const [weeklyResult, baselineResult, profileResult, dailyResult] = await Promise.all([
+      const [weeklyResult, baselineResult, profileResult, dailyResult, gameResult, reasonResult, detoxResult, walkResult] = await Promise.all([
         supabase
           .from("user_cognitive_age_weekly")
           .select("week_start, cognitive_age")
