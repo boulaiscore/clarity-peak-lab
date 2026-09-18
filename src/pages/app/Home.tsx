@@ -246,33 +246,11 @@ const Home = () => {
   const readinessColor = METRIC_COLORS.readiness;
   const rqColor = METRIC_COLORS.reasoningQuality;
 
-  // Baseline calibration not completed - show CTA to complete it
-  if (!baselineLoading && !isCalibrated) {
-    return <AppShell>
-        <main className="flex flex-col items-center justify-center min-h-[calc(100dvh-theme(spacing.14))] px-6">
-          <motion.div initial={{
-          opacity: 0,
-          y: 10
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} className="text-center max-w-sm">
-            <div className="w-16 h-16 rounded-2xl bg-black flex items-center justify-center mx-auto mb-6">
-              <LoomaLogo size={32} className="text-white" />
-            </div>
-            <h1 className="text-xl font-semibold mb-2">Complete Calibration</h1>
-            <p className="text-sm text-muted-foreground/70 mb-8 leading-relaxed">
-              A 2-minute cognitive baseline is required before Train begins. 
-              This establishes your personalized skill references.
-            </p>
-            <button onClick={() => navigate("/app/calibration")} className="inline-flex items-center rounded-xl border border-foreground/15 bg-foreground px-6 py-3.5 text-sm font-semibold text-background shadow-[0_12px_28px_-18px_rgba(0,0,0,0.9)] transition-all hover:bg-foreground/90 active:scale-[0.98]">
-              Begin Calibration
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </button>
-          </motion.div>
-        </main>
-      </AppShell>;
-  }
+  // Monitoring works without calibration: passive metrics (Recovery, Daily Outlook)
+  // stay visible; the three performance rings stay locked until the 2-minute check.
+  const ringsLocked = !baselineLoading && !isCalibrated;
+
+
 
   // No protocol configured
   if (!hasProtocol) {
