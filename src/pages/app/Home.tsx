@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
-import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { format, subDays, addDays, isToday, parseISO, isBefore, startOfDay } from "date-fns";
 import { useHistoricalMetrics, getDateDisplayLabel } from "@/hooks/useHistoricalMetrics";
 import { useYesterdayMetrics, formatDeltaPercent } from "@/hooks/useYesterdayMetrics";
@@ -304,6 +303,21 @@ const Home = () => {
                 coverage={signalCoverage}
                 updatedAt={signalUpdatedAt}
                 sources={signalSources}
+              />
+            )}
+
+            {/* My day first — one outlook, one action; rings are supporting detail */}
+            {isViewingToday && (
+              <DailyOutlookCard
+                sharpness={sharpness}
+                readiness={readiness}
+                recovery={recoveryWithBoost}
+                reasoningQuality={rq}
+                signalCoverage={signalCoverage}
+                activeSourceCount={activeSourceCount}
+                passiveFeatures={passiveFeatures}
+                isLoading={isDisplayLoading}
+                personalizationPending={passiveLoading}
               />
             )}
 
