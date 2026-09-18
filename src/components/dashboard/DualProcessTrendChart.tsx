@@ -283,7 +283,7 @@ export function DualProcessTrendChart({
         >
           <span
             className="w-2.5 h-0.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: "#f59e0b" }}
+            style={{ backgroundColor: "hsl(var(--area-fast))" }}
           />
           <span className="text-muted-foreground">System 1 (Fast)</span>
         </button>
