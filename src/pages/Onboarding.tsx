@@ -21,6 +21,8 @@ import {
 } from "@/lib/recoveryReadinessInit";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { DEFAULT_TRAINING_PLAN_ID } from "@/lib/trainingPlans";
+import { HealthPermissionStep } from "@/components/onboarding/HealthPermissionStep";
+import { isNativePlatform } from "@/lib/capacitor/health";
 
 type Step = 1 | 2 | 3;
 const outcomes: Array<{
