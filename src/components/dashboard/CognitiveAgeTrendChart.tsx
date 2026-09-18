@@ -148,6 +148,12 @@ export function CognitiveAgeTrendChart() {
         baseline: baselineResult.data,
         profile: profileResult.data,
         daily: dailyResult.data || [],
+        lastActivityAt: maxIsoDate([
+          gameResult.data?.completed_at,
+          reasonResult.data?.ended_at,
+          detoxResult.data?.completed_at,
+          walkResult.data?.completed_at,
+        ]),
       };
     },
     enabled: !!user?.id,
