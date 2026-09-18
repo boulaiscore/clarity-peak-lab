@@ -1,92 +1,91 @@
-# Phone Health → Recovery Integration
+# Monitor-first: LOOMA for the "lazy" user
 
-Integrate base health data from HealthKit (iOS) and Health Connect (Android) into the REC model, with a WHOOP-style breakdown report. Works without a wearable; HRV/RHR remain wearable-premium.
+Goal: make LOOMA deliver value to users who only want to monitor themselves and get
+guidance — without requiring training. Training becomes the optional improvement tool,
+not the prerequisite.
 
-## Formula recap (Option A confirmed)
+## Current state (verified)
 
-**Phone Health Index (PHI), 0–100**
-```
-SleepScore   = clamp01((sleep_min - 300) / 180) × 100
-ConsistScore = clamp01(1 - bedtime_dev_min / 90) × 100
-StepsScore   = clamp01((steps - 2000) / 6000) × 100
-ActiveScore  = clamp01(active_min / 30) × 100
-PickupPenalty= clamp01((pickups - 80) / 120) × 100   // 0 if unavailable
+- Onboarding (`src/pages/Onboarding.tsx`) has 2 steps (goal + self-reported context),
+  then forces a 2-minute calibration. Health permissions are never requested during
+  onboarding.
+- Health access is only prompted later on first Home visit (`FirstRunHealthAccess`),
+  native-only, and it routes to "choose a wearable" instead of directly requesting
+  HealthKit/Health Connect authorization.
+- Home is fully blocked until baseline calibration is completed
+  (`Home.tsx` calibration gate) — a monitoring-only user cannot see anything without
+  training first.
+- The three rings show fallback values (neutral 50) silently when no passive signals
+  exist — the user cannot distinguish a real score from "we don't know yet".
+  `SignalCoverageRow` exists but the scores themselves carry no confidence marking.
+- `DailyOutlookCard` already computes a daily headline + one action + evidence with
+  vs-yesterday comparisons, but it sits below the rings and recovery battery.
 
-PHI = 0.50·Sleep + 0.15·Consist + 0.20·Steps + 0.15·Active − 0.10·Pickup
-```
+## Changes
 
-**Morning REC snapshot (replaces fixed baseline 50)**
-```
-target  = PHI available ? 35 + (PHI/100)·30 : 50
-REC_new = target + (REC_prev - target) × 0.85
-```
+### 1. Permission-first onboarding (native)
 
-**Intra-day gain (unchanged)**: Detox `+0.12·min`, Walk `+0.06·min`, Fast Recover display-only.
-**Read / Listen**: no effect on REC (per existing memory).
+- Add a new onboarding step (after step 2, before calibration) that directly requests
+  HealthKit / Health Connect authorization with value framing:
+  "LOOMA tracks your cognitive state automatically from signals your phone already
+  collects — no training required."
+- Show the exact signals used (sleep, movement, HRV if wearable), "read only" and
+  privacy-safe aggregate disclosure.
+- Skippable ("Not now") but with a clear cost statement: "Without these signals,
+  LOOMA can only show estimates."
+- On web, the step is hidden (no native health APIs).
+- Files: `src/pages/Onboarding.tsx`, new `src/components/onboarding/HealthPermissionStep.tsx`,
+  reuse `src/lib/capacitor/health.ts` permission APIs and `usePhoneHealthSync`.
 
-## What changes
+### 2. Confidence over score (honesty layer)
 
-### 1. Database
-New table `phone_health_snapshots` (one row per user/day):
-- `sleep_min`, `bedtime_dev_min`, `steps`, `active_min`, `pickups`
-- computed `phi`, `target_rec`
-- `source` ('healthkit' | 'health_connect'), `date`
-- RLS: user can read/insert/update own rows.
+- When signal coverage is low, ring values and Recovery display are marked as
+  estimates: a small "Estimated · connect Health for precision" caption under the
+  affected rings, reusing `signalCoverageLevel` already returned by `useTodayMetrics`.
+- Same marking in the three breakdown tabs (Intuition / Reasoning / Capacity) where
+  fallback (target-based) values are displayed.
+- No change to formulas — this is display-only, per the metric integrity contract.
+- Files: `src/pages/app/Home.tsx`, `src/components/home/IntuitionTab.tsx`,
+  `src/components/home/ReasoningTab.tsx`, `src/components/home/CapacityTab.tsx`.
 
-### 2. Native plugins
-Extend existing `ios-plugin/health/HealthPlugin.swift` and `android-plugin/health/HealthPlugin.kt` with:
-- `readSteps(dayStart, dayEnd)`
-- `readActiveMinutes(dayStart, dayEnd)`
-- `readBedtimeHistory(7d)` for consistency deviation
-- (iOS only, optional) `readScreenPickups` — gated, falls back to null on Android
+### 3. Home: one number, one reason, one action
 
-Sleep is already implemented. Update Capacitor bridges accordingly.
+- Move `DailyOutlookCard` above the three rings on the Overview tab: it becomes the
+  primary answer ("how am I today and what matters"), rings become the supporting
+  detail below.
+- No changes to the outlook policy itself (already has yesterday comparisons and
+  evidence); only placement and visual hierarchy.
+- File: `src/pages/app/Home.tsx`.
 
-### 3. Logic
-- `src/lib/phoneHealth.ts` (new): `computePHI(inputs)`, `computeTargetRec(phi)`, sub-score helpers, types.
-- `src/lib/recoveryV2.ts`: `applyRecoveryDecay` accepts optional `targetOverride`. Default stays 50 → zero regression for users without phone health.
-- `src/hooks/usePhoneHealthSync.ts` (new): reads native APIs once per day on app foreground (between 04:00–11:00 local), upserts `phone_health_snapshots`, then triggers REC snapshot recomputation through `useRecoveryV2`.
-- `src/hooks/useRecoveryV2.ts`: when fetching state, also fetches today's `target_rec` from `phone_health_snapshots` and passes it to `applyRecoveryDecay`.
+### 4. Monitoring without forced calibration
 
-### 4. UI — Recovery Breakdown report
-New screen `src/pages/app/RecoveryBreakdown.tsx` reachable by tapping the Recovery card on Home. WHOOP-style layout:
-- Hero: REC value + delta vs yesterday
-- Section "Sources" with 5 rows (Sleep, Consistency, Steps, Move, Pickups): raw value, 0–100 bar, contribution
-- Footer: PHI total, target REC tonight, today's cognitive actions (Detox/Walk minutes + delta), 1-line micro-coach copy
-- Empty state when phone health not authorized: CTA "Enable Health access" deep-linking to existing wearable connection flow
+- Replace the full-screen calibration gate on Home: a non-calibrated user can enter
+  Home and see Recovery + Daily Outlook (passive monitoring works without baseline).
+- Sharpness/Readiness/Reasoning rings and Train remain locked behind calibration,
+  shown with a discrete "2-minute check to unlock" state on the rings.
+- The Train tab keeps its existing calibration gate unchanged.
+- Files: `src/pages/app/Home.tsx` (gate logic), ring empty-state treatment.
 
-Add navigation entry in `MonitorCardsRow` / Recovery card tap handler with "← Today" back button per existing nav pattern.
+### 5. Drill reframing as "daily check" (copy only)
 
-### 5. Gating
-- Phone health: free for all users (zero hardware requirement).
-- HRV / RHR / sleep stages: continue gated to Pro/Elite via existing `useWearableSync` flow.
+- Where drills are presented to non-training users (Home locked states, outlook
+  action copy), present the short drill as a quick measurement ("60-second check to
+  sharpen today's read") rather than as training. No game-logic changes.
+- Files: copy in `Home.tsx` locked ring state; verify no other copy regressions.
 
-### 6. Memory
-Add `mem://features/recovery/phone-health-integration` documenting:
-- PHI formula and weights
-- Target REC range 35–65
-- Sources included/excluded (no double-counting walk/steps)
-- Free tier eligibility
+## Technical notes
 
-## Files touched
-
-**New**
-- `src/lib/phoneHealth.ts`
-- `src/hooks/usePhoneHealthSync.ts`
-- `src/pages/app/RecoveryBreakdown.tsx`
-- `mem://features/recovery/phone-health-integration`
-- migration: `phone_health_snapshots` table + RLS
-
-**Modified**
-- `ios-plugin/health/HealthPlugin.swift` + `.m`
-- `android-plugin/health/HealthPlugin.kt`
-- `src/lib/capacitor/health.ts` + `health-web.ts`
-- `src/lib/recoveryV2.ts` (add `targetOverride` param)
-- `src/hooks/useRecoveryV2.ts` (fetch + apply target)
-- `src/components/home/MonitorCardsRow.tsx` (link Recovery → breakdown)
-- `src/App.tsx` (route)
+- No database or migration changes.
+- No formula changes: `docs/METRIC_INTEGRITY.md` contract respected; all new UI
+  consumes `useTodayMetrics` / existing hooks.
+- Health permission APIs already exist in `src/lib/capacitor/health.ts` and
+  `usePhoneHealthSync` already tolerates partial grants.
+- `FirstRunHealthAccess` remains as the fallback prompt for users who skip the
+  onboarding step.
+- Verify with `npm run build` and the existing metric formula test scripts.
 
 ## Out of scope
-- HRV/RHR redesign (remains in `readiness.ts`)
-- Backfill of historical phone health data
-- Apple Screen Time deep integration beyond optional pickup count
+
+- Activating the shadow adaptive estimator (separate release decision).
+- Wearable pairing flow redesign.
+- Notification permission step (can follow later).
