@@ -231,6 +231,20 @@ export function CognitiveAgeTrendChart() {
       else if (lastCogAge !== null) point.cognitiveAge = lastCogAge;
     }
 
+    // Third pass: apply the same inactivity penalty the headline uses, per day.
+    // Without this the history stays flat and the last point jumps vertically
+    // to the live value, which reads as a data glitch.
+    for (const point of skeletonDays) {
+      if (point.cognitiveAge === null) continue;
+      const inactiveDays = getInactiveDays({
+        lastMeaningfulActivityAt: chartSources.lastActivityAt,
+        targetDate: point.date,
+      });
+      const penalised = point.cognitiveAge + calculateInactivityAgePenalty(inactiveDays);
+      const floored = applyLongInactivityFloor(penalised, point.realAge, inactiveDays);
+      point.cognitiveAge = Math.round(Math.min(point.realAge + 15, floored) * 10) / 10;
+    }
+
     const allDays = skeletonDays.slice(-RENDER);
 
     // Align today's point with the live Cognitive Age shown in the sphere
