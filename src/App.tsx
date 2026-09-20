@@ -21,6 +21,7 @@ import { SubscriptionProvider } from "@/hooks/useSubscription";
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
 const Onboarding = lazyWithRetry(() => import("./pages/Onboarding"));
 const Home = lazyWithRetry(() => import("./pages/app/Home"));
+const Coach = lazyWithRetry(() => import("./pages/app/Coach"));
 const Dashboard = lazyWithRetry(() => import("./pages/app/Dashboard"));
 const Protocol = lazyWithRetry(() => import("./pages/app/Protocol"));
 const CognitiveReport = lazyWithRetry(() => import("./pages/app/CognitiveReport"));
