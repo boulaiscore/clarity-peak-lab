@@ -1397,6 +1397,7 @@ export type Database = {
           monthly_report_reset_at: string | null
           name: string | null
           objective_date: string | null
+          objective_kind: string | null
           objective_label: string | null
           onboarding_completed: boolean | null
           primary_device: string | null
@@ -1437,6 +1438,7 @@ export type Database = {
           monthly_report_reset_at?: string | null
           name?: string | null
           objective_date?: string | null
+          objective_kind?: string | null
           objective_label?: string | null
           onboarding_completed?: boolean | null
           primary_device?: string | null
@@ -1477,6 +1479,7 @@ export type Database = {
           monthly_report_reset_at?: string | null
           name?: string | null
           objective_date?: string | null
+          objective_kind?: string | null
           objective_label?: string | null
           onboarding_completed?: boolean | null
           primary_device?: string | null
