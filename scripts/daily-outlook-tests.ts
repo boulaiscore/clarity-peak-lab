@@ -119,7 +119,7 @@ const missingSignals = deriveDailyOutlook({
 });
 assert.equal(missingSignals.confidenceLabel, "Baseline");
 assert.ok(missingSignals.evidence.every((item) => !["HLT", "SLP", "HRV", "RHR", "ACT", "ATT", "DFR", "CAL"].includes(item.code)));
-assert.match(missingSignals.summary, /still establishing/i);
+assert.match(missingSignals.summary, /still learning what affects your performance/i);
 assert.doesNotMatch(missingSignals.summary, /Readiness is|Recovery is|Reasoning is|Sharpness is/i);
 
 const estimatedRecovery = deriveDailyOutlook({
