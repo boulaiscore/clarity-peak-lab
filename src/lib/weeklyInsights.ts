@@ -130,29 +130,6 @@ function nextDayEffect(
   };
 }
 
-function trainingEffect(days: InsightDay[], metric: InsightMetricKey): SplitEffect | null {
-  const byDate = new Map(days.map((day) => [day.date, day]));
-  const trained: number[] = [];
-  const rested: number[] = [];
-
-  for (const day of days) {
-    const metricValue = day[metric];
-    if (metricValue === null || metricValue === undefined) continue;
-    const previous = byDate.get(previousDate(day.date));
-    if (!previous || previous.didTraining === null || previous.didTraining === undefined) continue;
-    (previous.didTraining ? trained : rested).push(metricValue);
-  }
-
-  if (trained.length < MIN_GROUP_SIZE || rested.length < MIN_GROUP_SIZE) return null;
-
-  return {
-    delta: round1(mean(trained) - mean(rested)),
-    sampleSize: trained.length + rested.length,
-    lowCount: rested.length,
-    highCount: trained.length,
-  };
-}
-
 function weekOverWeek(days: InsightDay[], metric: InsightMetricKey): SplitEffect | null {
   const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
   const recent = sorted.slice(-7).map((day) => day[metric]).filter((v): v is number => v !== null);

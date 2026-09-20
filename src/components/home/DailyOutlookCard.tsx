@@ -79,7 +79,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       className=""
-      aria-labelledby="daily-outlook-section-title"
+      aria-label="Today's state"
     >
       <button
         type="button"

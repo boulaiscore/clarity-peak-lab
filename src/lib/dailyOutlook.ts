@@ -661,8 +661,7 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   if (
     input.readiness >= 65 &&
     input.recovery >= 65 &&
-    input.sharpness >= 65 &&
-    (healthScore === null || healthScore >= 55)
+    input.sharpness >= 65
   ) {
     return {
       ...shared,

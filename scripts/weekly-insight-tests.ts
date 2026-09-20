@@ -52,6 +52,7 @@ assert(deriveWeeklyInsight(flatDays, []).status === "no-signal", "flat history y
 // 3. Sleep → next-day sharpness effect is detected
 const sleepDays: InsightDay[] = [];
 const sleepHealth: InsightHealthDay[] = [];
+let priorSharpness = 55;
 for (let i = 0; i < 32; i += 1) {
   const longNight = i % 2 === 0;
   sleepHealth.push({
@@ -63,12 +64,13 @@ for (let i = 0; i < 32; i += 1) {
   });
   sleepDays.push({
     date: dateFor(i + 1),
-    sharpness: 50 + i * 0.1 + (longNight ? 8 : -8),
+    sharpness: priorSharpness + (longNight ? 6 : -2),
     readiness: 55,
     reasoningQuality: 55,
     recovery: 55,
     didTraining: false,
   });
+  priorSharpness = sleepDays[sleepDays.length - 1].sharpness ?? priorSharpness;
 }
 const sleepResult = deriveWeeklyInsight(sleepDays, sleepHealth);
 assert(sleepResult.status === "ready", "sleep pattern produces an insight");
