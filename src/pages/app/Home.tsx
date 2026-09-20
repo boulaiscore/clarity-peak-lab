@@ -34,6 +34,7 @@ import { SignalCoverageRow } from "@/components/home/SignalCoverageRow";
 import { DailyOutlookCard } from "@/components/home/DailyOutlookCard";
 import { FirstRunHealthAccess } from "@/components/onboarding/FirstRunHealthAccess";
 import { HealthTrackingReminder } from "@/components/home/HealthTrackingReminder";
+import { WeeklyInsightCard } from "@/components/home/WeeklyInsightCard";
 import { isNativePlatform } from "@/lib/capacitor/health";
 
 interface RingProps {
@@ -307,20 +308,6 @@ const Home = () => {
               />
             )}
 
-            {/* My day first — one outlook, one action; rings are supporting detail */}
-            {isViewingToday && (
-              <DailyOutlookCard
-                sharpness={sharpness}
-                readiness={readiness}
-                recovery={recoveryWithBoost}
-                reasoningQuality={rq}
-                signalCoverage={signalCoverage}
-                activeSourceCount={activeSourceCount}
-                passiveFeatures={passiveFeatures}
-                isLoading={isDisplayLoading}
-                personalizationPending={passiveLoading}
-              />
-            )}
 
             {/* No data warning for historical dates */}
             {!isViewingToday && !historicalLoading && !hasHistoricalData && <motion.div initial={{
@@ -375,11 +362,32 @@ const Home = () => {
                 </div>}
 
               <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
+
+              {/* Today's verdict — one outlook, one action */}
+              {isViewingToday && (
+                <div className="mt-4">
+                  <DailyOutlookCard
+                    sharpness={sharpness}
+                    readiness={readiness}
+                    recovery={recoveryWithBoost}
+                    reasoningQuality={rq}
+                    signalCoverage={signalCoverage}
+                    activeSourceCount={activeSourceCount}
+                    passiveFeatures={passiveFeatures}
+                    isLoading={isDisplayLoading}
+                    personalizationPending={passiveLoading}
+                  />
+                </div>
+              )}
             </motion.section>
+
 
         <HealthTrackingReminder
           visible={isViewingToday && !metricsLoading && signalCoverageLevel === "Basic"}
         />
+
+        <WeeklyInsightCard visible={isViewingToday && !metricsLoading} />
+
 
         {/* Observed activity */}
         {isViewingToday && (
