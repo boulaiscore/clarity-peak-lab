@@ -31,31 +31,31 @@ export function WeeklyInsightCard({ visible = true }: WeeklyInsightCardProps) {
   const detail = isReady
     ? result.insight.detail
     : result.status === "insufficient"
-    ? "Personal correlations appear once there is enough of your own history to be honest about them."
+    ? "Personal patterns appear only after enough comparable days are available."
     : "Your signals moved within normal range — nothing worth changing based on this week alone.";
 
   return (
     <motion.section
       initial={false}
-      className="mb-4 rounded-[18px] border border-foreground/[0.07] bg-card/70 px-4 py-4"
+      className="border-t border-foreground/[0.07] px-4 py-4"
     >
       <div className="flex items-center gap-2">
         <span
           className="h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }}
         />
-        <span className="text-[8px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
+        <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/65">
           We noticed
         </span>
         {isReady && (
-          <span className="ml-auto text-[9px] uppercase tracking-[0.12em] text-muted-foreground/50">
+          <span className="ml-auto text-[8px] uppercase tracking-[0.1em] text-muted-foreground/45 tabular-nums">
             {result.insight.confidence === "solid" ? "Solid" : "Emerging"} · {result.insight.sampleSize}d
           </span>
         )}
       </div>
 
-      <p className="mt-2 text-[14px] font-medium leading-snug text-foreground">{headline}</p>
-      <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground/75">{detail}</p>
+      <p className="mt-2 text-[13px] font-medium leading-snug text-foreground/90">{headline}</p>
+      <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground/65">{detail}</p>
     </motion.section>
   );
 }

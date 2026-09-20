@@ -42,10 +42,11 @@ export type WeeklyInsightResult =
   | { status: "no-signal"; daysObserved: number }
   | { status: "ready"; daysObserved: number; insight: WeeklyInsight; alternatives: WeeklyInsight[] };
 
-export const MIN_DAYS_FOR_INSIGHTS = 14;
-const MIN_GROUP_SIZE = 4;
-const MIN_EFFECT_POINTS = 3;
+export const MIN_DAYS_FOR_INSIGHTS = 21;
+const MIN_GROUP_SIZE = 6;
+const MIN_EFFECT_POINTS = 4;
 const SOLID_EFFECT_POINTS = 6;
+const SOLID_SAMPLE_SIZE = 24;
 
 const METRIC_LABEL: Record<InsightMetricKey, string> = {
   sharpness: "Sharpness",
@@ -77,7 +78,7 @@ function previousDate(date: string): string {
 }
 
 function confidenceFor(delta: number, sampleSize: number): "emerging" | "solid" {
-  return Math.abs(delta) >= SOLID_EFFECT_POINTS && sampleSize >= 12 ? "solid" : "emerging";
+  return Math.abs(delta) >= SOLID_EFFECT_POINTS && sampleSize >= SOLID_SAMPLE_SIZE ? "solid" : "emerging";
 }
 
 interface SplitEffect {
@@ -85,6 +86,17 @@ interface SplitEffect {
   sampleSize: number;
   lowCount: number;
   highCount: number;
+}
+
+function groupedDelta(
+  pairs: Array<{ driverValue: number; metricValue: number }>,
+  threshold: number,
+  minimumPerGroup: number,
+): number | null {
+  const low = pairs.filter((pair) => pair.driverValue < threshold).map((pair) => pair.metricValue);
+  const high = pairs.filter((pair) => pair.driverValue >= threshold).map((pair) => pair.metricValue);
+  if (low.length < minimumPerGroup || high.length < minimumPerGroup) return null;
+  return mean(high) - mean(low);
 }
 
 /**
@@ -107,7 +119,11 @@ function nextDayEffect(
     if (!previous) continue;
     const driverValue = driver(previous);
     if (driverValue === null || driverValue === undefined) continue;
-    pairs.push({ driverValue, metricValue });
+    const priorMetric = days.find((candidate) => candidate.date === previousDate(day.date))?.[metric];
+    if (priorMetric === null || priorMetric === undefined) continue;
+    // Compare next-day change, not the raw score. This removes much of the
+    // metric's own day-to-day momentum before evaluating a passive driver.
+    pairs.push({ driverValue, metricValue: metricValue - priorMetric });
   }
 
   if (pairs.length < MIN_GROUP_SIZE * 2) return null;
@@ -117,34 +133,24 @@ function nextDayEffect(
   const high = pairs.filter((pair) => pair.driverValue >= threshold).map((pair) => pair.metricValue);
   if (low.length < MIN_GROUP_SIZE || high.length < MIN_GROUP_SIZE) return null;
 
+  // A durable pattern must repeat across time, not be created by one unusual
+  // cluster. Require the direction to agree in both chronological halves.
+  const midpoint = Math.floor(pairs.length / 2);
+  const earlyDelta = groupedDelta(pairs.slice(0, midpoint), threshold, 2);
+  const recentDelta = groupedDelta(pairs.slice(midpoint), threshold, 2);
+  if (
+    earlyDelta === null ||
+    recentDelta === null ||
+    Math.sign(earlyDelta) !== Math.sign(recentDelta) ||
+    Math.abs(earlyDelta) < MIN_EFFECT_POINTS / 2 ||
+    Math.abs(recentDelta) < MIN_EFFECT_POINTS / 2
+  ) return null;
+
   return {
     delta: round1(mean(high) - mean(low)),
     sampleSize: pairs.length,
     lowCount: low.length,
     highCount: high.length,
-  };
-}
-
-function trainingEffect(days: InsightDay[], metric: InsightMetricKey): SplitEffect | null {
-  const byDate = new Map(days.map((day) => [day.date, day]));
-  const trained: number[] = [];
-  const rested: number[] = [];
-
-  for (const day of days) {
-    const metricValue = day[metric];
-    if (metricValue === null || metricValue === undefined) continue;
-    const previous = byDate.get(previousDate(day.date));
-    if (!previous || previous.didTraining === null || previous.didTraining === undefined) continue;
-    (previous.didTraining ? trained : rested).push(metricValue);
-  }
-
-  if (trained.length < MIN_GROUP_SIZE || rested.length < MIN_GROUP_SIZE) return null;
-
-  return {
-    delta: round1(mean(trained) - mean(rested)),
-    sampleSize: trained.length + rested.length,
-    lowCount: rested.length,
-    highCount: trained.length,
   };
 }
 
@@ -165,7 +171,10 @@ export function deriveWeeklyInsight(
   days: InsightDay[],
   health: InsightHealthDay[],
 ): WeeklyInsightResult {
-  const observed = days.filter(
+  const uniqueDays = [...new Map(days.map((day) => [day.date, day])).values()]
+    .filter((day) => /^\d{4}-\d{2}-\d{2}$/.test(day.date))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const observed = uniqueDays.filter(
     (day) =>
       day.sharpness !== null ||
       day.readiness !== null ||
@@ -186,11 +195,11 @@ export function deriveWeeklyInsight(
     candidates.push({
       id: "sleep-sharpness",
       headline: better
-        ? `Your longer nights lift next-day Sharpness by ${Math.abs(sleepEffect.delta)} pts`
-        : `Your longer nights don't lift next-day Sharpness`,
+        ? `Sharpness tends to rise ${Math.abs(sleepEffect.delta)} pts after your longer nights`
+        : `Longer nights have not predicted higher Sharpness for you`,
       detail: better
-        ? `Across ${sleepEffect.sampleSize} days, mornings after your longer nights score ${Math.abs(sleepEffect.delta)} points higher. Sleep is your strongest lever right now.`
-        : `Across ${sleepEffect.sampleSize} days, sleep duration alone isn't moving your Sharpness — timing and load matter more for you.`,
+        ? `Across ${sleepEffect.sampleSize} paired days, this association remained after accounting for your prior-day score. It is a pattern, not proof of cause.`
+        : `Across ${sleepEffect.sampleSize} paired days, duration alone was not associated with improvement. Timing and load may matter more.`,
       metric: "sharpness",
       deltaPoints: sleepEffect.delta,
       sampleSize: sleepEffect.sampleSize,
@@ -201,7 +210,7 @@ export function deriveWeeklyInsight(
   const movementEffect = nextDayEffect(
     observed,
     health,
-    (d) => (d.activeMin ?? (d.steps !== null ? d.steps / 100 : null)),
+    (d) => d.activeMin,
     "recovery",
   );
   if (movementEffect && Math.abs(movementEffect.delta) >= MIN_EFFECT_POINTS) {
@@ -209,11 +218,11 @@ export function deriveWeeklyInsight(
     candidates.push({
       id: "movement-recovery",
       headline: better
-        ? `Active days raise your next-day Recovery by ${Math.abs(movementEffect.delta)} pts`
-        : `Your most active days cost you ${Math.abs(movementEffect.delta)} pts of next-day Recovery`,
+        ? `Recovery tends to rise ${Math.abs(movementEffect.delta)} pts after more active days`
+        : `Recovery tends to fall ${Math.abs(movementEffect.delta)} pts after more active days`,
       detail: better
-        ? `Over ${movementEffect.sampleSize} days, movement is consistently followed by a higher reserve. Keep it as a recovery tool, not a cost.`
-        : `Over ${movementEffect.sampleSize} days, heavy activity is followed by a lower reserve. Schedule demanding output away from your hardest training days.`,
+        ? `Across ${movementEffect.sampleSize} paired days, active minutes were associated with a higher next-day change. This is observational, not causal.`
+        : `Across ${movementEffect.sampleSize} paired days, more active minutes were associated with a lower next-day change. Treat this as a pattern to watch.`,
       metric: "recovery",
       deltaPoints: movementEffect.delta,
       sampleSize: movementEffect.sampleSize,
@@ -232,33 +241,15 @@ export function deriveWeeklyInsight(
     candidates.push({
       id: "rhythm-readiness",
       headline: better
-        ? `A steady bedtime is worth ${Math.abs(rhythmEffect.delta)} pts of Readiness`
-        : `Bedtime consistency isn't driving your Readiness`,
+        ? `Readiness tends to rise ${Math.abs(rhythmEffect.delta)} pts after steadier bedtimes`
+        : `Bedtime consistency has not predicted higher Readiness for you`,
       detail: better
-        ? `On the ${rhythmEffect.highCount} days after you kept your usual bedtime, Readiness ran ${Math.abs(rhythmEffect.delta)} points higher than after irregular nights.`
-        : `Across ${rhythmEffect.sampleSize} days, shifting your bedtime doesn't change your Readiness — your constraint sits elsewhere.`,
+        ? `Across ${rhythmEffect.sampleSize} paired days, steadier timing was associated with a stronger next-day change after accounting for the prior score.`
+        : `Across ${rhythmEffect.sampleSize} paired days, bedtime timing alone was not associated with a stronger next-day change.`,
       metric: "readiness",
       deltaPoints: rhythmEffect.delta,
       sampleSize: rhythmEffect.sampleSize,
       confidence: confidenceFor(rhythmEffect.delta, rhythmEffect.sampleSize),
-    });
-  }
-
-  const trainEffect = trainingEffect(observed, "reasoningQuality");
-  if (trainEffect && Math.abs(trainEffect.delta) >= MIN_EFFECT_POINTS) {
-    const better = trainEffect.delta > 0;
-    candidates.push({
-      id: "training-reasoning",
-      headline: better
-        ? `Days after a check run ${Math.abs(trainEffect.delta)} pts higher on Decision quality`
-        : `Back-to-back training days cost you ${Math.abs(trainEffect.delta)} pts of Decision quality`,
-      detail: better
-        ? `Compared with ${trainEffect.lowCount} untrained days, the ${trainEffect.highCount} days following a check hold a measurably sharper reasoning profile.`
-        : `The ${trainEffect.highCount} days following a check score lower than your ${trainEffect.lowCount} rest days — spacing your sessions may serve you better.`,
-      metric: "reasoningQuality",
-      deltaPoints: trainEffect.delta,
-      sampleSize: trainEffect.sampleSize,
-      confidence: confidenceFor(trainEffect.delta, trainEffect.sampleSize),
     });
   }
 
@@ -279,8 +270,8 @@ export function deriveWeeklyInsight(
         id: `trend-${best.metric}`,
         headline: `${METRIC_LABEL[best.metric]} is ${rising ? "up" : "down"} ${Math.abs(best.effect.delta)} pts this week`,
         detail: rising
-          ? `Your last 7 days average ${Math.abs(best.effect.delta)} points above the week before. Whatever changed, it is working — hold the pattern.`
-          : `Your last 7 days average ${Math.abs(best.effect.delta)} points below the week before. Protect sleep and load before it compounds.`,
+          ? `Your measured 7-day average is ${Math.abs(best.effect.delta)} points above the prior week. The driver is not yet established.`
+          : `Your measured 7-day average is ${Math.abs(best.effect.delta)} points below the prior week. The driver is not yet established.`,
         metric: best.metric,
         deltaPoints: best.effect.delta,
         sampleSize: best.effect.sampleSize,

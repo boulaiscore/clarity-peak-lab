@@ -16,8 +16,8 @@
 - [x] Verifica visiva su preview mobile (390px) + build/lint/test:outlook OK
 
 ## Fase 2 — "Abbiamo notato…" (scoperta settimanale) ✅ (completata)
-- [x] Motore deterministico `src/lib/weeklyInsights.ts`: sonno → Sharpness giorno dopo, movimento → Recovery, regolarità bedtime → Readiness, training → Decision quality, fallback trend 7gg vs 7gg
-- [x] Soglie di onestà: ≥14 giorni osservati, ≥4 giorni per gruppo, effetto ≥3 pt; stati `insufficient` / `no-signal`
+- [x] Motore deterministico `src/lib/weeklyInsights.ts`: sonno → Sharpness giorno dopo, movimento → Recovery, regolarità bedtime → Readiness, fallback trend 7gg vs 7gg
+- [x] Soglie di onestà: ≥21 giorni osservati, ≥6 giorni per gruppo, effetto ≥4 pt, direzione stabile nelle due metà; stati `insufficient` / `no-signal`
 - [x] `useWeeklyInsight.ts` (query su snapshot + phone health, calcolo client-side: nessuna tabella nuova, nessun costo AI)
 - [x] `WeeklyInsightCard.tsx` WHOOP-style in Home (puntino metrica, eyebrow "We noticed", confidence Emerging/Solid + campione)
 - [x] `npm run test:insights`
@@ -32,7 +32,7 @@
 - Recovery ferma a 50 in preview web: dati passivi assenti (richiede dispositivo nativo con permessi Salute). Possibile seeding dati di test o target reattivo a drills/quality time — da decidere.
 
 ## Audit Home state — typography and formula integrity
-- [ ] Align the “My day” typography and visual hierarchy with the rest of Home
-- [ ] Make Today's Verdict depend only on canonical, sufficiently mature inputs
-- [ ] Harden We Noticed against duplicate dates, missing coverage, confounding, and weak samples
-- [ ] Expand regression tests and verify the mobile preview
+- [x] Align the “My day” typography and visual hierarchy with the rest of Home
+- [x] Make Today's Verdict depend only on canonical, sufficiently mature inputs
+- [x] Harden We Noticed against duplicate dates, formula drift, confounding, and weak samples
+- [x] Expand regression tests and verify the mobile preview

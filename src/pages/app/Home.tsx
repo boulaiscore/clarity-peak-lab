@@ -126,6 +126,7 @@ const Home = () => {
     readiness,
     recovery,
     recoveryRaw,
+    recoveryEstimated,
     signalCoverage,
     signalCoverageLevel,
     signalUpdatedAt,
@@ -138,7 +139,7 @@ const Home = () => {
   const acuteBoost = useAcuteRecoveryBoost();
 
   // Reasoning Quality metric
-  const { rq } = useReasoningQuality();
+  const { rq, isLoading: rqLoading } = useReasoningQuality();
 
   // Daily recovery snapshot for decay tracking (idempotent - runs once per day)
   const {
@@ -363,21 +364,28 @@ const Home = () => {
 
               <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
 
-              {/* Today's verdict — one outlook, one action */}
+              {/* Today's state — one verdict and one evidence-based pattern */}
               {isViewingToday && (
-                <div className="mt-4">
+                <section className="mt-5" aria-labelledby="daily-state-title">
+                  <h2 id="daily-state-title" className="mb-2.5 px-1 text-[13px] font-medium text-foreground/90">
+                    My day
+                  </h2>
+                  <div className="overflow-hidden rounded-[18px] border border-foreground/10 bg-card/45 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.035)] backdrop-blur-xl">
                   <DailyOutlookCard
                     sharpness={sharpness}
                     readiness={readiness}
-                    recovery={recoveryWithBoost}
+                    recovery={recovery}
+                    recoveryEstimated={recoveryEstimated}
                     reasoningQuality={rq}
                     signalCoverage={signalCoverage}
                     activeSourceCount={activeSourceCount}
                     passiveFeatures={passiveFeatures}
-                    isLoading={isDisplayLoading}
+                    isLoading={isDisplayLoading || rqLoading}
                     personalizationPending={passiveLoading}
                   />
-                </div>
+                  <WeeklyInsightCard visible={!metricsLoading} />
+                  </div>
+                </section>
               )}
             </motion.section>
 
@@ -385,9 +393,6 @@ const Home = () => {
         <HealthTrackingReminder
           visible={isViewingToday && !metricsLoading && signalCoverageLevel === "Basic"}
         />
-
-        <WeeklyInsightCard visible={isViewingToday && !metricsLoading} />
-
 
         {/* Observed activity */}
         {isViewingToday && (

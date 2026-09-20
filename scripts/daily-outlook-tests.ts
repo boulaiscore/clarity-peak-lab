@@ -46,6 +46,19 @@ assert.equal(recoveryFirst.action.metricCode, "REC");
 assert.match(recoveryFirst.summary, /focus goal in your knowledge work/i);
 assert.match(recoveryFirst.summary, /moving upward/i);
 
+const canonicalLowRecovery = deriveDailyOutlook({ ...base, recovery: 39 });
+assert.equal(canonicalLowRecovery.action.key, "recover");
+
+const lowConfidenceHealthDoesNotOverride = deriveDailyOutlook({
+  ...base,
+  sharpness: 70,
+  readiness: 70,
+  recovery: 70,
+  healthScore: 30,
+  signalCoverage: 0.1,
+});
+assert.equal(lowConfidenceHealthDoesNotOverride.action.key, "use_capacity");
+
 const attentionProtection = deriveDailyOutlook({ ...base, attentionLoadRatio: 1.5 });
 assert.equal(attentionProtection.action.key, "protect_attention");
 assert.equal(attentionProtection.action.metricCode, "ATT");
@@ -108,6 +121,13 @@ assert.equal(missingSignals.confidenceLabel, "Baseline");
 assert.ok(missingSignals.evidence.every((item) => !["HLT", "SLP", "HRV", "RHR", "ACT", "ATT", "DFR", "CAL"].includes(item.code)));
 assert.match(missingSignals.summary, /still establishing/i);
 assert.doesNotMatch(missingSignals.summary, /Readiness is|Recovery is|Reasoning is|Sharpness is/i);
+
+const estimatedRecovery = deriveDailyOutlook({
+  ...base,
+  recoveryEstimated: true,
+  signalCoverage: 1,
+});
+assert.ok(estimatedRecovery.confidence <= 0.55);
 
 for (const outlook of [recoveryFirst, attentionProtection, fragmentationProtection, strongDecisionDay, scheduleProtection, focusTraining, steadyState, missingSignals]) {
   assert.ok(outlook.action.metricCode, "Every recommendation must identify its source metric");

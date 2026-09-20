@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, subDays } from "date-fns";
+import { CANONICAL_METRIC_FORMULA_VERSION } from "@/lib/dataLineage";
 
 export interface YesterdayMetrics {
   sharpness: number | null;
@@ -32,13 +33,14 @@ export function useYesterdayMetrics(currentDate: string) {
 
       const { data: snapshot, error } = await supabase
         .from("daily_metric_snapshots")
-        .select("sharpness, readiness, recovery, reasoning_quality")
+        .select("sharpness, readiness, recovery, reasoning_quality, formula_version")
         .eq("user_id", user.id)
         .eq("snapshot_date", yesterdayDate)
         .maybeSingle();
 
       if (error) throw error;
       if (!snapshot) return null;
+      if (snapshot.formula_version !== CANONICAL_METRIC_FORMULA_VERSION) return null;
 
       return {
         sharpness: snapshot.sharpness != null ? Number(snapshot.sharpness) : null,

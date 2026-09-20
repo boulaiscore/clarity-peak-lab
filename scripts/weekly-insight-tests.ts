@@ -39,7 +39,7 @@ assert(
 );
 
 // 2. Flat history with enough days → no invented signal
-const flatDays: InsightDay[] = Array.from({ length: 20 }, (_, i) => ({
+const flatDays: InsightDay[] = Array.from({ length: 28 }, (_, i) => ({
   date: dateFor(i),
   sharpness: 50,
   readiness: 50,
@@ -52,7 +52,8 @@ assert(deriveWeeklyInsight(flatDays, []).status === "no-signal", "flat history y
 // 3. Sleep → next-day sharpness effect is detected
 const sleepDays: InsightDay[] = [];
 const sleepHealth: InsightHealthDay[] = [];
-for (let i = 0; i < 24; i += 1) {
+let priorSharpness = 55;
+for (let i = 0; i < 32; i += 1) {
   const longNight = i % 2 === 0;
   sleepHealth.push({
     date: dateFor(i),
@@ -63,25 +64,26 @@ for (let i = 0; i < 24; i += 1) {
   });
   sleepDays.push({
     date: dateFor(i + 1),
-    sharpness: longNight ? 68 : 52,
+    sharpness: priorSharpness + (longNight ? 6 : -2),
     readiness: 55,
     reasoningQuality: 55,
     recovery: 55,
     didTraining: false,
   });
+  priorSharpness = sleepDays[sleepDays.length - 1].sharpness ?? priorSharpness;
 }
 const sleepResult = deriveWeeklyInsight(sleepDays, sleepHealth);
 assert(sleepResult.status === "ready", "sleep pattern produces an insight");
 if (sleepResult.status === "ready") {
   assert(sleepResult.insight.metric === "sharpness", "sleep insight targets Sharpness");
   assert(sleepResult.insight.deltaPoints > 10, "sleep insight reports the measured effect size");
-  assert(sleepResult.insight.confidence === "solid", "large, well-sampled effect is marked solid");
+  assert(sleepResult.insight.confidence === "emerging", "a moderate paired sample stays conservatively emerging");
 }
 
 // 4. Week-over-week fallback when no driver data exists
-const trendDays: InsightDay[] = Array.from({ length: 16 }, (_, i) => ({
+const trendDays: InsightDay[] = Array.from({ length: 24 }, (_, i) => ({
   date: dateFor(i),
-  sharpness: i < 8 ? 50 : 62,
+  sharpness: i < 17 ? 50 : 62,
   readiness: 50,
   reasoningQuality: 50,
   recovery: 50,

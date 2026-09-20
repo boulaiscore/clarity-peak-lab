@@ -22,6 +22,7 @@ interface DailyOutlookHookInput {
   recovery: number;
   reasoningQuality: number;
   signalCoverage: number;
+  recoveryEstimated?: boolean;
   activeSourceCount: number;
   passiveFeatures: PassiveFeaturePayload | null;
   isLoading: boolean;
@@ -172,6 +173,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     digitalFragmentationRatio: input.passiveFeatures?.coachContext.digitalFragmentationRatio ?? null,
     scheduleLoadRatio: input.passiveFeatures?.coachContext.scheduleLoadRatio ?? null,
     signalCoverage: input.signalCoverage,
+    recoveryEstimated: input.recoveryEstimated,
     primaryOutcome: user?.primaryOutcome ?? "focus",
     workType: user?.workType ?? null,
     behaviorContext,
@@ -188,6 +190,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     input.recovery,
     input.sharpness,
     input.signalCoverage,
+    input.recoveryEstimated,
     healthSignals,
     rhythm,
     user?.primaryOutcome,
