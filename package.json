@@ -17,7 +17,8 @@
     "preview": "vite preview",
     "cap:sync": "npm run build:native && npx cap sync",
     "cap:ios": "npm run build:native && npx cap sync ios && npx cap open ios",
-    "cap:android": "npm run build:native && npx cap sync android && npx cap open android"
+    "cap:android": "npm run build:native && npx cap sync android && npx cap open android",
+    "test:insights": "node scripts/run-weekly-insight-tests.mjs"
   },
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "^10.0.0",
