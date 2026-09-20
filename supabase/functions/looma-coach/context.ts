@@ -52,7 +52,7 @@ export async function buildCoachContext(client: SupabaseLike, userId: string) {
         .select("cognitive_performance_score, cognitive_readiness_score, reasoning_quality, rec_value, training_capacity, experience_points, total_sessions")
         .eq("user_id", userId).maybeSingle(),
       client.from("profiles")
-        .select("name, age, work_type, primary_outcome, training_goals, daily_time_commitment, timezone, objective_label, objective_date")
+        .select("name, age, work_type, primary_outcome, training_goals, daily_time_commitment, timezone, objective_kind, objective_label, objective_date")
         .eq("user_id", userId).maybeSingle(),
       client.from("game_sessions")
         .select("completed_at, system_type, skill_routed, game_name, score, duration_seconds")
