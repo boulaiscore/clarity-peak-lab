@@ -191,6 +191,15 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/app/coach"
+        element={
+          <ProtectedRoute>
+            <Coach />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/app/dashboard"
         element={
           <ProtectedRoute>
