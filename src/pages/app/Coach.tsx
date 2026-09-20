@@ -80,16 +80,75 @@ export default function Coach() {
             Based on your last 30 days
           </p>
         </div>
-        <button
-          type="button"
-          aria-label="Clear conversation"
-          onClick={() => void clearConversation()}
-          disabled={messages.length === 0 || isBusy}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/55 transition-colors hover:bg-foreground/[0.06] disabled:opacity-30"
-        >
-          <Trash2 className="h-4 w-4" strokeWidth={1.75} />
-        </button>
+        <div className="flex items-center">
+          <button
+            type="button"
+            aria-label="What LOOMA remembers"
+            onClick={() => setShowMemory((open) => !open)}
+            className="relative flex h-9 w-9 items-center justify-center rounded-full text-foreground/55 transition-colors hover:bg-foreground/[0.06]"
+          >
+            <BookMarked className="h-4 w-4" strokeWidth={1.75} />
+            {memory.facts.length > 0 && (
+              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+            )}
+          </button>
+          <button
+            type="button"
+            aria-label="Clear conversation"
+            onClick={() => void clearConversation()}
+            disabled={messages.length === 0 || isBusy}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/55 transition-colors hover:bg-foreground/[0.06] disabled:opacity-30"
+          >
+            <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+          </button>
+        </div>
       </header>
+
+      {showMemory && !needsUpgrade && (
+        <div className="mx-auto w-full max-w-md px-4 pb-3">
+          <div className="rounded-[18px] border border-white/[0.07] bg-white/[0.03] p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[12px] font-medium text-foreground/90">What LOOMA remembers</p>
+                <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/60">
+                  Stable things learned from your conversations. Used to make answers personal.
+                </p>
+              </div>
+              {memory.facts.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void memory.forgetAll()}
+                  className="shrink-0 text-[10px] text-muted-foreground/60 hover:text-foreground/80"
+                >
+                  Forget all
+                </button>
+              )}
+            </div>
+            {memory.facts.length === 0 ? (
+              <p className="mt-3 text-[11px] text-muted-foreground/55">
+                Nothing yet. Tell the coach about your goal, your schedule or how you work.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {memory.facts.map((fact) => (
+                  <li key={fact.id} className="flex items-start justify-between gap-3">
+                    <span className="text-[12px] leading-relaxed text-foreground/80">{fact.fact}</span>
+                    <button
+                      type="button"
+                      aria-label="Forget this"
+                      onClick={() => void memory.forgetOne(fact.id)}
+                      className="mt-0.5 shrink-0 text-muted-foreground/40 hover:text-foreground/70"
+                    >
+                      <X className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
 
       {needsUpgrade ? (
         <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
