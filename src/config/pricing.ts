@@ -322,6 +322,7 @@ export const COMPARISON_FEATURES: FeatureName[] = [
   "unlimitedProtocols",
   "fullProtocolLibrary",
   "allCognitiveModes",
+  "loomaCoach",
   "personalizedDailyRecommendation",
   "weeklyConsistencyReport",
   "basicAnalytics",
