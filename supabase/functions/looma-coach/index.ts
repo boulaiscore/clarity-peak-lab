@@ -163,7 +163,7 @@ serve(async (req) => {
       role: "developer",
       content: [{
         type: "input_text",
-        text: `${SYSTEM_PROMPT}\n\nUSER DATA (JSON):\n${JSON.stringify(context)}`,
+        text: `${SYSTEM_PROMPT}${memoryBlock}\n\nUSER DATA (JSON):\n${JSON.stringify(context)}`,
       }],
     },
     ...history.map((item) => ({
