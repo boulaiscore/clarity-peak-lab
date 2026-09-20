@@ -1,7 +1,7 @@
 import { clamp } from "@/lib/cognitiveEngine";
 import { LOW_RECOVERY_THRESHOLD } from "@/lib/decayConstants";
 
-export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v4-digital-fragmentation";
+export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v5-objective";
 
 export type DailyOutlookActionKey =
   | "recover"
@@ -51,8 +51,17 @@ export interface DailyOutlookBehaviorContext {
 
 export interface DailyOutlookCoachBasis {
   goalGuidance: string;
+  /** Empty when the user has no upcoming objective. */
+  objectiveGuidance: string;
   patternInsight: string;
   learnedFromHistory: boolean;
+}
+
+export interface DailyOutlookObjective {
+  /** Short user-written label, e.g. "McKinsey final round". */
+  label: string;
+  /** Whole days from today to the objective date. Negative means it has passed. */
+  daysUntil: number | null;
 }
 
 export interface DailyOutlookEvidence {
