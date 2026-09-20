@@ -90,6 +90,7 @@ const coreFeatures = allFeatures({
   fullProtocolLibrary: true,
   allCognitiveModes: true,
   personalizedDailyRecommendation: true,
+  loomaCoach: true,
   weeklyConsistencyReport: true,
 });
 
