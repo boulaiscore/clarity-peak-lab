@@ -174,7 +174,10 @@ export async function buildCoachContext(client: SupabaseLike, userId: string) {
     days.length ? round((series(key).filter((value) => value !== null).length / days.length) * 100) : 0;
 
   const profileRow = (profile.data ?? null) as Record<string, unknown> | null;
-  const objectiveLabel = typeof profileRow?.objective_label === "string" ? profileRow.objective_label.trim() : "";
+  const objectiveKind = typeof profileRow?.objective_kind === "string" ? profileRow.objective_kind : "";
+  const preset = OBJECTIVE_PRESETS[objectiveKind] ?? null;
+  const customLabel = typeof profileRow?.objective_label === "string" ? profileRow.objective_label.trim() : "";
+  const objectiveLabel = customLabel || preset?.label || "";
   const objectiveDate = typeof profileRow?.objective_date === "string" ? profileRow.objective_date : null;
   const objectiveDaysUntil = objectiveDate
     ? Math.round((Date.parse(`${objectiveDate}T00:00:00Z`) - Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`)) / 86_400_000)
@@ -184,7 +187,14 @@ export async function buildCoachContext(client: SupabaseLike, userId: string) {
     generatedAt: new Date().toISOString(),
     profile: profileRow,
     objective: objectiveLabel
-      ? { label: objectiveLabel, date: objectiveDate, daysUntil: objectiveDaysUntil }
+      ? {
+          label: objectiveLabel,
+          kind: objectiveKind || null,
+          focusMetric: preset?.focus ?? null,
+          demand: preset?.demand ?? null,
+          date: objectiveDate,
+          daysUntil: objectiveDaysUntil,
+        }
       : null,
     currentMetrics: metrics.data ?? null,
     last30Days: days,
