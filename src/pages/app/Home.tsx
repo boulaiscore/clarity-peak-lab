@@ -33,6 +33,7 @@ import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 import { SignalCoverageRow } from "@/components/home/SignalCoverageRow";
 import { DailyOutlookCard } from "@/components/home/DailyOutlookCard";
 import { FirstRunHealthAccess } from "@/components/onboarding/FirstRunHealthAccess";
+import { HealthTrackingReminder } from "@/components/home/HealthTrackingReminder";
 import { isNativePlatform } from "@/lib/capacitor/health";
 
 interface RingProps {
@@ -376,6 +377,9 @@ const Home = () => {
               <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
             </motion.section>
 
+        <HealthTrackingReminder
+          visible={isViewingToday && !metricsLoading && signalCoverageLevel === "Basic"}
+        />
 
         {/* Observed activity */}
         {isViewingToday && (
