@@ -158,6 +158,7 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     gender: profile?.gender || undefined,
     workType: profile?.work_type || undefined,
     primaryOutcome: profile?.primary_outcome || storedPrimaryOutcome || undefined,
+    objectiveKind: profile?.objective_kind ?? null,
     objectiveLabel: profile?.objective_label ?? null,
     objectiveDate: profile?.objective_date ?? null,
     educationLevel: profile?.education_level || undefined,
