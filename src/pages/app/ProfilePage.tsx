@@ -124,15 +124,18 @@ const ProfilePage = () => {
     await updateUser({
       name,
       primaryOutcome,
-      objectiveLabel: trimmedObjective || null,
-      // A date without a label would have nothing to describe.
-      objectiveDate: trimmedObjective ? (objectiveDate || null) : null,
+      objectiveKind: objectiveKind || null,
+      // The custom wording only applies to the "other" preset.
+      objectiveLabel: objectiveKind === "other" ? (trimmedObjective || null) : null,
+      // A date without an objective would have nothing to count down to.
+      objectiveDate: objectiveKind ? (objectiveDate || null) : null,
     });
     toast({ title: "Profile saved", description: "Your profile has been updated." });
     setIsSaving(false);
   };
 
   const clearObjective = () => {
+    setObjectiveKind("");
     setObjectiveLabel("");
     setObjectiveDate("");
   };
