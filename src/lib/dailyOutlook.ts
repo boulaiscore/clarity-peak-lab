@@ -14,6 +14,14 @@ export type DailyOutlookActionKey =
 export type DailyOutlookTone = "support" | "limit" | "neutral";
 export type DailyOutlookIntensity = "protective" | "steady" | "strong";
 
+export type DailyVerdictKind = "recover" | "protect" | "decide" | "build" | "steady";
+
+export interface DailyVerdict {
+  kind: DailyVerdictKind;
+  label: string;
+  subline: string;
+}
+
 export interface DailyOutlookHealthSignals {
   sleepDurationMin: number | null;
   sleepEfficiency: number | null;
@@ -67,6 +75,7 @@ export interface DailyOutlookAction {
 
 export interface DailyOutlook {
   policyVersion: string;
+  verdict: DailyVerdict;
   headline: string;
   summary: string;
   intensity: DailyOutlookIntensity;
