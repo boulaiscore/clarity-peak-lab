@@ -29,6 +29,7 @@ interface DailyOutlookCardProps {
   recovery: number;
   reasoningQuality: number;
   signalCoverage: number;
+  recoveryEstimated?: boolean;
   activeSourceCount: number;
   passiveFeatures: PassiveFeaturePayload | null;
   isLoading: boolean;
@@ -77,20 +78,13 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="mb-5"
+      className=""
       aria-labelledby="daily-outlook-section-title"
     >
-      <h2
-        id="daily-outlook-section-title"
-        className="mb-2.5 px-0.5 text-[15px] font-semibold tracking-tight text-foreground"
-      >
-        My day
-      </h2>
-
       <button
         type="button"
         onClick={openOutlook}
-        className="w-full rounded-[18px] border border-foreground/[0.07] bg-card/70 px-4 py-4 text-left transition-colors hover:bg-card active:scale-[0.995]"
+        className="w-full bg-transparent px-4 py-4 text-left transition-colors hover:bg-foreground/[0.025] active:bg-foreground/[0.04]"
       >
         {isLoading ? (
           <div className="flex w-full animate-pulse flex-col gap-2.5">
@@ -105,22 +99,22 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: verdictColor, boxShadow: `0 0 8px ${verdictColor}` }}
               />
-              <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/65">
                 Today's verdict
               </span>
-              <span className="ml-auto text-[8px] font-medium uppercase tracking-[0.12em] text-muted-foreground/40">
+              <span className="ml-auto text-[8px] font-medium uppercase tracking-[0.1em] text-muted-foreground/45 tabular-nums">
                 {hasLearnedPattern ? "Personal" : "Learning"}
               </span>
             </span>
 
-            <span className="mt-2.5 flex items-baseline justify-between gap-3">
-              <span className="text-[17px] font-semibold tracking-tight text-foreground">
+            <span className="mt-2 flex items-baseline justify-between gap-3">
+              <span className="text-[15px] font-medium leading-snug text-foreground/95">
                 {outlook.verdict.label}
               </span>
               <ChevronRight className="h-4 w-4 shrink-0 self-center text-foreground/45" strokeWidth={2} />
             </span>
 
-            <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground/75">
+            <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground/70">
               {outlook.verdict.subline}
             </span>
           </>

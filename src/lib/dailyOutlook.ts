@@ -1,4 +1,5 @@
 import { clamp } from "@/lib/cognitiveEngine";
+import { LOW_RECOVERY_THRESHOLD } from "@/lib/decayConstants";
 
 export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v4-digital-fragmentation";
 
@@ -101,6 +102,7 @@ export interface DailyOutlookInput {
   digitalFragmentationRatio?: number | null;
   scheduleLoadRatio?: number | null;
   signalCoverage: number;
+  recoveryEstimated?: boolean;
   primaryOutcome?: "decide" | "focus" | "reason" | null;
   workType?: string | null;
   behaviorContext?: Partial<DailyOutlookBehaviorContext> | null;
@@ -343,11 +345,12 @@ function ratioEvidence(
 
 function calculateConfidence(input: DailyOutlookInput): number {
   const sourceCoverage = clamp(input.signalCoverage, 0, 1);
-  if (!input.canPersonalize) return sourceCoverage * 0.65;
+  const estimateCap = input.recoveryEstimated ? 0.55 : 1;
+  if (!input.canPersonalize) return Math.min(sourceCoverage * 0.65, estimateCap);
   const historyMaturity = input.rhythm
     ? clamp(input.rhythm.observedDays / 21, 0, 1)
     : 0;
-  return clamp(0.7 * sourceCoverage + 0.3 * historyMaturity, 0, 1);
+  return Math.min(clamp(0.7 * sourceCoverage + 0.3 * historyMaturity, 0, 1), estimateCap);
 }
 
 function confidenceLabel(confidence: number): DailyOutlook["confidenceLabel"] {
@@ -523,12 +526,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     healthSignals: normalizeHealthSignals(input.healthSignals),
   };
 
-  if (input.recovery < 35 || input.readiness < 40 || (healthScore !== null && healthScore < 40)) {
-    const limitingHealth = healthScore !== null && healthScore < 40;
-    const limitingReadiness = !limitingHealth && input.readiness < 40;
-    const metricCode = limitingHealth ? "HLT" : limitingReadiness ? "RDY" : "REC";
-    const metricLabel = limitingHealth ? "Health context" : limitingReadiness ? "Readiness" : "Recovery";
-    const metricValue = limitingHealth ? healthScore : limitingReadiness ? input.readiness : input.recovery;
+  if (input.recovery < LOW_RECOVERY_THRESHOLD || input.readiness < 35) {
+    const limitingReadiness = input.readiness < 35;
+    const metricCode = limitingReadiness ? "RDY" : "REC";
+    const metricLabel = limitingReadiness ? "Readiness" : "Recovery";
+    const metricValue = limitingReadiness ? input.readiness : input.recovery;
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "protective"),
@@ -657,8 +659,8 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   }
 
   if (
-    input.readiness >= 75 &&
-    input.recovery >= 60 &&
+    input.readiness >= 65 &&
+    input.recovery >= 65 &&
     input.sharpness >= 65 &&
     (healthScore === null || healthScore >= 55)
   ) {
@@ -693,7 +695,7 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     };
   }
 
-  if (input.recovery >= 55 && input.sharpness < 50) {
+  if (input.recovery >= 50 && input.sharpness < 50) {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "steady"),
@@ -725,7 +727,7 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     };
   }
 
-  if (input.recovery >= 55 && input.reasoningQuality < 45) {
+  if (input.recovery >= 50 && input.reasoningQuality < 50) {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "steady"),
@@ -757,7 +759,7 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     };
   }
 
-  if (input.readiness < 55) {
+  if (input.readiness < 50) {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "protective"),
