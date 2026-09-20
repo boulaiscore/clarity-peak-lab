@@ -155,7 +155,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                 />
                 {outlook.verdict.label}
               </p>
-              <SheetTitle className="mt-2 text-[28px] leading-[1.08] tracking-tight">
+              <SheetTitle className="mt-2 text-[21px] leading-[1.15] tracking-tight">
                 {outlook.headline}
               </SheetTitle>
               <SheetDescription className="mt-3 text-[14px] leading-relaxed text-foreground/72">
