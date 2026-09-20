@@ -8,6 +8,18 @@ interface SupabaseLike {
   };
 }
 
+/** Mirrors src/config/objectives.ts; edge functions cannot import app source. */
+const OBJECTIVE_PRESETS: Record<string, { label: string; focus: string; demand: string }> = {
+  interview: { label: "Job interview", focus: "Sharpness", demand: "thinking fast under pressure" },
+  case_interview: { label: "Case or technical round", focus: "Reasoning", demand: "structured reasoning out loud" },
+  exam: { label: "Exam or test", focus: "Sharpness", demand: "hours of sustained attention" },
+  presentation: { label: "Presentation or pitch", focus: "Readiness", demand: "being clear and composed on stage" },
+  negotiation: { label: "Negotiation or big decision", focus: "Reasoning", demand: "clear judgement under pressure" },
+  deadline: { label: "Deadline or heavy week", focus: "Readiness", demand: "holding output for several days" },
+  competition: { label: "Competition or event", focus: "Recovery", demand: "arriving physically fresh" },
+  other: { label: "Personal objective", focus: "Readiness", demand: "performing at your best" },
+};
+
 function round(value: unknown, digits = 0): number | null {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
