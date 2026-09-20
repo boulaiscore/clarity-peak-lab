@@ -58,10 +58,14 @@ export interface DailyOutlookCoachBasis {
 }
 
 export interface DailyOutlookObjective {
-  /** Short user-written label, e.g. "McKinsey final round". */
+  /** Display name, either the preset name or the user's own wording. */
   label: string;
   /** Whole days from today to the objective date. Negative means it has passed. */
   daysUntil: number | null;
+  /** Metric the objective depends on, from the chosen preset. */
+  focus?: ObjectiveFocus | null;
+  /** Plain-language description of what the day demands. */
+  demand?: string | null;
 }
 
 export interface DailyOutlookEvidence {
