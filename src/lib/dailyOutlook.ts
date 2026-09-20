@@ -532,6 +532,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "protective"),
+      verdict: {
+        kind: "recover",
+        label: "Recovery day",
+        subline: "Keep today operational. Defer high-stakes decisions.",
+      },
       headline: "Recovery is the priority today",
       summary: coachSummary(
         "Your current signals point to reduced reserve, so today is better used to recover than to add cognitive strain.",
@@ -559,6 +564,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "protective"),
+      verdict: {
+        kind: "protect",
+        label: "Protect your attention",
+        subline: "Fragmented day — batch shallow work, guard one deep block.",
+      },
       headline: "Digital fragmentation is the constraint",
       summary: coachSummary(
         "Short sessions and app returns are running above your usual pattern, which can make sustained attention harder to protect.",
@@ -586,6 +596,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "protective"),
+      verdict: {
+        kind: "protect",
+        label: "Protect your attention",
+        subline: "Digital load is high — reduce inputs before demanding work.",
+      },
       headline: "Digital load is the constraint",
       summary: coachSummary(
         "Your digital load is the clearest pressure on attention today, so adding another demand is unlikely to improve the quality of your work.",
@@ -613,6 +628,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "protective"),
+      verdict: {
+        kind: "protect",
+        label: "Protect your capacity",
+        subline: "Heavy schedule, limited reserve — keep demands below peak.",
+      },
       headline: "Protect capacity from schedule load",
       summary: coachSummary(
         "Your schedule is consuming more capacity than usual while sustained readiness is constrained.",
@@ -645,6 +665,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "strong"),
+      verdict: {
+        kind: "decide",
+        label: "Decision day",
+        subline: "Signals aligned — spend this clarity on your highest-stakes call.",
+      },
       headline: "Your signals are aligned",
       summary: coachSummary(
         "Your main cognitive signals are aligned, giving you room for demanding work without needing an extra protocol first.",
@@ -672,6 +697,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "steady"),
+      verdict: {
+        kind: "build",
+        label: "Build day · Attention",
+        subline: "Reserve is sufficient — attention is today's opportunity.",
+      },
       headline: "Sharpness is today’s opportunity",
       summary: coachSummary(
         "You have enough reserve to train, but attentional sharpness is the clearest opportunity today.",
@@ -699,6 +729,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "steady"),
+      verdict: {
+        kind: "build",
+        label: "Build day · Reasoning",
+        subline: "Reserve is sufficient — deliberate reasoning is today's opportunity.",
+      },
       headline: "Reasoning is today’s opportunity",
       summary: coachSummary(
         "You have enough reserve to train, and deliberate reasoning is the clearest opportunity today.",
