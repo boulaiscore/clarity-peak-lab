@@ -270,12 +270,60 @@ function patternInsight(input: DailyOutlookInput): Pick<DailyOutlookCoachBasis, 
   };
 }
 
+/**
+ * Turns a user-declared objective with a date into day-level guidance.
+ * The objective never changes the metric policy, only how the day is framed.
+ */
+function objectiveGuidance(
+  input: DailyOutlookInput,
+  intensity: DailyOutlookIntensity,
+): string {
+  const objective = input.objective;
+  const label = typeof objective?.label === "string" ? objective.label.trim() : "";
+  if (!label) return "";
+  const days = finite(objective?.daysUntil);
+  if (days === null) return `You are working towards ${label}.`;
+  if (days < 0) return "";
+
+  if (days === 0) {
+    if (intensity === "protective") {
+      return `${label} is today, and you are not at your best: keep the warm-up light and save your energy for the moment itself.`;
+    }
+    return `${label} is today. Do the essential preparation only and go in fresh.`;
+  }
+
+  if (days === 1) {
+    return intensity === "protective"
+      ? `${label} is tomorrow. Stop heavy preparation early today and protect your sleep.`
+      : `${label} is tomorrow. Do one focused review today, then stop early.`;
+  }
+
+  if (days <= 7) {
+    if (intensity === "protective") {
+      return `${label} is in ${days} days. Keep today light so the days before it are usable.`;
+    }
+    if (intensity === "strong") {
+      return `${label} is in ${days} days. Use today for the hardest part of your preparation.`;
+    }
+    return `${label} is in ${days} days. Keep preparation to one solid block today.`;
+  }
+
+  if (days <= 30) {
+    return intensity === "strong"
+      ? `${label} is in ${days} days. This is a good day to push preparation forward.`
+      : `${label} is in ${days} days, so there is no need to force it today.`;
+  }
+
+  return `${label} is in ${days} days. Build the habit now rather than sprinting.`;
+}
+
 function buildCoachBasis(
   input: DailyOutlookInput,
   intensity: DailyOutlookIntensity,
 ): DailyOutlookCoachBasis {
   return {
     goalGuidance: goalGuidance(input, intensity),
+    objectiveGuidance: objectiveGuidance(input, intensity),
     ...patternInsight(input),
   };
 }
