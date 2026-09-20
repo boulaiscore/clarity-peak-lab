@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
+import { OBJECTIVE_FOCUS_LABEL, OBJECTIVE_PRESETS } from "@/config/objectives";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
