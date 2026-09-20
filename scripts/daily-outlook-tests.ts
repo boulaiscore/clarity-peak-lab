@@ -67,7 +67,7 @@ assert.ok(attentionProtection.evidence.some((item) => item.code === "ATT" && ite
 const fragmentationProtection = deriveDailyOutlook({ ...base, digitalFragmentationRatio: 1.6 });
 assert.equal(fragmentationProtection.action.key, "protect_attention");
 assert.equal(fragmentationProtection.action.metricCode, "DFR");
-assert.match(fragmentationProtection.summary, /short sessions and app returns/i);
+assert.match(fragmentationProtection.summary, /switching between apps more than usual/i);
 
 const strongDecisionDay = deriveDailyOutlook({
   ...base,
