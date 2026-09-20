@@ -22,6 +22,7 @@
     "test:performance": "node scripts/run-performance-trend-tests.mjs"
   },
   "dependencies": {
+    "@ai-sdk/react": "^4.0.110",
     "@aparajita/capacitor-biometric-auth": "^10.0.0",
     "@aparajita/capacitor-secure-storage": "^8.0.0",
     "@capacitor/android": "^8.0.0",
