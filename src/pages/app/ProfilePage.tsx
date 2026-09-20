@@ -117,9 +117,21 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await updateUser({ name, primaryOutcome });
+    const trimmedObjective = objectiveLabel.trim().slice(0, 80);
+    await updateUser({
+      name,
+      primaryOutcome,
+      objectiveLabel: trimmedObjective || null,
+      // A date without a label would have nothing to describe.
+      objectiveDate: trimmedObjective ? (objectiveDate || null) : null,
+    });
     toast({ title: "Profile saved", description: "Your profile has been updated." });
     setIsSaving(false);
+  };
+
+  const clearObjective = () => {
+    setObjectiveLabel("");
+    setObjectiveDate("");
   };
 
   const memberSince = user?.id ? format(new Date(), "MMMM yyyy") : "—";
