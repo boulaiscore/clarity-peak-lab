@@ -19,7 +19,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { OBJECTIVE_FOCUS_LABEL, OBJECTIVE_PRESETS } from "@/config/objectives";
+import { OBJECTIVE_FOCUS_LABEL, OBJECTIVE_PRESETS, findObjectivePreset } from "@/config/objectives";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -140,6 +147,8 @@ const ProfilePage = () => {
     setObjectiveLabel("");
     setObjectiveDate("");
   };
+
+  const selectedPreset = findObjectivePreset(objectiveKind);
 
   const memberSince = user?.id ? format(new Date(), "MMMM yyyy") : "—";
   const maskedAccountId = user?.id ? `••••••${user.id.slice(-4)}` : "—";
