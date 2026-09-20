@@ -208,6 +208,51 @@ const ProfilePage = () => {
               </div>
             </div>
 
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold">What you are preparing for</h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Add one thing with a date, like an interview or an exam. Your daily verdict and the coach
+                  will work backwards from it.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="objective-label" className="text-[11px] text-muted-foreground">
+                    Objective
+                  </Label>
+                  <Input
+                    id="objective-label"
+                    value={objectiveLabel}
+                    maxLength={80}
+                    placeholder="McKinsey final round"
+                    onChange={(event) => setObjectiveLabel(event.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="objective-date" className="text-[11px] text-muted-foreground">
+                    Date
+                  </Label>
+                  <Input
+                    id="objective-date"
+                    type="date"
+                    value={objectiveDate}
+                    disabled={!objectiveLabel.trim()}
+                    onChange={(event) => setObjectiveDate(event.target.value)}
+                  />
+                </div>
+                {(objectiveLabel || objectiveDate) && (
+                  <button
+                    type="button"
+                    onClick={clearObjective}
+                    className="text-[11px] text-muted-foreground underline underline-offset-2"
+                  >
+                    Remove objective
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Demographics */}
             <div className="p-5 rounded-xl bg-card border border-border shadow-card">
               <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
