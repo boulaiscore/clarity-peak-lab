@@ -11,6 +11,7 @@ export type FeatureName =
   | "fullProtocolLibrary"
   | "allCognitiveModes"
   | "personalizedDailyRecommendation"
+  | "loomaCoach"
   | "streakTracking"
   | "weeklyConsistencyReport"
   | "basicAnalytics"
