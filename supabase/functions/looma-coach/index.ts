@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getAuthedUser, unauthorizedResponse } from "../_shared/auth.ts";
 import { buildCoachContext } from "./context.ts";
+import { loadCoachMemory, updateCoachMemory, type CoachFact } from "./memory.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,7 +57,13 @@ Rules:
 - End with one specific, practical suggestion only when it is useful.
 - You are not a doctor. No diagnosis, no medical or medication advice. For health concerns,
   suggest speaking to a professional.
-- Terminology: say "Drills", never "games".`;
+- Terminology: say "Drills", never "games".
+
+Memory:
+- The context may contain "WHAT YOU REMEMBER ABOUT THIS USER": stable facts learned in
+  earlier conversations. Use them to make the answer personal (their goal, schedule,
+  habits, constraints) without repeating them back as a list.
+- If a remembered fact clearly contradicts what the user says now, trust what they say now.`;
 
 function jsonResponse(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {
@@ -88,6 +95,7 @@ serve(async (req) => {
   // Premium gate: LOOMA Coach is a Pro/Elite feature.
   // Gate checks and the 30-day context build run in parallel to cut waiting time.
   const contextPromise = buildCoachContext(supabase as never, user.id);
+  const memoryPromise = loadCoachMemory(supabase as never, user.id).catch(() => [] as CoachFact[]);
   const historyPromise = supabase
     .from("coach_messages")
     .select("role, content")
@@ -136,6 +144,12 @@ serve(async (req) => {
   const history = ((historyRows ?? []) as IncomingMessage[]).reverse();
 
   const context = await contextPromise;
+  const memory = await memoryPromise;
+  const memoryBlock = memory.length
+    ? `\n\nWHAT YOU REMEMBER ABOUT THIS USER (from earlier conversations):\n${
+      memory.map((fact) => `- [${fact.category}] ${fact.fact}`).join("\n")
+    }`
+    : "";
 
   // Persisted in the background so it does not delay the first token.
   const userInsert = supabase.from("coach_messages").insert({
@@ -149,7 +163,7 @@ serve(async (req) => {
       role: "developer",
       content: [{
         type: "input_text",
-        text: `${SYSTEM_PROMPT}\n\nUSER DATA (JSON):\n${JSON.stringify(context)}`,
+        text: `${SYSTEM_PROMPT}${memoryBlock}\n\nUSER DATA (JSON):\n${JSON.stringify(context)}`,
       }],
     },
     ...history.map((item) => ({
@@ -233,6 +247,20 @@ serve(async (req) => {
             content: finalText,
           });
           if (error) console.error("looma-coach persist error", error.message);
+
+          // Learn stable facts about the user after the answer is delivered.
+          const learn = updateCoachMemory(
+            supabase as never,
+            apiKey,
+            user.id,
+            memory,
+            message,
+            finalText,
+          );
+          const runtime = (globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): void } })
+            .EdgeRuntime;
+          if (runtime?.waitUntil) runtime.waitUntil(learn);
+          else await learn;
         }
       }
     },

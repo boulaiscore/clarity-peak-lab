@@ -10,6 +10,7 @@ import {
   OtherWearableIcon,
   WhoopIcon,
 } from "@/components/icons/WearableIcons";
+import { WorkoutAppsCard } from "@/components/health/WorkoutAppsCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDirectWearableConnections, type DirectWearableProvider } from "@/hooks/useDirectWearableConnections";
 import { useWearableSync } from "@/hooks/useWearableSync";
@@ -399,6 +400,8 @@ const Health = () => {
               )}
             </section>
           )}
+
+          <WorkoutAppsCard />
 
           {(deviceUsage.supported || calendarContext.supported) && (
             <details className="group rounded-[18px] bg-white/[0.025] p-4">

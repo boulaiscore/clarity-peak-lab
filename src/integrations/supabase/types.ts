@@ -393,6 +393,33 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_memory: {
+        Row: {
+          category: string
+          created_at: string
+          fact: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          fact: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          fact?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       coach_messages: {
         Row: {
           client_message_id: string | null
