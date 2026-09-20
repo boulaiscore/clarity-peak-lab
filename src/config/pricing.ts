@@ -68,6 +68,7 @@ const allFeatures = (overrides: Partial<Record<FeatureName, boolean>> = {}): Rec
   fullProtocolLibrary: false,
   allCognitiveModes: false,
   personalizedDailyRecommendation: false,
+  loomaCoach: false,
   streakTracking: true,
   weeklyConsistencyReport: false,
   basicAnalytics: true,
