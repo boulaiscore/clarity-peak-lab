@@ -132,18 +132,13 @@ serve(async (req) => {
     return jsonResponse({ error: "Message is empty or too long." }, 400);
   }
 
-  const { data: historyRows } = await supabase
-    .from("coach_messages")
-    .select("role, content")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
-
+  const { data: historyRows } = await historyPromise;
   const history = ((historyRows ?? []) as IncomingMessage[]).reverse();
 
-  const context = await buildCoachContext(supabase as never, user.id);
+  const context = await contextPromise;
 
-  await supabase.from("coach_messages").insert({
+  // Persisted in the background so it does not delay the first token.
+  const userInsert = supabase.from("coach_messages").insert({
     user_id: user.id,
     role: "user",
     content: message,
