@@ -8,6 +8,18 @@ interface SupabaseLike {
   };
 }
 
+/** Mirrors src/config/objectives.ts; edge functions cannot import app source. */
+const OBJECTIVE_PRESETS: Record<string, { label: string; focus: string; demand: string }> = {
+  interview: { label: "Job interview", focus: "Sharpness", demand: "thinking fast under pressure" },
+  case_interview: { label: "Case or technical round", focus: "Reasoning", demand: "structured reasoning out loud" },
+  exam: { label: "Exam or test", focus: "Sharpness", demand: "hours of sustained attention" },
+  presentation: { label: "Presentation or pitch", focus: "Readiness", demand: "being clear and composed on stage" },
+  negotiation: { label: "Negotiation or big decision", focus: "Reasoning", demand: "clear judgement under pressure" },
+  deadline: { label: "Deadline or heavy week", focus: "Readiness", demand: "holding output for several days" },
+  competition: { label: "Competition or event", focus: "Recovery", demand: "arriving physically fresh" },
+  other: { label: "Personal objective", focus: "Readiness", demand: "performing at your best" },
+};
+
 function round(value: unknown, digits = 0): number | null {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
@@ -40,7 +52,7 @@ export async function buildCoachContext(client: SupabaseLike, userId: string) {
         .select("cognitive_performance_score, cognitive_readiness_score, reasoning_quality, rec_value, training_capacity, experience_points, total_sessions")
         .eq("user_id", userId).maybeSingle(),
       client.from("profiles")
-        .select("name, age, work_type, primary_outcome, training_goals, daily_time_commitment, timezone, objective_label, objective_date")
+        .select("name, age, work_type, primary_outcome, training_goals, daily_time_commitment, timezone, objective_kind, objective_label, objective_date")
         .eq("user_id", userId).maybeSingle(),
       client.from("game_sessions")
         .select("completed_at, system_type, skill_routed, game_name, score, duration_seconds")
@@ -174,7 +186,10 @@ export async function buildCoachContext(client: SupabaseLike, userId: string) {
     days.length ? round((series(key).filter((value) => value !== null).length / days.length) * 100) : 0;
 
   const profileRow = (profile.data ?? null) as Record<string, unknown> | null;
-  const objectiveLabel = typeof profileRow?.objective_label === "string" ? profileRow.objective_label.trim() : "";
+  const objectiveKind = typeof profileRow?.objective_kind === "string" ? profileRow.objective_kind : "";
+  const preset = OBJECTIVE_PRESETS[objectiveKind] ?? null;
+  const customLabel = typeof profileRow?.objective_label === "string" ? profileRow.objective_label.trim() : "";
+  const objectiveLabel = customLabel || preset?.label || "";
   const objectiveDate = typeof profileRow?.objective_date === "string" ? profileRow.objective_date : null;
   const objectiveDaysUntil = objectiveDate
     ? Math.round((Date.parse(`${objectiveDate}T00:00:00Z`) - Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`)) / 86_400_000)
@@ -184,7 +199,14 @@ export async function buildCoachContext(client: SupabaseLike, userId: string) {
     generatedAt: new Date().toISOString(),
     profile: profileRow,
     objective: objectiveLabel
-      ? { label: objectiveLabel, date: objectiveDate, daysUntil: objectiveDaysUntil }
+      ? {
+          label: objectiveLabel,
+          kind: objectiveKind || null,
+          focusMetric: preset?.focus ?? null,
+          demand: preset?.demand ?? null,
+          date: objectiveDate,
+          daysUntil: objectiveDaysUntil,
+        }
       : null,
     currentMetrics: metrics.data ?? null,
     last30Days: days,

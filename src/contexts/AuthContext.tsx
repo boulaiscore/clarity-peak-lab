@@ -45,6 +45,7 @@ export interface UserProfile {
   reminder_time: string | null;
   primary_device: PrimaryDevice | null;
   primary_outcome: PrimaryOutcome | null;
+  objective_kind: string | null;
   objective_label: string | null;
   objective_date: string | null;
   // RRI fields
@@ -70,7 +71,9 @@ export interface User {
   gender?: Gender;
   workType?: WorkType;
   primaryOutcome?: PrimaryOutcome;
-  /** Named high-stakes objective, e.g. "McKinsey final round". */
+  /** Preset objective type, see OBJECTIVE_PRESETS. */
+  objectiveKind?: string | null;
+  /** Optional custom wording when the preset is "other". */
   objectiveLabel?: string | null;
   /** ISO date (yyyy-MM-dd) the objective happens on. */
   objectiveDate?: string | null;
@@ -155,6 +158,7 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     gender: profile?.gender || undefined,
     workType: profile?.work_type || undefined,
     primaryOutcome: profile?.primary_outcome || storedPrimaryOutcome || undefined,
+    objectiveKind: profile?.objective_kind ?? null,
     objectiveLabel: profile?.objective_label ?? null,
     objectiveDate: profile?.objective_date ?? null,
     educationLevel: profile?.education_level || undefined,
@@ -563,6 +567,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.gender !== undefined) profileUpdates.gender = updates.gender;
     if (updates.workType !== undefined) profileUpdates.work_type = updates.workType;
     if (updates.primaryOutcome !== undefined) profileUpdates.primary_outcome = updates.primaryOutcome;
+    if (updates.objectiveKind !== undefined) profileUpdates.objective_kind = updates.objectiveKind || null;
     if (updates.objectiveLabel !== undefined) profileUpdates.objective_label = updates.objectiveLabel || null;
     if (updates.objectiveDate !== undefined) profileUpdates.objective_date = updates.objectiveDate || null;
     if (updates.educationLevel !== undefined) profileUpdates.education_level = updates.educationLevel;

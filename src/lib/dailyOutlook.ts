@@ -1,5 +1,6 @@
 import { clamp } from "@/lib/cognitiveEngine";
 import { LOW_RECOVERY_THRESHOLD } from "@/lib/decayConstants";
+import { OBJECTIVE_FOCUS_LABEL, type ObjectiveFocus } from "@/config/objectives";
 
 export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v5-objective";
 
@@ -58,10 +59,14 @@ export interface DailyOutlookCoachBasis {
 }
 
 export interface DailyOutlookObjective {
-  /** Short user-written label, e.g. "McKinsey final round". */
+  /** Display name, either the preset name or the user's own wording. */
   label: string;
   /** Whole days from today to the objective date. Negative means it has passed. */
   daysUntil: number | null;
+  /** Metric the objective depends on, from the chosen preset. */
+  focus?: ObjectiveFocus | null;
+  /** Plain-language description of what the day demands. */
+  demand?: string | null;
 }
 
 export interface DailyOutlookEvidence {
@@ -270,6 +275,43 @@ function patternInsight(input: DailyOutlookInput): Pick<DailyOutlookCoachBasis, 
   };
 }
 
+/** Score of the metric the objective depends on, when the user picked a preset. */
+function objectiveFocusScore(input: DailyOutlookInput): number | null {
+  switch (input.objective?.focus) {
+    case "sharpness": return finite(input.sharpness);
+    case "reasoning": return finite(input.reasoningQuality);
+    case "readiness": return finite(input.readiness);
+    case "recovery": return finite(input.recovery);
+    default: return null;
+  }
+}
+
+/**
+ * One sentence tying the objective to the metric it depends on,
+ * added only when that metric is currently below its usable range.
+ */
+function objectiveFocusSentence(input: DailyOutlookInput, days: number | null): string {
+  const objective = input.objective;
+  const focus = objective?.focus;
+  const demand = typeof objective?.demand === "string" ? objective.demand.trim() : "";
+  const score = objectiveFocusScore(input);
+  if (!focus || !demand || score === null) return "";
+  const metricName = OBJECTIVE_FOCUS_LABEL[focus];
+
+  if (days === 0) {
+    return score < 50
+      ? `It needs ${demand}, and your ${metricName} is ${Math.round(score)} right now, so cut everything that is not the event itself.`
+      : `It needs ${demand}, and your ${metricName} is holding at ${Math.round(score)}.`;
+  }
+  if (score < 45) {
+    return `It needs ${demand}. Your ${metricName} is ${Math.round(score)}, below where you want it on the day, so treat that as the thing to fix first.`;
+  }
+  if (score < 60) {
+    return `It needs ${demand}, and your ${metricName} is ${Math.round(score)}: enough to work with, not yet where you want it on the day.`;
+  }
+  return "";
+}
+
 /**
  * Turns a user-declared objective with a date into day-level guidance.
  * The objective never changes the metric policy, only how the day is framed.
@@ -282,39 +324,45 @@ function objectiveGuidance(
   const label = typeof objective?.label === "string" ? objective.label.trim() : "";
   if (!label) return "";
   const days = finite(objective?.daysUntil);
-  if (days === null) return `You are working towards ${label}.`;
+  if (days === null) {
+    return [`You are working towards ${label}.`, objectiveFocusSentence(input, null)]
+      .filter(Boolean).join(" ");
+  }
   if (days < 0) return "";
+
+  const focusSentence = objectiveFocusSentence(input, days);
+  const withFocus = (sentence: string) => [sentence, focusSentence].filter(Boolean).join(" ");
 
   if (days === 0) {
     if (intensity === "protective") {
-      return `${label} is today, and you are not at your best: keep the warm-up light and save your energy for the moment itself.`;
+      return withFocus(`${label} is today, and you are not at your best: keep the warm-up light and save your energy for the moment itself.`);
     }
-    return `${label} is today. Do the essential preparation only and go in fresh.`;
+    return withFocus(`${label} is today. Do the essential preparation only and go in fresh.`);
   }
 
   if (days === 1) {
-    return intensity === "protective"
+    return withFocus(intensity === "protective"
       ? `${label} is tomorrow. Stop heavy preparation early today and protect your sleep.`
-      : `${label} is tomorrow. Do one focused review today, then stop early.`;
+      : `${label} is tomorrow. Do one focused review today, then stop early.`);
   }
 
   if (days <= 7) {
     if (intensity === "protective") {
-      return `${label} is in ${days} days. Keep today light so the days before it are usable.`;
+      return withFocus(`${label} is in ${days} days. Keep today light so the days before it are usable.`);
     }
     if (intensity === "strong") {
-      return `${label} is in ${days} days. Use today for the hardest part of your preparation.`;
+      return withFocus(`${label} is in ${days} days. Use today for the hardest part of your preparation.`);
     }
-    return `${label} is in ${days} days. Keep preparation to one solid block today.`;
+    return withFocus(`${label} is in ${days} days. Keep preparation to one solid block today.`);
   }
 
   if (days <= 30) {
-    return intensity === "strong"
+    return withFocus(intensity === "strong"
       ? `${label} is in ${days} days. This is a good day to push preparation forward.`
-      : `${label} is in ${days} days, so there is no need to force it today.`;
+      : `${label} is in ${days} days, so there is no need to force it today.`);
   }
 
-  return `${label} is in ${days} days. Build the habit now rather than sprinting.`;
+  return withFocus(`${label} is in ${days} days. Build the habit now rather than sprinting.`);
 }
 
 function buildCoachBasis(

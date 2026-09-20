@@ -12,7 +12,9 @@ import {
   type DailyOutlookBehaviorContext,
   type DailyOutlookHealthSignals,
   type DailyOutlookInput,
+  type DailyOutlookObjective,
 } from "@/lib/dailyOutlook";
+import { findObjectivePreset, objectiveDisplayLabel } from "@/config/objectives";
 import { supabase } from "@/integrations/supabase/client";
 import { trackProductEvent } from "@/lib/productAnalytics";
 
@@ -141,17 +143,24 @@ function displayFirstName(
 
 /** User-declared objective with its remaining days; null when unset or already past. */
 function objectiveFromProfile(
+  kind: string | null | undefined,
   label: string | null | undefined,
   date: string | null | undefined,
-): { label: string; daysUntil: number | null } | null {
-  const trimmed = typeof label === "string" ? label.trim().slice(0, 80) : "";
-  if (!trimmed) return null;
+): DailyOutlookObjective | null {
+  const preset = findObjectivePreset(kind);
+  const display = objectiveDisplayLabel(kind, label).slice(0, 80);
+  if (!display) return null;
+  const base = {
+    label: display,
+    focus: preset?.focus ?? null,
+    demand: preset?.demand ?? null,
+  };
   if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return { label: trimmed, daysUntil: null };
+    return { ...base, daysUntil: null };
   }
   const daysUntil = differenceInCalendarDays(parseISO(date), new Date());
   if (daysUntil < 0) return null;
-  return { label: trimmed, daysUntil };
+  return { ...base, daysUntil };
 }
 
 function isStorageUnavailable(error: LooseResult["error"]): boolean {
@@ -177,9 +186,9 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     [input.passiveFeatures],
   );
   const objective = useMemo(
-    () => objectiveFromProfile(user?.objectiveLabel, user?.objectiveDate),
+    () => objectiveFromProfile(user?.objectiveKind, user?.objectiveLabel, user?.objectiveDate),
     // `today` keeps the remaining-days count correct across a date change.
-    [user?.objectiveLabel, user?.objectiveDate, today],
+    [user?.objectiveKind, user?.objectiveLabel, user?.objectiveDate, today],
   );
 
   const policyInput = useMemo<DailyOutlookInput>(() => ({
