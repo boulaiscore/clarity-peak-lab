@@ -77,7 +77,7 @@ assert(sleepResult.status === "ready", "sleep pattern produces an insight");
 if (sleepResult.status === "ready") {
   assert(sleepResult.insight.metric === "sharpness", "sleep insight targets Sharpness");
   assert(sleepResult.insight.deltaPoints > 10, "sleep insight reports the measured effect size");
-  assert(sleepResult.insight.confidence === "solid", "large, well-sampled effect is marked solid");
+  assert(sleepResult.insight.confidence === "emerging", "a moderate paired sample stays conservatively emerging");
 }
 
 // 4. Week-over-week fallback when no driver data exists
