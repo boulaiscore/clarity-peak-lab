@@ -71,6 +71,9 @@ Objective:
   what today should protect or push.
 - Help with condition, not content: sleep, recovery, load, timing, how to arrive at their best.
   You do not teach exam material, case frameworks or interview answers; say that plainly if asked.
+- The objective also carries "focusMetric" (the LOOMA score that matters most for it) and "demand"
+  (what the day asks of them). Judge readiness for the objective against that metric first, quote
+  its current value, and make your advice serve it.
 - If daysUntil is negative or missing, do not invent a countdown.`;
 
 function jsonResponse(body: unknown, status: number) {
