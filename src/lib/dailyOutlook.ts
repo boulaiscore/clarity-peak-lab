@@ -270,6 +270,43 @@ function patternInsight(input: DailyOutlookInput): Pick<DailyOutlookCoachBasis, 
   };
 }
 
+/** Score of the metric the objective depends on, when the user picked a preset. */
+function objectiveFocusScore(input: DailyOutlookInput): number | null {
+  switch (input.objective?.focus) {
+    case "sharpness": return finite(input.sharpness);
+    case "reasoning": return finite(input.reasoningQuality);
+    case "readiness": return finite(input.readiness);
+    case "recovery": return finite(input.recovery);
+    default: return null;
+  }
+}
+
+/**
+ * One sentence tying the objective to the metric it depends on,
+ * added only when that metric is currently below its usable range.
+ */
+function objectiveFocusSentence(input: DailyOutlookInput, days: number | null): string {
+  const objective = input.objective;
+  const focus = objective?.focus;
+  const demand = typeof objective?.demand === "string" ? objective.demand.trim() : "";
+  const score = objectiveFocusScore(input);
+  if (!focus || !demand || score === null) return "";
+  const metricName = OBJECTIVE_FOCUS_LABEL[focus];
+
+  if (days === 0) {
+    return score < 50
+      ? `It needs ${demand}, and your ${metricName} is ${Math.round(score)} right now, so cut everything that is not the event itself.`
+      : `It needs ${demand}, and your ${metricName} is holding at ${Math.round(score)}.`;
+  }
+  if (score < 45) {
+    return `It needs ${demand}. Your ${metricName} is ${Math.round(score)}, below where you want it on the day, so treat that as the thing to fix first.`;
+  }
+  if (score < 60) {
+    return `It needs ${demand}, and your ${metricName} is ${Math.round(score)}: enough to work with, not yet where you want it on the day.`;
+  }
+  return "";
+}
+
 /**
  * Turns a user-declared objective with a date into day-level guidance.
  * The objective never changes the metric policy, only how the day is framed.
@@ -282,10 +319,23 @@ function objectiveGuidance(
   const label = typeof objective?.label === "string" ? objective.label.trim() : "";
   if (!label) return "";
   const days = finite(objective?.daysUntil);
-  if (days === null) return `You are working towards ${label}.`;
+  if (days === null) {
+    return [`You are working towards ${label}.`, objectiveFocusSentence(input, null)]
+      .filter(Boolean).join(" ");
+  }
   if (days < 0) return "";
 
+  const focusSentence = objectiveFocusSentence(input, days);
+  const withFocus = (sentence: string) => [sentence, focusSentence].filter(Boolean).join(" ");
+
   if (days === 0) {
+    if (intensity === "protective") {
+      return withFocus(`${label} is today, and you are not at your best: keep the warm-up light and save your energy for the moment itself.`);
+    }
+    return withFocus(`${label} is today. Do the essential preparation only and go in fresh.`);
+  }
+
+  if (false) {
     if (intensity === "protective") {
       return `${label} is today, and you are not at your best: keep the warm-up light and save your energy for the moment itself.`;
     }
