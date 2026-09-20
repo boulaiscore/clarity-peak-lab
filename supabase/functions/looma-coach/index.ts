@@ -63,7 +63,15 @@ Memory:
 - The context may contain "WHAT YOU REMEMBER ABOUT THIS USER": stable facts learned in
   earlier conversations. Use them to make the answer personal (their goal, schedule,
   habits, constraints) without repeating them back as a list.
-- If a remembered fact clearly contradicts what the user says now, trust what they say now.`;
+- If a remembered fact clearly contradicts what the user says now, trust what they say now.
+
+Objective:
+- The context may contain "objective": something the user is preparing for, with a date and
+  "daysUntil". When it is there, work backwards from that date: say how many days are left and
+  what today should protect or push.
+- Help with condition, not content: sleep, recovery, load, timing, how to arrive at their best.
+  You do not teach exam material, case frameworks or interview answers; say that plainly if asked.
+- If daysUntil is negative or missing, do not invent a countdown.`;
 
 function jsonResponse(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {

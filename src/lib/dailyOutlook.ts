@@ -1,7 +1,7 @@
 import { clamp } from "@/lib/cognitiveEngine";
 import { LOW_RECOVERY_THRESHOLD } from "@/lib/decayConstants";
 
-export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v4-digital-fragmentation";
+export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v5-objective";
 
 export type DailyOutlookActionKey =
   | "recover"
@@ -51,8 +51,17 @@ export interface DailyOutlookBehaviorContext {
 
 export interface DailyOutlookCoachBasis {
   goalGuidance: string;
+  /** Empty when the user has no upcoming objective. */
+  objectiveGuidance: string;
   patternInsight: string;
   learnedFromHistory: boolean;
+}
+
+export interface DailyOutlookObjective {
+  /** Short user-written label, e.g. "McKinsey final round". */
+  label: string;
+  /** Whole days from today to the objective date. Negative means it has passed. */
+  daysUntil: number | null;
 }
 
 export interface DailyOutlookEvidence {
@@ -105,6 +114,7 @@ export interface DailyOutlookInput {
   recoveryEstimated?: boolean;
   primaryOutcome?: "decide" | "focus" | "reason" | null;
   workType?: string | null;
+  objective?: DailyOutlookObjective | null;
   behaviorContext?: Partial<DailyOutlookBehaviorContext> | null;
   previousMetrics?: Partial<DailyOutlookPreviousMetrics> | null;
   canPersonalize: boolean;
@@ -260,12 +270,60 @@ function patternInsight(input: DailyOutlookInput): Pick<DailyOutlookCoachBasis, 
   };
 }
 
+/**
+ * Turns a user-declared objective with a date into day-level guidance.
+ * The objective never changes the metric policy, only how the day is framed.
+ */
+function objectiveGuidance(
+  input: DailyOutlookInput,
+  intensity: DailyOutlookIntensity,
+): string {
+  const objective = input.objective;
+  const label = typeof objective?.label === "string" ? objective.label.trim() : "";
+  if (!label) return "";
+  const days = finite(objective?.daysUntil);
+  if (days === null) return `You are working towards ${label}.`;
+  if (days < 0) return "";
+
+  if (days === 0) {
+    if (intensity === "protective") {
+      return `${label} is today, and you are not at your best: keep the warm-up light and save your energy for the moment itself.`;
+    }
+    return `${label} is today. Do the essential preparation only and go in fresh.`;
+  }
+
+  if (days === 1) {
+    return intensity === "protective"
+      ? `${label} is tomorrow. Stop heavy preparation early today and protect your sleep.`
+      : `${label} is tomorrow. Do one focused review today, then stop early.`;
+  }
+
+  if (days <= 7) {
+    if (intensity === "protective") {
+      return `${label} is in ${days} days. Keep today light so the days before it are usable.`;
+    }
+    if (intensity === "strong") {
+      return `${label} is in ${days} days. Use today for the hardest part of your preparation.`;
+    }
+    return `${label} is in ${days} days. Keep preparation to one solid block today.`;
+  }
+
+  if (days <= 30) {
+    return intensity === "strong"
+      ? `${label} is in ${days} days. This is a good day to push preparation forward.`
+      : `${label} is in ${days} days, so there is no need to force it today.`;
+  }
+
+  return `${label} is in ${days} days. Build the habit now rather than sprinting.`;
+}
+
 function buildCoachBasis(
   input: DailyOutlookInput,
   intensity: DailyOutlookIntensity,
 ): DailyOutlookCoachBasis {
   return {
     goalGuidance: goalGuidance(input, intensity),
+    objectiveGuidance: objectiveGuidance(input, intensity),
     ...patternInsight(input),
   };
 }
@@ -305,6 +363,7 @@ function coachSummary(
     stateInterpretation,
     previousDaySentence(input),
     basis.goalGuidance,
+    basis.objectiveGuidance,
     healthContextSentence(input.healthSignals),
     basis.patternInsight,
     nextMove,

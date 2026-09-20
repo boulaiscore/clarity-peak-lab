@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,8 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
   const [primaryOutcome, setPrimaryOutcome] = useState<PrimaryOutcome>(user?.primaryOutcome ?? "focus");
+  const [objectiveLabel, setObjectiveLabel] = useState(user?.objectiveLabel ?? "");
+  const [objectiveDate, setObjectiveDate] = useState(user?.objectiveDate ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState<boolean | null>(null);
@@ -70,6 +73,8 @@ const ProfilePage = () => {
     if (user) {
       setName(user.name || "");
       setPrimaryOutcome(user.primaryOutcome ?? "focus");
+      setObjectiveLabel(user.objectiveLabel ?? "");
+      setObjectiveDate(user.objectiveDate ?? "");
     }
   }, [user]);
 
@@ -113,9 +118,21 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await updateUser({ name, primaryOutcome });
+    const trimmedObjective = objectiveLabel.trim().slice(0, 80);
+    await updateUser({
+      name,
+      primaryOutcome,
+      objectiveLabel: trimmedObjective || null,
+      // A date without a label would have nothing to describe.
+      objectiveDate: trimmedObjective ? (objectiveDate || null) : null,
+    });
     toast({ title: "Profile saved", description: "Your profile has been updated." });
     setIsSaving(false);
+  };
+
+  const clearObjective = () => {
+    setObjectiveLabel("");
+    setObjectiveDate("");
   };
 
   const memberSince = user?.id ? format(new Date(), "MMMM yyyy") : "—";
@@ -189,6 +206,51 @@ const ProfilePage = () => {
                     <span className="mt-0.5 block text-[10px] text-muted-foreground">{option.description}</span>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div className="p-5 rounded-xl bg-card border border-border shadow-card">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold">What you are preparing for</h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Add one thing with a date, like an interview or an exam. Your daily verdict and the coach
+                  will work backwards from it.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="objective-label" className="text-[11px] text-muted-foreground">
+                    Objective
+                  </Label>
+                  <Input
+                    id="objective-label"
+                    value={objectiveLabel}
+                    maxLength={80}
+                    placeholder="McKinsey final round"
+                    onChange={(event) => setObjectiveLabel(event.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="objective-date" className="text-[11px] text-muted-foreground">
+                    Date
+                  </Label>
+                  <Input
+                    id="objective-date"
+                    type="date"
+                    value={objectiveDate}
+                    disabled={!objectiveLabel.trim()}
+                    onChange={(event) => setObjectiveDate(event.target.value)}
+                  />
+                </div>
+                {(objectiveLabel || objectiveDate) && (
+                  <button
+                    type="button"
+                    onClick={clearObjective}
+                    className="text-[11px] text-muted-foreground underline underline-offset-2"
+                  >
+                    Remove objective
+                  </button>
+                )}
               </div>
             </div>
 

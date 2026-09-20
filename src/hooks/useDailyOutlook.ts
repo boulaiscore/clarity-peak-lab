@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useMobileCognitiveRhythm } from "@/hooks/useMobileCognitiveRhythm";
@@ -139,6 +139,21 @@ function displayFirstName(
   return cleaned.charAt(0).toLocaleUpperCase() + cleaned.slice(1);
 }
 
+/** User-declared objective with its remaining days; null when unset or already past. */
+function objectiveFromProfile(
+  label: string | null | undefined,
+  date: string | null | undefined,
+): { label: string; daysUntil: number | null } | null {
+  const trimmed = typeof label === "string" ? label.trim().slice(0, 80) : "";
+  if (!trimmed) return null;
+  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { label: trimmed, daysUntil: null };
+  }
+  const daysUntil = differenceInCalendarDays(parseISO(date), new Date());
+  if (daysUntil < 0) return null;
+  return { label: trimmed, daysUntil };
+}
+
 function isStorageUnavailable(error: LooseResult["error"]): boolean {
   return Boolean(error && /daily_outlooks|PGRST205|42P01|schema cache/i.test(error.message ?? ""));
 }
@@ -161,6 +176,11 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     () => behaviorContextFromPayload(input.passiveFeatures),
     [input.passiveFeatures],
   );
+  const objective = useMemo(
+    () => objectiveFromProfile(user?.objectiveLabel, user?.objectiveDate),
+    // `today` keeps the remaining-days count correct across a date change.
+    [user?.objectiveLabel, user?.objectiveDate, today],
+  );
 
   const policyInput = useMemo<DailyOutlookInput>(() => ({
     sharpness: input.sharpness,
@@ -176,6 +196,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     recoveryEstimated: input.recoveryEstimated,
     primaryOutcome: user?.primaryOutcome ?? "focus",
     workType: user?.workType ?? null,
+    objective,
     behaviorContext,
     previousMetrics: yesterdayMetrics ?? null,
     canPersonalize,
@@ -195,6 +216,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     rhythm,
     user?.primaryOutcome,
     user?.workType,
+    objective,
   ]);
 
   const deterministicOutlook = useMemo(
@@ -221,6 +243,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     personal: {
       workType: user?.workType ?? null,
       primaryOutcome: user?.primaryOutcome ?? "focus",
+      objective,
     },
     behavior: behaviorContext,
     previousDay: yesterdayMetrics ?? null,
@@ -257,6 +280,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     rhythm.status,
     user?.primaryOutcome,
     user?.workType,
+    objective,
   ]);
 
   const generatedCopyQuery = useQuery({
