@@ -12,6 +12,16 @@ import {
 } from "@/components/ui/sheet";
 import type { PassiveFeaturePayload } from "@/lib/passiveCoachFeatures";
 import { useDailyOutlook } from "@/hooks/useDailyOutlook";
+import { METRIC_COLORS } from "@/lib/metricColors";
+import type { DailyVerdictKind } from "@/lib/dailyOutlook";
+
+const VERDICT_COLORS: Record<DailyVerdictKind, string> = {
+  decide: METRIC_COLORS.sharpness,
+  build: METRIC_COLORS.reasoningQuality,
+  recover: METRIC_COLORS.recovery,
+  protect: METRIC_COLORS.readiness,
+  steady: "hsl(var(--muted-foreground) / 0.55)",
+};
 
 interface DailyOutlookCardProps {
   sharpness: number;
