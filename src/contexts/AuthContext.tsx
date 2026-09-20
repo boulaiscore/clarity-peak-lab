@@ -45,6 +45,7 @@ export interface UserProfile {
   reminder_time: string | null;
   primary_device: PrimaryDevice | null;
   primary_outcome: PrimaryOutcome | null;
+  objective_kind: string | null;
   objective_label: string | null;
   objective_date: string | null;
   // RRI fields
@@ -70,7 +71,9 @@ export interface User {
   gender?: Gender;
   workType?: WorkType;
   primaryOutcome?: PrimaryOutcome;
-  /** Named high-stakes objective, e.g. "McKinsey final round". */
+  /** Preset objective type, see OBJECTIVE_PRESETS. */
+  objectiveKind?: string | null;
+  /** Optional custom wording when the preset is "other". */
   objectiveLabel?: string | null;
   /** ISO date (yyyy-MM-dd) the objective happens on. */
   objectiveDate?: string | null;
