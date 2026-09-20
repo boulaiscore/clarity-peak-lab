@@ -95,6 +95,7 @@ serve(async (req) => {
   // Premium gate: LOOMA Coach is a Pro/Elite feature.
   // Gate checks and the 30-day context build run in parallel to cut waiting time.
   const contextPromise = buildCoachContext(supabase as never, user.id);
+  const memoryPromise = loadCoachMemory(supabase as never, user.id).catch(() => [] as CoachFact[]);
   const historyPromise = supabase
     .from("coach_messages")
     .select("role, content")
@@ -143,6 +144,12 @@ serve(async (req) => {
   const history = ((historyRows ?? []) as IncomingMessage[]).reverse();
 
   const context = await contextPromise;
+  const memory = await memoryPromise;
+  const memoryBlock = memory.length
+    ? `\n\nWHAT YOU REMEMBER ABOUT THIS USER (from earlier conversations):\n${
+      memory.map((fact) => `- [${fact.category}] ${fact.fact}`).join("\n")
+    }`
+    : "";
 
   // Persisted in the background so it does not delay the first token.
   const userInsert = supabase.from("coach_messages").insert({
