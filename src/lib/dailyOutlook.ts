@@ -114,6 +114,7 @@ export interface DailyOutlookInput {
   recoveryEstimated?: boolean;
   primaryOutcome?: "decide" | "focus" | "reason" | null;
   workType?: string | null;
+  objective?: DailyOutlookObjective | null;
   behaviorContext?: Partial<DailyOutlookBehaviorContext> | null;
   previousMetrics?: Partial<DailyOutlookPreviousMetrics> | null;
   canPersonalize: boolean;
