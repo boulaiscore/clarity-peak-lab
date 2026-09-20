@@ -3,6 +3,7 @@ import { ArrowRight, HeartPulse, Moon, Footprints, Activity } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { requestPermissions } from "@/lib/capacitor/health";
 import { trackProductEvent } from "@/lib/productAnalytics";
+import { markHealthTrackingDecision } from "@/components/home/HealthTrackingReminder";
 
 interface HealthPermissionStepProps {
   onDone: () => void;
@@ -24,6 +25,7 @@ export function HealthPermissionStep({ onDone }: HealthPermissionStepProps) {
 
   const finish = (outcome: "granted" | "denied" | "skipped") => {
     trackProductEvent("onboarding_step_completed", { step: 3, outcome });
+    markHealthTrackingDecision(outcome);
     // Let phone-health sync retry immediately after a grant.
     window.dispatchEvent(new Event("looma:health-permissions-changed"));
     onDone();
