@@ -400,6 +400,8 @@ const Health = () => {
             </section>
           )}
 
+          <WorkoutAppsCard />
+
           {(deviceUsage.supported || calendarContext.supported) && (
             <details className="group rounded-[18px] bg-white/[0.025] p-4">
               <summary className="flex cursor-pointer list-none items-center justify-between">
