@@ -307,20 +307,6 @@ const Home = () => {
               />
             )}
 
-            {/* My day first — one outlook, one action; rings are supporting detail */}
-            {isViewingToday && (
-              <DailyOutlookCard
-                sharpness={sharpness}
-                readiness={readiness}
-                recovery={recoveryWithBoost}
-                reasoningQuality={rq}
-                signalCoverage={signalCoverage}
-                activeSourceCount={activeSourceCount}
-                passiveFeatures={passiveFeatures}
-                isLoading={isDisplayLoading}
-                personalizationPending={passiveLoading}
-              />
-            )}
 
             {/* No data warning for historical dates */}
             {!isViewingToday && !historicalLoading && !hasHistoricalData && <motion.div initial={{
