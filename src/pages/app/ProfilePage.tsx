@@ -19,7 +19,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { OBJECTIVE_FOCUS_LABEL, OBJECTIVE_PRESETS } from "@/config/objectives";
+import { OBJECTIVE_FOCUS_LABEL, OBJECTIVE_PRESETS, findObjectivePreset } from "@/config/objectives";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -141,6 +148,8 @@ const ProfilePage = () => {
     setObjectiveDate("");
   };
 
+  const selectedPreset = findObjectivePreset(objectiveKind);
+
   const memberSince = user?.id ? format(new Date(), "MMMM yyyy") : "—";
   const maskedAccountId = user?.id ? `••••••${user.id.slice(-4)}` : "—";
 
@@ -224,28 +233,31 @@ const ProfilePage = () => {
                 </p>
               </div>
               <div className="space-y-3">
-                <div className="space-y-2">
-                  {OBJECTIVE_PRESETS.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      onClick={() => setObjectiveKind(objectiveKind === preset.value ? "" : preset.value)}
-                      className={cn(
-                        "w-full rounded-xl border px-3 py-3 text-left transition-colors",
-                        objectiveKind === preset.value
-                          ? "border-primary/60 bg-primary/10"
-                          : "border-border/40 bg-background/30 hover:border-primary/35",
-                      )}
-                    >
-                      <span className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-semibold">{preset.label}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {OBJECTIVE_FOCUS_LABEL[preset.focus]}
-                        </span>
-                      </span>
-                      <span className="mt-0.5 block text-[10px] text-muted-foreground">{preset.description}</span>
-                    </button>
-                  ))}
+                <div className="space-y-1.5">
+                  <Label htmlFor="objective-kind" className="text-[11px] text-muted-foreground">
+                    Objective
+                  </Label>
+                  <Select
+                    value={objectiveKind || "none"}
+                    onValueChange={(value) => setObjectiveKind(value === "none" ? "" : value)}
+                  >
+                    <SelectTrigger id="objective-kind" className="h-11">
+                      <SelectValue placeholder="Select an objective" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No objective</SelectItem>
+                      {OBJECTIVE_PRESETS.map((preset) => (
+                        <SelectItem key={preset.value} value={preset.value}>
+                          {preset.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedPreset && (
+                    <p className="text-[10px] leading-relaxed text-muted-foreground">
+                      {selectedPreset.description} Key metric: {OBJECTIVE_FOCUS_LABEL[selectedPreset.focus]}.
+                    </p>
+                  )}
                 </div>
 
                 {objectiveKind === "other" && (

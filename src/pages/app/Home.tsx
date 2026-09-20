@@ -32,6 +32,7 @@ import { applyBoostToRec } from "@/lib/recovery/acuteBoost";
 import { TodayActivitiesCard } from "@/components/home/TodayActivitiesCard";
 import { SignalCoverageRow } from "@/components/home/SignalCoverageRow";
 import { DailyOutlookCard } from "@/components/home/DailyOutlookCard";
+import { ObjectivePrepCard } from "@/components/home/ObjectivePrepCard";
 import { FirstRunHealthAccess } from "@/components/onboarding/FirstRunHealthAccess";
 import { HealthTrackingReminder } from "@/components/home/HealthTrackingReminder";
 import { WeeklyInsightCard } from "@/components/home/WeeklyInsightCard";
@@ -371,6 +372,13 @@ const Home = () => {
                     My day
                   </h2>
                   <div className="overflow-hidden rounded-[18px] border border-foreground/10 bg-card/45 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.035)] backdrop-blur-xl">
+                  <ObjectivePrepCard
+                    sharpness={sharpness}
+                    readiness={readiness}
+                    recovery={recovery}
+                    reasoningQuality={rq}
+                    visible={!isDisplayLoading && !rqLoading}
+                  />
                   <DailyOutlookCard
                     sharpness={sharpness}
                     readiness={readiness}
