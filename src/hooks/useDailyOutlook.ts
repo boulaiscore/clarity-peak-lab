@@ -196,6 +196,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     recoveryEstimated: input.recoveryEstimated,
     primaryOutcome: user?.primaryOutcome ?? "focus",
     workType: user?.workType ?? null,
+    objective,
     behaviorContext,
     previousMetrics: yesterdayMetrics ?? null,
     canPersonalize,
