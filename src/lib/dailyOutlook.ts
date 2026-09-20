@@ -185,7 +185,7 @@ function healthContextSentence(value: DailyOutlookInput["healthSignals"]): strin
     observations.push(`${Math.round(signals.activeMinutes)} active minutes`);
   }
   if (observations.length === 0) return "";
-  return `Your latest Health context includes ${observations.slice(0, 2).join(" and ")}; LOOMA interprets these against your own baseline rather than in isolation.`;
+  return `Today’s health data includes ${observations.slice(0, 2).join(" and ")}.`;
 }
 
 function workContext(workType: string | null | undefined): string {
@@ -206,25 +206,25 @@ function goalGuidance(
   const context = workContext(input.workType);
   const outcome = input.primaryOutcome ?? "focus";
   if (intensity === "protective") {
-    if (outcome === "decide") return `For decision quality${context}, reduce avoidable choices and protect the decisions that matter most.`;
-    if (outcome === "reason") return `For analytical quality${context}, favor one bounded problem over prolonged mental effort.`;
-    return `For your focus goal${context}, protecting continuity matters more than adding duration today.`;
+    if (outcome === "decide") return `Make fewer decisions${context}, and leave the important ones for when you feel fresher.`;
+    if (outcome === "reason") return `Work on one clear problem${context}, rather than pushing for hours.`;
+    return `Keep your focus sessions short${context} today.`;
   }
   if (intensity === "strong") {
-    if (outcome === "decide") return `For decision quality${context}, reserve this capacity for the decision with the highest consequence.`;
-    if (outcome === "reason") return `For analytical quality${context}, use this capacity on the problem that benefits most from deliberate depth.`;
-    return `For your focus goal${context}, reserve this capacity for the work that needs uninterrupted attention.`;
+    if (outcome === "decide") return `Handle your most important decision${context} today.`;
+    if (outcome === "reason") return `Use this energy on your hardest problem${context}.`;
+    return `Use your best focus on the work that matters most${context}.`;
   }
-  if (outcome === "decide") return `For decision quality${context}, keep the day deliberate and avoid spending clarity on low-value choices.`;
-  if (outcome === "reason") return `For analytical quality${context}, keep the workload structured and stop before precision begins to soften.`;
-  return `For your focus goal${context}, favor a clear priority and a sustainable pace.`;
+  if (outcome === "decide") return `Take important decisions one at a time${context}.`;
+  if (outcome === "reason") return `Keep the work structured${context}, and stop when concentration drops.`;
+  return `Choose one priority${context} and keep a steady pace.`;
 }
 
 function patternInsight(input: DailyOutlookInput): Pick<DailyOutlookCoachBasis, "patternInsight" | "learnedFromHistory"> {
   if (input.canPersonalize && input.rhythm?.topDriver) {
     const driver = input.rhythm.topDriver;
     return {
-      patternInsight: `Your own history currently links ${driver.label.toLowerCase()} with ${driver.direction === "supports" ? "stronger" : "weaker"} next-day cognitive state.`,
+      patternInsight: `Your data shows that ${driver.label.toLowerCase()} is often followed by a ${driver.direction === "supports" ? "better" : "worse"} day.`,
       learnedFromHistory: true,
     };
   }
@@ -233,8 +233,8 @@ function patternInsight(input: DailyOutlookInput): Pick<DailyOutlookCoachBasis, 
   if (trend !== null && Math.abs(trend) >= 0.12) {
     return {
       patternInsight: trend > 0
-        ? "Across your recent history, your overall cognitive trend is moving upward."
-        : "Across your recent history, your overall cognitive trend has been softening.",
+        ? "Your scores have been improving lately."
+        : "Your scores have been lower lately.",
       learnedFromHistory: true,
     };
   }
@@ -242,20 +242,20 @@ function patternInsight(input: DailyOutlookInput): Pick<DailyOutlookCoachBasis, 
   const activityDays = finite(input.behaviorContext?.cognitiveActivityDays7d);
   if (activityDays !== null && activityDays > 0) {
     return {
-      patternInsight: `You recorded cognitive activity on ${Math.round(activityDays)} of the last 7 days, so this read can reflect your recent training rhythm.`,
+      patternInsight: `You trained on ${Math.round(activityDays)} of the last 7 days.`,
       learnedFromHistory: true,
     };
   }
 
   if (input.canPersonalize && input.rhythm && input.rhythm.observedDays > 0) {
     return {
-      patternInsight: `LOOMA has ${Math.round(input.rhythm.observedDays)} days of passive context and is still testing which patterns repeat for you.`,
+      patternInsight: `LOOMA has ${Math.round(input.rhythm.observedDays)} days of data and is still learning what affects you.`,
       learnedFromHistory: input.rhythm.status !== "learning",
     };
   }
 
   return {
-    patternInsight: "LOOMA is still establishing how your own behavior and physiology relate to later performance.",
+    patternInsight: "LOOMA is still learning what affects your performance.",
     learnedFromHistory: false,
   };
 }
@@ -286,12 +286,12 @@ function previousDaySentence(input: DailyOutlookInput): string {
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
     .slice(0, 2);
   if (moved.length === 0) {
-    return "Compared with yesterday your state is essentially unchanged, so today's guidance continues the same line.";
+    return "Your scores are about the same as yesterday.";
   }
   const described = moved
     .map((entry) => `${entry.label} ${entry.delta > 0 ? "up" : "down"} ${Math.abs(entry.delta)}`)
     .join(" and ");
-  return `Compared with yesterday, ${described}, and today's recommendation accounts for that shift.`;
+  return `Since yesterday: ${described}.`;
 }
 
 function coachSummary(
@@ -537,22 +537,22 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
       verdict: {
         kind: "recover",
         label: "Recovery day",
-        subline: "Keep today operational. Defer high-stakes decisions.",
+        subline: "Take it easier. Postpone important decisions if you can.",
       },
-      headline: "Recovery is the priority today",
+      headline: "Take it easier today",
       summary: coachSummary(
-        "Your current signals point to reduced reserve, so today is better used to recover than to add cognitive strain.",
+        "Your recovery is low, so pushing harder is unlikely to help.",
         input,
         "protective",
-        "The useful move now is a recovery protocol in Lab, then reassess rather than forcing output.",
+        "Try a recovery session in Lab, then see how you feel.",
       ),
       intensity: "protective",
       windowLabel: null,
       windowSource: null,
       action: action({
         key: "recover",
-        label: "Choose a recovery protocol in Lab",
-        shortLabel: "Recovery protocol",
+        label: "Start a recovery session in Lab",
+        shortLabel: "Recovery session",
         kind: "lab",
         route: "/neuro-lab?tab=detox",
         metricCode,
@@ -569,14 +569,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
       verdict: {
         kind: "protect",
         label: "Protect your attention",
-        subline: "Fragmented day — batch shallow work, guard one deep block.",
+        subline: "You are switching often. Protect one block of focused work.",
       },
-      headline: "Digital fragmentation is the constraint",
+      headline: "Too many interruptions today",
       summary: coachSummary(
-        "Short sessions and app returns are running above your usual pattern, which can make sustained attention harder to protect.",
+        "You are switching between apps more than usual, which can make it harder to stay focused.",
         input,
         "protective",
-        "Use an attention reset in Lab before the next demanding block.",
+        "Try an attention reset in Lab before your next difficult task.",
       ),
       intensity: "protective",
       windowLabel: null,
@@ -601,14 +601,14 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
       verdict: {
         kind: "protect",
         label: "Protect your attention",
-        subline: "Digital load is high — reduce inputs before demanding work.",
+        subline: "Screen activity is high. Reduce distractions before difficult work.",
       },
-      headline: "Digital load is the constraint",
+      headline: "Reduce distractions first",
       summary: coachSummary(
-        "Your digital load is the clearest pressure on attention today, so adding another demand is unlikely to improve the quality of your work.",
+        "Your screen activity is higher than usual and may make it harder to focus.",
         input,
         "protective",
-        "Use an attention reset in Lab before deciding whether more cognitive work is worthwhile.",
+        "Try an attention reset in Lab before doing more demanding work.",
       ),
       intensity: "protective",
       windowLabel: null,
@@ -632,23 +632,23 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
       coachBasis: buildCoachBasis(input, "protective"),
       verdict: {
         kind: "protect",
-        label: "Protect your capacity",
-        subline: "Heavy schedule, limited reserve — keep demands below peak.",
+        label: "Keep the day lighter",
+        subline: "Your schedule is busy and your energy is limited.",
       },
-      headline: "Protect capacity from schedule load",
+      headline: "Do less, but do it well",
       summary: coachSummary(
-        "Your schedule is consuming more capacity than usual while sustained readiness is constrained.",
+        "Your schedule is busier than usual, while your Readiness is not at its best.",
         input,
         "protective",
-        "Keep cognitive demand below your usual peak and skip extra training today.",
+        "Focus on the essentials and skip extra training today.",
       ),
       intensity: "protective",
       windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
       windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
       action: action({
         key: "protect_capacity",
-        label: "Keep cognitive demand below your usual peak",
-        shortLabel: "Protect capacity",
+        label: "Focus on the essentials today",
+        shortLabel: "Lighter day",
         kind: "guidance",
         route: null,
         metricCode: "RDY",
@@ -668,23 +668,23 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
       coachBasis: buildCoachBasis(input, "strong"),
       verdict: {
         kind: "decide",
-        label: "Decision day",
-        subline: "Signals aligned — spend this clarity on your highest-stakes call.",
+        label: "Good day for hard work",
+        subline: "Your key scores are strong. Use that on what matters most.",
       },
-      headline: "Your signals are aligned",
+      headline: "You are ready for hard work",
       summary: coachSummary(
-        "Your main cognitive signals are aligned, giving you room for demanding work without needing an extra protocol first.",
+        "Your main scores are strong enough for demanding work today.",
         input,
         "strong",
-        "Use this state on your highest-priority cognitive work while the capacity is available.",
+        "Start with your most important task while your energy is available.",
       ),
       intensity: "strong",
       windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
       windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
       action: action({
         key: "use_capacity",
-        label: "Use this state for your highest-priority cognitive work",
-        shortLabel: "Use capacity",
+        label: "Start your most important task",
+        shortLabel: "Start hard work",
         kind: "guidance",
         route: null,
         metricCode: "RDY",
@@ -700,22 +700,22 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
       coachBasis: buildCoachBasis(input, "steady"),
       verdict: {
         kind: "build",
-        label: "Build day · Attention",
-        subline: "Reserve is sufficient — attention is today's opportunity.",
+        label: "Work on your focus",
+        subline: "You have enough energy, but your Sharpness is low today.",
       },
-      headline: "Sharpness is today’s opportunity",
+      headline: "Focus needs work today",
       summary: coachSummary(
-        "You have enough reserve to train, but attentional sharpness is the clearest opportunity today.",
+        "You have enough energy to train, but your focus is below its usual level.",
         input,
         "steady",
-        "An attentional-control drill in Lab is the intervention most directly connected to that opportunity.",
+        "Try a focus drill in Lab.",
       ),
       intensity: "steady",
       windowLabel: null,
       windowSource: null,
       action: action({
         key: "train_focus",
-        label: "Open an attentional-control drill in Lab",
+        label: "Start a focus drill in Lab",
         shortLabel: "Train sharpness",
         kind: "lab",
         route: "/neuro-lab?tab=games&system=fast",
@@ -732,22 +732,22 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
       coachBasis: buildCoachBasis(input, "steady"),
       verdict: {
         kind: "build",
-        label: "Build day · Reasoning",
-        subline: "Reserve is sufficient — deliberate reasoning is today's opportunity.",
+        label: "Work on your reasoning",
+        subline: "You have enough energy, but your Reasoning is low today.",
       },
-      headline: "Reasoning is today’s opportunity",
+      headline: "Reasoning needs work today",
       summary: coachSummary(
-        "You have enough reserve to train, and deliberate reasoning is the clearest opportunity today.",
+        "You have enough energy to train, but your Reasoning score is below its usual level.",
         input,
         "steady",
-        "A deliberate-reasoning drill in Lab is the intervention most directly connected to that opportunity.",
+        "Try a reasoning drill in Lab.",
       ),
       intensity: "steady",
       windowLabel: null,
       windowSource: null,
       action: action({
         key: "train_reasoning",
-        label: "Open a deliberate-reasoning drill in Lab",
+        label: "Start a reasoning drill in Lab",
         shortLabel: "Train reasoning",
         kind: "lab",
         route: "/neuro-lab?tab=games&system=slow",
@@ -764,23 +764,23 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
       coachBasis: buildCoachBasis(input, "protective"),
       verdict: {
         kind: "protect",
-        label: "Protect your capacity",
-        subline: "Limited sustained capacity — bound the important work.",
+        label: "Keep tasks short",
+        subline: "Your Readiness is low. Avoid long, demanding sessions.",
       },
-      headline: "Sustained capacity is limited",
+      headline: "Keep work sessions short",
       summary: coachSummary(
-        "Today is better suited to protecting consistency than pushing sustained cognitive capacity.",
+        "You may find it harder to stay effective during long tasks today.",
         input,
         "protective",
-        "Skip additional training today and keep the most important work deliberately bounded.",
+        "Skip extra training and break important work into shorter sessions.",
       ),
       intensity: "protective",
       windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
       windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
       action: action({
         key: "protect_capacity",
-        label: "Protect capacity; skip additional training today",
-        shortLabel: "Protect capacity",
+        label: "Skip training and shorten work sessions",
+        shortLabel: "Shorter sessions",
         kind: "guidance",
         route: null,
         metricCode: "RDY",
@@ -796,21 +796,21 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     verdict: {
       kind: "steady",
       label: "Steady day",
-      subline: "Stable state — favor deep execution on your plan.",
+        subline: "Your scores are stable. Follow your normal plan.",
     },
-    headline: "Your state is steady",
+      headline: "Follow your normal plan",
     summary: coachSummary(
-      "Your state is steady, with no single signal strong enough to justify changing the whole day.",
+        "Nothing in today’s data suggests you need to change your plans.",
       input,
       "steady",
-      "Follow your normal plan and let today add another observation to your personal pattern.",
+        "Work at your usual pace today.",
     ),
     intensity: "steady",
     windowLabel: input.canPersonalize ? input.rhythm?.openWindow ?? null : null,
     windowSource: input.canPersonalize && input.rhythm?.openWindow ? "calendar" : null,
     action: action({
       key: "normal_plan",
-      label: "Follow your normal plan; no added protocol is needed",
+      label: "Follow your normal plan",
       shortLabel: "Normal plan",
       kind: "guidance",
       route: null,

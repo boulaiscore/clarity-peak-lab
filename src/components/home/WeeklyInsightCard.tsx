@@ -25,14 +25,14 @@ export function WeeklyInsightCard({ visible = true }: WeeklyInsightCardProps) {
   const headline = isReady
     ? result.insight.headline
     : result.status === "insufficient"
-    ? `Learning your patterns · ${result.daysObserved} of ${result.daysRequired} days`
-    : "No clear pattern this week";
+    ? `Still learning · ${result.daysObserved} of ${result.daysRequired} days`
+    : "Nothing unusual this week";
 
   const detail = isReady
     ? result.insight.detail
     : result.status === "insufficient"
-    ? "Personal patterns appear only after enough comparable days are available."
-    : "Your signals moved within normal range — nothing worth changing based on this week alone.";
+    ? "We need a few more days before we can show a reliable pattern."
+    : "Your scores stayed within their usual range. No change is needed.";
 
   return (
     <motion.section
@@ -45,11 +45,11 @@ export function WeeklyInsightCard({ visible = true }: WeeklyInsightCardProps) {
           style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }}
         />
         <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/65">
-          We noticed
+          Your pattern
         </span>
         {isReady && (
           <span className="ml-auto text-[8px] uppercase tracking-[0.1em] text-muted-foreground/45 tabular-nums">
-            {result.insight.confidence === "solid" ? "Solid" : "Emerging"} · {result.insight.sampleSize}d
+            {result.insight.confidence === "solid" ? "Clear" : "Early"} · {result.insight.sampleSize} days
           </span>
         )}
       </div>

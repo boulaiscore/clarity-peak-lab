@@ -43,8 +43,8 @@ const recoveryFirst = deriveDailyOutlook({ ...base, recovery: 30 });
 assert.equal(recoveryFirst.action.key, "recover");
 assert.equal(recoveryFirst.intensity, "protective");
 assert.equal(recoveryFirst.action.metricCode, "REC");
-assert.match(recoveryFirst.summary, /focus goal in your knowledge work/i);
-assert.match(recoveryFirst.summary, /moving upward/i);
+assert.match(recoveryFirst.summary, /focus sessions short in your knowledge work/i);
+assert.match(recoveryFirst.summary, /improving lately/i);
 
 const canonicalLowRecovery = deriveDailyOutlook({ ...base, recovery: 39 });
 assert.equal(canonicalLowRecovery.action.key, "recover");
@@ -67,7 +67,7 @@ assert.ok(attentionProtection.evidence.some((item) => item.code === "ATT" && ite
 const fragmentationProtection = deriveDailyOutlook({ ...base, digitalFragmentationRatio: 1.6 });
 assert.equal(fragmentationProtection.action.key, "protect_attention");
 assert.equal(fragmentationProtection.action.metricCode, "DFR");
-assert.match(fragmentationProtection.summary, /short sessions and app returns/i);
+assert.match(fragmentationProtection.summary, /switching between apps more than usual/i);
 
 const strongDecisionDay = deriveDailyOutlook({
   ...base,
@@ -85,7 +85,7 @@ assert.equal(strongDecisionDay.windowLabel, "09:30–10:45");
 const scheduleProtection = deriveDailyOutlook({ ...base, readiness: 60, scheduleLoadRatio: 1.5 });
 assert.equal(scheduleProtection.action.key, "protect_capacity");
 assert.equal(scheduleProtection.action.kind, "guidance");
-assert.match(scheduleProtection.summary, /schedule is consuming more capacity than usual/i);
+assert.match(scheduleProtection.summary, /schedule is busier than usual/i);
 
 const focusTraining = deriveDailyOutlook({ ...base, recovery: 65, sharpness: 42 });
 assert.equal(focusTraining.action.key, "train_focus");
@@ -119,7 +119,7 @@ const missingSignals = deriveDailyOutlook({
 });
 assert.equal(missingSignals.confidenceLabel, "Baseline");
 assert.ok(missingSignals.evidence.every((item) => !["HLT", "SLP", "HRV", "RHR", "ACT", "ATT", "DFR", "CAL"].includes(item.code)));
-assert.match(missingSignals.summary, /still establishing/i);
+assert.match(missingSignals.summary, /still learning what affects your performance/i);
 assert.doesNotMatch(missingSignals.summary, /Readiness is|Recovery is|Reasoning is|Sharpness is/i);
 
 const estimatedRecovery = deriveDailyOutlook({

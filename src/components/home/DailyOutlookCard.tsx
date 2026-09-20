@@ -100,10 +100,10 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                 style={{ backgroundColor: verdictColor, boxShadow: `0 0 8px ${verdictColor}` }}
               />
               <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/65">
-                Today's verdict
+                Today
               </span>
               <span className="ml-auto text-[8px] font-medium uppercase tracking-[0.1em] text-muted-foreground/45 tabular-nums">
-                {hasLearnedPattern ? "Personal" : "Learning"}
+                  {hasLearnedPattern ? "Based on your data" : "Still learning"}
               </span>
             </span>
 
@@ -136,14 +136,14 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                   LOOMA Coach
                 </p>
                 <p className="mt-0.5 text-[8px] uppercase tracking-[0.16em] text-muted-foreground/50">
-                  {copySource === "ai" ? "Adaptive daily guidance" : "Daily guidance · learning"}
+                  {copySource === "ai" ? "Your daily plan" : "Learning from your data"}
                 </p>
               </div>
             </div>
 
             <SheetHeader className="mt-9 text-left">
               <p className="text-[12px] font-medium text-muted-foreground/75">
-                {greetingForNow(coachName)} — here is what matters today.
+                {greetingForNow(coachName)}. Here’s today’s plan.
               </p>
               <p
                 className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em]"
@@ -167,16 +167,16 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
               <span>
                 {hasPersonalConfidence
                   ? `${outlook.confidenceLabel} personal confidence · ${Math.round(outlook.confidence * 100)}%`
-                  : "Learning your baseline"}
+                  : "Still learning what is normal for you"}
               </span>
-              {outlook.windowLabel && <span>Best observed window · {outlook.windowLabel}</span>}
-              {props.activeSourceCount > 0 && <span>{props.activeSourceCount} connected sources</span>}
+              {outlook.windowLabel && <span>Your best time · {outlook.windowLabel}</span>}
+              {props.activeSourceCount > 0 && <span>{props.activeSourceCount} data sources</span>}
             </div>
 
             {hasLearnedPattern && (
               <section className="mt-8 rounded-[18px] border border-white/[0.06] bg-white/[0.025] px-4 py-4" aria-labelledby="outlook-pattern-title">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/55">
-                  Learned from your pattern
+                  From your recent data
                 </p>
                 <h3 id="outlook-pattern-title" className="mt-2 text-[13px] font-medium leading-relaxed text-foreground/82">
                   {outlook.coachBasis.patternInsight}
@@ -189,7 +189,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                 id="outlook-action-title"
                 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/82"
               >
-                Today’s action plan
+                What to do
               </h3>
 
               <div className="mt-4 flex items-start gap-3">
@@ -201,7 +201,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                     {outlook.action.label}
                   </p>
                   <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/68">
-                    Selected because {outlook.action.metricLabel.toLowerCase()} is the signal most directly connected to this action.
+                    This is based mainly on today’s {outlook.action.metricLabel.toLowerCase()} score.
                   </p>
                 </div>
               </div>
@@ -213,14 +213,14 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                   className="mt-5 h-11 w-full rounded-full border-foreground/20 bg-foreground/[0.04] text-sm text-foreground hover:bg-foreground/[0.08]"
                   onClick={handlePrimaryAction}
                 >
-                  Open recommended protocol
+                  Start now
                 </Button>
               )}
             </section>
 
             <p className="mt-9 border-t border-white/[0.06] pt-5 text-center text-[9px] leading-relaxed text-muted-foreground/42">
-              Built from your goal, current state, connected context and—when available—your own history.
-              {isGeneratingCopy ? " Updating your briefing…" : ""}
+              Based on today’s scores and, when available, your recent data.
+              {isGeneratingCopy ? " Updating…" : ""}
             </p>
           </div>
         </SheetContent>
