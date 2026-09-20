@@ -44,7 +44,7 @@ assert.equal(recoveryFirst.action.key, "recover");
 assert.equal(recoveryFirst.intensity, "protective");
 assert.equal(recoveryFirst.action.metricCode, "REC");
 assert.match(recoveryFirst.summary, /focus sessions short in your knowledge work/i);
-assert.match(recoveryFirst.summary, /moving upward/i);
+assert.match(recoveryFirst.summary, /improving lately/i);
 
 const canonicalLowRecovery = deriveDailyOutlook({ ...base, recovery: 39 });
 assert.equal(canonicalLowRecovery.action.key, "recover");
