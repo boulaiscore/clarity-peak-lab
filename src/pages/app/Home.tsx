@@ -34,6 +34,7 @@ import { SignalCoverageRow } from "@/components/home/SignalCoverageRow";
 import { DailyOutlookCard } from "@/components/home/DailyOutlookCard";
 import { FirstRunHealthAccess } from "@/components/onboarding/FirstRunHealthAccess";
 import { HealthTrackingReminder } from "@/components/home/HealthTrackingReminder";
+import { WeeklyInsightCard } from "@/components/home/WeeklyInsightCard";
 import { isNativePlatform } from "@/lib/capacitor/health";
 
 interface RingProps {
