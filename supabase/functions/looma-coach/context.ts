@@ -173,9 +173,19 @@ export async function buildCoachContext(client: SupabaseLike, userId: string) {
   const coverage = (key: string) =>
     days.length ? round((series(key).filter((value) => value !== null).length / days.length) * 100) : 0;
 
+  const profileRow = (profile.data ?? null) as Record<string, unknown> | null;
+  const objectiveLabel = typeof profileRow?.objective_label === "string" ? profileRow.objective_label.trim() : "";
+  const objectiveDate = typeof profileRow?.objective_date === "string" ? profileRow.objective_date : null;
+  const objectiveDaysUntil = objectiveDate
+    ? Math.round((Date.parse(`${objectiveDate}T00:00:00Z`) - Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`)) / 86_400_000)
+    : null;
+
   return {
     generatedAt: new Date().toISOString(),
-    profile: profile.data ?? null,
+    profile: profileRow,
+    objective: objectiveLabel
+      ? { label: objectiveLabel, date: objectiveDate, daysUntil: objectiveDaysUntil }
+      : null,
     currentMetrics: metrics.data ?? null,
     last30Days: days,
     derived: {
