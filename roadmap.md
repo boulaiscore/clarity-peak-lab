@@ -30,3 +30,9 @@
 
 ## Aperto / in attesa
 - Recovery ferma a 50 in preview web: dati passivi assenti (richiede dispositivo nativo con permessi Salute). Possibile seeding dati di test o target reattivo a drills/quality time — da decidere.
+
+## Audit Home state — typography and formula integrity
+- [ ] Align the “My day” typography and visual hierarchy with the rest of Home
+- [ ] Make Today's Verdict depend only on canonical, sufficiently mature inputs
+- [ ] Harden We Noticed against duplicate dates, missing coverage, confounding, and weak samples
+- [ ] Expand regression tests and verify the mobile preview
