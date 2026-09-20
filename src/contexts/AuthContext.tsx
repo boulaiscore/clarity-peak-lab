@@ -45,6 +45,8 @@ export interface UserProfile {
   reminder_time: string | null;
   primary_device: PrimaryDevice | null;
   primary_outcome: PrimaryOutcome | null;
+  objective_label: string | null;
+  objective_date: string | null;
   // RRI fields
   rri_sleep_hours: RRISleepHours | null;
   rri_detox_hours: RRIDetoxHours | null;
@@ -68,6 +70,10 @@ export interface User {
   gender?: Gender;
   workType?: WorkType;
   primaryOutcome?: PrimaryOutcome;
+  /** Named high-stakes objective, e.g. "McKinsey final round". */
+  objectiveLabel?: string | null;
+  /** ISO date (yyyy-MM-dd) the objective happens on. */
+  objectiveDate?: string | null;
   educationLevel?: EducationLevel;
   degreeDiscipline?: DegreeDiscipline;
   
@@ -149,6 +155,8 @@ function mapProfileToUser(supabaseUser: SupabaseUser, profile: UserProfile | nul
     gender: profile?.gender || undefined,
     workType: profile?.work_type || undefined,
     primaryOutcome: profile?.primary_outcome || storedPrimaryOutcome || undefined,
+    objectiveLabel: profile?.objective_label ?? null,
+    objectiveDate: profile?.objective_date ?? null,
     educationLevel: profile?.education_level || undefined,
     degreeDiscipline: profile?.degree_discipline || undefined,
     trainingGoals: profile?.training_goals || [],
@@ -555,6 +563,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.gender !== undefined) profileUpdates.gender = updates.gender;
     if (updates.workType !== undefined) profileUpdates.work_type = updates.workType;
     if (updates.primaryOutcome !== undefined) profileUpdates.primary_outcome = updates.primaryOutcome;
+    if (updates.objectiveLabel !== undefined) profileUpdates.objective_label = updates.objectiveLabel || null;
+    if (updates.objectiveDate !== undefined) profileUpdates.objective_date = updates.objectiveDate || null;
     if (updates.educationLevel !== undefined) profileUpdates.education_level = updates.educationLevel;
     if (updates.degreeDiscipline !== undefined) profileUpdates.degree_discipline = updates.degreeDiscipline;
     if (updates.trainingGoals !== undefined) profileUpdates.training_goals = updates.trainingGoals;
