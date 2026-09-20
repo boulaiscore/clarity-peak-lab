@@ -12,7 +12,9 @@ import {
   type DailyOutlookBehaviorContext,
   type DailyOutlookHealthSignals,
   type DailyOutlookInput,
+  type DailyOutlookObjective,
 } from "@/lib/dailyOutlook";
+import { findObjectivePreset, objectiveDisplayLabel } from "@/config/objectives";
 import { supabase } from "@/integrations/supabase/client";
 import { trackProductEvent } from "@/lib/productAnalytics";
 
@@ -184,9 +186,9 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     [input.passiveFeatures],
   );
   const objective = useMemo(
-    () => objectiveFromProfile(user?.objectiveLabel, user?.objectiveDate),
+    () => objectiveFromProfile(user?.objectiveKind, user?.objectiveLabel, user?.objectiveDate),
     // `today` keeps the remaining-days count correct across a date change.
-    [user?.objectiveLabel, user?.objectiveDate, today],
+    [user?.objectiveKind, user?.objectiveLabel, user?.objectiveDate, today],
   );
 
   const policyInput = useMemo<DailyOutlookInput>(() => ({
