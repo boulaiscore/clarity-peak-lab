@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, Trash2, X } from "lucide-react";
+import { BookMarked, Lock, Trash2, X } from "lucide-react";
 import {
   Conversation,
   ConversationContent,
@@ -16,6 +16,7 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
 import { useLoomaCoach } from "@/hooks/useLoomaCoach";
+import { useCoachMemory } from "@/hooks/useCoachMemory";
 
 const SUGGESTIONS = [
   "What should I protect today?",
