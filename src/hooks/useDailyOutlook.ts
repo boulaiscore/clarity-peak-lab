@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useMobileCognitiveRhythm } from "@/hooks/useMobileCognitiveRhythm";
@@ -137,6 +137,21 @@ function displayFirstName(
   const cleaned = token.replace(/[^\p{L}\p{M}'-]/gu, "");
   if (!cleaned) return null;
   return cleaned.charAt(0).toLocaleUpperCase() + cleaned.slice(1);
+}
+
+/** User-declared objective with its remaining days; null when unset or already past. */
+function objectiveFromProfile(
+  label: string | null | undefined,
+  date: string | null | undefined,
+): { label: string; daysUntil: number | null } | null {
+  const trimmed = typeof label === "string" ? label.trim().slice(0, 80) : "";
+  if (!trimmed) return null;
+  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { label: trimmed, daysUntil: null };
+  }
+  const daysUntil = differenceInCalendarDays(parseISO(date), new Date());
+  if (daysUntil < 0) return null;
+  return { label: trimmed, daysUntil };
 }
 
 function isStorageUnavailable(error: LooseResult["error"]): boolean {
