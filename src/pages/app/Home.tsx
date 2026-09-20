@@ -386,6 +386,9 @@ const Home = () => {
           visible={isViewingToday && !metricsLoading && signalCoverageLevel === "Basic"}
         />
 
+        <WeeklyInsightCard visible={isViewingToday && !metricsLoading} />
+
+
         {/* Observed activity */}
         {isViewingToday && (
           <TodayActivitiesCard
