@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getAuthedUser, unauthorizedResponse } from "../_shared/auth.ts";
 import { buildCoachContext } from "./context.ts";
+import { loadCoachMemory, updateCoachMemory, type CoachFact } from "./memory.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,7 +57,13 @@ Rules:
 - End with one specific, practical suggestion only when it is useful.
 - You are not a doctor. No diagnosis, no medical or medication advice. For health concerns,
   suggest speaking to a professional.
-- Terminology: say "Drills", never "games".`;
+- Terminology: say "Drills", never "games".
+
+Memory:
+- The context may contain "WHAT YOU REMEMBER ABOUT THIS USER": stable facts learned in
+  earlier conversations. Use them to make the answer personal (their goal, schedule,
+  habits, constraints) without repeating them back as a list.
+- If a remembered fact clearly contradicts what the user says now, trust what they say now.`;
 
 function jsonResponse(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {
