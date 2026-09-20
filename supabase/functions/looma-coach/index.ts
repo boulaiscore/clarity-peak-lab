@@ -1,0 +1,220 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getAuthedUser, unauthorizedResponse } from "../_shared/auth.ts";
+import { buildCoachContext } from "./context.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const MODEL = "openai/gpt-6-astra";
+const PAID_STATUSES = new Set(["active", "trialing", "past_due"]);
+const PAID_PLANS = new Set(["pro", "founding_pro", "elite", "core", "premium"]);
+
+const SYSTEM_PROMPT = `You are the LOOMA Coach, a cognitive performance coach inside the LOOMA app.
+
+Who you talk to: high-performing professionals, founders and executives. They want to
+understand their own data and work better, not to be motivated with slogans.
+
+Your data: the JSON context contains this user's real LOOMA data for the last 30 days —
+daily Sharpness, Readiness, Recovery and Reasoning Quality scores, sleep, HRV, resting
+heart rate, steps, active minutes, phone pickups, screen minutes, and their Drill,
+Quality Time and Recovery sessions.
+
+Rules:
+- Use only the numbers in the context. Never invent a value, a date or a trend.
+- If the data needed to answer is missing, say plainly what is missing and what to turn on.
+- Quote concrete numbers and dates when they support the answer.
+- Describe associations, not proven causes ("your Sharpness was higher on days after
+  7+ hours of sleep", never "sleep caused").
+- Plain, direct English. Short sentences. No jargon, no metaphors, no corporate language,
+  no hype words like "unlock", "optimize", "leverage".
+- Be concise: usually 2-5 sentences, or a short bullet list when comparing days.
+- End with one specific, practical suggestion only when it is useful.
+- You are not a doctor. No diagnosis, no medical or medication advice. For health concerns,
+  suggest speaking to a professional.
+- Terminology: say "Drills", never "games".`;
+
+function jsonResponse(body: unknown, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+interface IncomingMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const user = await getAuthedUser(req);
+  if (!user) return unauthorizedResponse(corsHeaders);
+
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) return jsonResponse({ error: "AI is not configured." }, 500);
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { persistSession: false } },
+  );
+
+  // Premium gate: LOOMA Coach is a Pro/Elite feature.
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("status, plan_id, product_id, current_period_end")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("subscription_status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const planId = String(subscription?.plan_id ?? "").toLowerCase();
+  const status = String(subscription?.status ?? "").toLowerCase();
+  const profileTier = String(profile?.subscription_status ?? "").toLowerCase();
+  const hasAccess = (PAID_STATUSES.has(status) && (PAID_PLANS.has(planId) || planId === "")) ||
+    PAID_PLANS.has(profileTier);
+
+  if (!hasAccess) {
+    return jsonResponse({ error: "upgrade_required" }, 403);
+  }
+
+  let body: { message?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return jsonResponse({ error: "Invalid request." }, 400);
+  }
+
+  const message = typeof body.message === "string" ? body.message.trim() : "";
+  if (!message || message.length > 2000) {
+    return jsonResponse({ error: "Message is empty or too long." }, 400);
+  }
+
+  const { data: historyRows } = await supabase
+    .from("coach_messages")
+    .select("role, content")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const history = ((historyRows ?? []) as IncomingMessage[]).reverse();
+
+  const context = await buildCoachContext(supabase as never, user.id);
+
+  await supabase.from("coach_messages").insert({
+    user_id: user.id,
+    role: "user",
+    content: message,
+  });
+
+  const input = [
+    {
+      role: "developer",
+      content: [{
+        type: "input_text",
+        text: `${SYSTEM_PROMPT}\n\nUSER DATA (JSON):\n${JSON.stringify(context)}`,
+      }],
+    },
+    ...history.map((item) => ({
+      role: item.role,
+      content: [{
+        type: item.role === "assistant" ? "output_text" : "input_text",
+        text: item.content,
+      }],
+    })),
+    { role: "user", content: [{ type: "input_text", text: message }] },
+  ];
+
+  const upstream = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": apiKey,
+      "X-Lovable-AIG-SDK": "fetch",
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      input,
+      stream: true,
+      store: false,
+      reasoning: { effort: "low" },
+    }),
+  });
+
+  if (!upstream.ok || !upstream.body) {
+    const detail = await upstream.text().catch(() => "");
+    console.error("looma-coach gateway error", upstream.status, detail.slice(0, 500));
+    if (upstream.status === 429) {
+      return jsonResponse({ error: "Too many requests. Try again in a moment." }, 429);
+    }
+    if (upstream.status === 402) {
+      return jsonResponse({ error: "AI credits are exhausted." }, 402);
+    }
+    return jsonResponse({ error: "The coach is unavailable right now." }, 502);
+  }
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  let answer = "";
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const reader = upstream.body!.getReader();
+      let buffer = "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const event = JSON.parse(payload);
+              if (event.type === "response.output_text.delta" && typeof event.delta === "string") {
+                answer += event.delta;
+                controller.enqueue(encoder.encode(event.delta));
+              }
+            } catch {
+              // ignore malformed keep-alive chunks
+            }
+          }
+        }
+      } catch (error) {
+        console.error("looma-coach stream error", error);
+      } finally {
+        controller.close();
+        const finalText = answer.trim();
+        if (finalText) {
+          const { error } = await supabase.from("coach_messages").insert({
+            user_id: user.id,
+            role: "assistant",
+            content: finalText,
+          });
+          if (error) console.error("looma-coach persist error", error.message);
+        }
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-cache",
+    },
+  });
+});

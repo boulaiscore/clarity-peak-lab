@@ -393,6 +393,33 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_messages: {
+        Row: {
+          client_message_id: string | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          client_message_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          client_message_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cognitive_exercises: {
         Row: {
           category: Database["public"]["Enums"]["exercise_category"]
