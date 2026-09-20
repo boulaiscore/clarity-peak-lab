@@ -8,6 +8,7 @@ import { MetricTrendCharts } from "@/components/dashboard/MetricTrendCharts";
 import { DetoxStats } from "@/components/dashboard/DetoxStats";
 import { BaselineStatusCard } from "@/components/dashboard/BaselineStatusCard";
 import { CognitiveRhythmPanel } from "@/components/dashboard/CognitiveRhythmPanel";
+import { PerformanceTrendCard } from "@/components/dashboard/PerformanceTrendCard";
 import {
   MonitorSectionHeader,
   MonitorSegmentedControl,
@@ -109,6 +110,8 @@ const Dashboard = () => {
           />
 
           <CognitiveRhythmPanel />
+
+          <PerformanceTrendCard />
 
           <section className="space-y-3">
             <MonitorSectionHeader
