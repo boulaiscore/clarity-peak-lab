@@ -43,7 +43,7 @@ const recoveryFirst = deriveDailyOutlook({ ...base, recovery: 30 });
 assert.equal(recoveryFirst.action.key, "recover");
 assert.equal(recoveryFirst.intensity, "protective");
 assert.equal(recoveryFirst.action.metricCode, "REC");
-assert.match(recoveryFirst.summary, /focus goal in your knowledge work/i);
+assert.match(recoveryFirst.summary, /focus sessions short in your knowledge work/i);
 assert.match(recoveryFirst.summary, /moving upward/i);
 
 const canonicalLowRecovery = deriveDailyOutlook({ ...base, recovery: 39 });
@@ -85,7 +85,7 @@ assert.equal(strongDecisionDay.windowLabel, "09:30–10:45");
 const scheduleProtection = deriveDailyOutlook({ ...base, readiness: 60, scheduleLoadRatio: 1.5 });
 assert.equal(scheduleProtection.action.key, "protect_capacity");
 assert.equal(scheduleProtection.action.kind, "guidance");
-assert.match(scheduleProtection.summary, /schedule is consuming more capacity than usual/i);
+assert.match(scheduleProtection.summary, /schedule is busier than usual/i);
 
 const focusTraining = deriveDailyOutlook({ ...base, recovery: 65, sharpness: 42 });
 assert.equal(focusTraining.action.key, "train_focus");

@@ -195,11 +195,11 @@ export function deriveWeeklyInsight(
     candidates.push({
       id: "sleep-sharpness",
       headline: better
-        ? `Sharpness tends to rise ${Math.abs(sleepEffect.delta)} pts after your longer nights`
-        : `Longer nights have not predicted higher Sharpness for you`,
+        ? `You focus better after longer sleep`
+        : `More sleep has not improved your focus`,
       detail: better
-        ? `Across ${sleepEffect.sampleSize} paired days, this association remained after accounting for your prior-day score. It is a pattern, not proof of cause.`
-        : `Across ${sleepEffect.sampleSize} paired days, duration alone was not associated with improvement. Timing and load may matter more.`,
+        ? `On ${sleepEffect.sampleSize} tracked days, your Sharpness rose by about ${Math.abs(sleepEffect.delta)} points after longer nights.`
+        : `On ${sleepEffect.sampleSize} tracked days, longer sleep was followed by ${Math.abs(sleepEffect.delta)} points lower Sharpness. Keep watching this pattern.`,
       metric: "sharpness",
       deltaPoints: sleepEffect.delta,
       sampleSize: sleepEffect.sampleSize,
@@ -218,11 +218,11 @@ export function deriveWeeklyInsight(
     candidates.push({
       id: "movement-recovery",
       headline: better
-        ? `Recovery tends to rise ${Math.abs(movementEffect.delta)} pts after more active days`
-        : `Recovery tends to fall ${Math.abs(movementEffect.delta)} pts after more active days`,
+        ? `Active days are followed by better Recovery`
+        : `Harder activity may lower next-day Recovery`,
       detail: better
-        ? `Across ${movementEffect.sampleSize} paired days, active minutes were associated with a higher next-day change. This is observational, not causal.`
-        : `Across ${movementEffect.sampleSize} paired days, more active minutes were associated with a lower next-day change. Treat this as a pattern to watch.`,
+        ? `On ${movementEffect.sampleSize} tracked days, Recovery rose by about ${Math.abs(movementEffect.delta)} points after more activity.`
+        : `On ${movementEffect.sampleSize} tracked days, Recovery fell by about ${Math.abs(movementEffect.delta)} points after more activity.`,
       metric: "recovery",
       deltaPoints: movementEffect.delta,
       sampleSize: movementEffect.sampleSize,
@@ -241,11 +241,11 @@ export function deriveWeeklyInsight(
     candidates.push({
       id: "rhythm-readiness",
       headline: better
-        ? `Readiness tends to rise ${Math.abs(rhythmEffect.delta)} pts after steadier bedtimes`
-        : `Bedtime consistency has not predicted higher Readiness for you`,
+        ? `A regular bedtime helps your Readiness`
+        : `A regular bedtime has not improved your Readiness`,
       detail: better
-        ? `Across ${rhythmEffect.sampleSize} paired days, steadier timing was associated with a stronger next-day change after accounting for the prior score.`
-        : `Across ${rhythmEffect.sampleSize} paired days, bedtime timing alone was not associated with a stronger next-day change.`,
+        ? `On ${rhythmEffect.sampleSize} tracked days, Readiness rose by about ${Math.abs(rhythmEffect.delta)} points after a more regular bedtime.`
+        : `On ${rhythmEffect.sampleSize} tracked days, a regular bedtime was followed by ${Math.abs(rhythmEffect.delta)} points lower Readiness.`,
       metric: "readiness",
       deltaPoints: rhythmEffect.delta,
       sampleSize: rhythmEffect.sampleSize,
@@ -270,8 +270,8 @@ export function deriveWeeklyInsight(
         id: `trend-${best.metric}`,
         headline: `${METRIC_LABEL[best.metric]} is ${rising ? "up" : "down"} ${Math.abs(best.effect.delta)} pts this week`,
         detail: rising
-          ? `Your measured 7-day average is ${Math.abs(best.effect.delta)} points above the prior week. The driver is not yet established.`
-          : `Your measured 7-day average is ${Math.abs(best.effect.delta)} points below the prior week. The driver is not yet established.`,
+          ? `Your 7-day average is higher than last week. There is not enough data yet to say why.`
+          : `Your 7-day average is lower than last week. There is not enough data yet to say why.`,
         metric: best.metric,
         deltaPoints: best.effect.delta,
         sampleSize: best.effect.sampleSize,
