@@ -31,6 +31,13 @@
 ## Aperto / in attesa
 - Recovery ferma a 50 in preview web: dati passivi assenti (richiede dispositivo nativo con permessi Salute). Possibile seeding dati di test o target reattivo a drills/quality time — da decidere.
 
+## Investor deck v3
+- [ ] Replace every product visual with current, authenticated mobile screenshots
+- [ ] Include LOOMA Coach as a core product surface
+- [ ] Reframe the problem around modern cognitive load, interruptions, social feeds, and careful evidence on AI offloading
+- [ ] Rebuild the competitor set around mental fitness, brain training, cognitive readiness, and professional performance
+- [ ] Re-audit all slides for overlap, alignment, readability, and download compatibility
+
 ## Audit Home state — typography and formula integrity
 - [x] Align the “My day” typography and visual hierarchy with the rest of Home
 - [x] Make Today's Verdict depend only on canonical, sufficiently mature inputs
