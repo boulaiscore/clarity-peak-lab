@@ -176,6 +176,11 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     () => behaviorContextFromPayload(input.passiveFeatures),
     [input.passiveFeatures],
   );
+  const objective = useMemo(
+    () => objectiveFromProfile(user?.objectiveLabel, user?.objectiveDate),
+    // `today` keeps the remaining-days count correct across a date change.
+    [user?.objectiveLabel, user?.objectiveDate, today],
+  );
 
   const policyInput = useMemo<DailyOutlookInput>(() => ({
     sharpness: input.sharpness,
