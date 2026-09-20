@@ -42,7 +42,7 @@
 - [x] Use the official LOOMA open-loop logo rather than a recreated approximation
 - [x] Explain the Kahneman-style System 1 / System 2 framework without presenting it as literal neuroscience
 - [x] Show how LOOMA's proprietary, versioned algorithms turn cognitive checks and passive context into explainable metrics
-- [ ] Validate, render and visually inspect every slide before delivery
+- [x] Validate, render and visually inspect every slide before delivery
 
 ## Audit Home state — typography and formula integrity
 - [x] Align the “My day” typography and visual hierarchy with the rest of Home
