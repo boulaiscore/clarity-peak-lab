@@ -105,7 +105,7 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: verdictColor, boxShadow: `0 0 8px ${verdictColor}` }}
               />
-              <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+              <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60">
                 Today's verdict
               </span>
               <span className="ml-auto text-[8px] font-medium uppercase tracking-[0.12em] text-muted-foreground/40">
@@ -114,13 +114,13 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
             </span>
 
             <span className="mt-2.5 flex items-baseline justify-between gap-3">
-              <span className="text-[19px] font-semibold tracking-tight text-foreground">
+              <span className="text-[17px] font-semibold tracking-tight text-foreground">
                 {outlook.verdict.label}
               </span>
               <ChevronRight className="h-4 w-4 shrink-0 self-center text-foreground/45" strokeWidth={2} />
             </span>
 
-            <span className="mt-1 block text-[12px] leading-relaxed text-muted-foreground/75">
+            <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground/75">
               {outlook.verdict.subline}
             </span>
           </>

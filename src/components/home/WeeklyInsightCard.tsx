@@ -44,7 +44,7 @@ export function WeeklyInsightCard({ visible = true }: WeeklyInsightCardProps) {
           className="h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }}
         />
-        <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
+        <span className="text-[8px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
           We noticed
         </span>
         {isReady && (
@@ -54,8 +54,8 @@ export function WeeklyInsightCard({ visible = true }: WeeklyInsightCardProps) {
         )}
       </div>
 
-      <p className="mt-2 text-[15px] font-medium leading-snug text-foreground">{headline}</p>
-      <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground/75">{detail}</p>
+      <p className="mt-2 text-[14px] font-medium leading-snug text-foreground">{headline}</p>
+      <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground/75">{detail}</p>
     </motion.section>
   );
 }
