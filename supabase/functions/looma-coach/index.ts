@@ -247,6 +247,20 @@ serve(async (req) => {
             content: finalText,
           });
           if (error) console.error("looma-coach persist error", error.message);
+
+          // Learn stable facts about the user after the answer is delivered.
+          const learn = updateCoachMemory(
+            supabase as never,
+            apiKey,
+            user.id,
+            memory,
+            message,
+            finalText,
+          );
+          const runtime = (globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): void } })
+            .EdgeRuntime;
+          if (runtime?.waitUntil) runtime.waitUntil(learn);
+          else await learn;
         }
       }
     },
