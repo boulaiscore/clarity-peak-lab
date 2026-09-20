@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { format, subDays } from "date-fns";
+import { format, startOfDay, subDays } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -16,7 +16,7 @@ export function usePerformanceTrend(windowDays: PerformanceWindow) {
       if (!user?.id) return buildPerformanceTrend([], [], windowDays);
 
       const startDate = format(subDays(new Date(), windowDays - 1), "yyyy-MM-dd");
-      const startTimestamp = `${startDate}T00:00:00.000Z`;
+      const startTimestamp = startOfDay(subDays(new Date(), windowDays - 1)).toISOString();
       const [sessionsResult, healthResult] = await Promise.all([
         supabase
           .from("game_sessions")
