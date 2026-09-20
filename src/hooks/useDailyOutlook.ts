@@ -280,6 +280,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     rhythm.status,
     user?.primaryOutcome,
     user?.workType,
+    objective,
   ]);
 
   const generatedCopyQuery = useQuery({
