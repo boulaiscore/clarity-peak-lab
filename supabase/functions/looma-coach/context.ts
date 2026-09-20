@@ -112,11 +112,90 @@ export async function buildCoachContext(client: SupabaseLike, userId: string) {
   const sumMinutes = (rows: Record<string, unknown>[], key: string, divisor: number) =>
     round(rows.reduce((total, row) => total + (Number(row[key]) || 0), 0) / divisor);
 
+  // ---- Derived analysis: pre-computed so the coach interprets instead of listing ----
+  const num = (value: unknown): number | null => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+  const avg = (values: (number | null)[]): number | null => {
+    const clean = values.filter((value): value is number => value !== null);
+    if (clean.length === 0) return null;
+    return round(clean.reduce((total, value) => total + value, 0) / clean.length, 1);
+  };
+  const series = (key: string) => days.map((day) => num(day[key]));
+  const lastN = (key: string, count: number) => series(key).slice(-count);
+
+  const metricKeys = ["sharpness", "readiness", "recovery", "reasoningQuality", "sleepMin", "hrvMs", "restingHr", "screenMin", "phonePickups", "steps"];
+  const summary: Record<string, unknown> = {};
+  for (const key of metricKeys) {
+    const all = series(key);
+    const recent = avg(lastN(key, 7));
+    const baseline = avg(all.slice(0, Math.max(all.length - 7, 0)));
+    const clean = all.filter((value): value is number => value !== null);
+    summary[key] = {
+      avg30d: avg(all),
+      avg7d: recent,
+      baselineBefore7d: baseline,
+      change7dVsBaseline: recent !== null && baseline !== null ? round(recent - baseline, 1) : null,
+      min: clean.length ? round(Math.min(...clean), 1) : null,
+      max: clean.length ? round(Math.max(...clean), 1) : null,
+      daysWithData: clean.length,
+    };
+  }
+
+  // Split-mean association: outcome on days following high vs low values of a driver.
+  const association = (driverKey: string, outcomeKey: string) => {
+    const pairs: { driver: number; outcome: number }[] = [];
+    for (let index = 0; index < days.length; index += 1) {
+      const driver = num(days[index][driverKey]);
+      const outcome = num(days[index][outcomeKey]);
+      if (driver === null || outcome === null) continue;
+      pairs.push({ driver, outcome });
+    }
+    if (pairs.length < 8) return { samples: pairs.length, enoughData: false };
+    const sorted = [...pairs].sort((a, b) => a.driver - b.driver);
+    const half = Math.floor(sorted.length / 2);
+    const low = sorted.slice(0, half);
+    const high = sorted.slice(sorted.length - half);
+    const lowAvg = avg(low.map((pair) => pair.outcome));
+    const highAvg = avg(high.map((pair) => pair.outcome));
+    return {
+      samples: pairs.length,
+      enoughData: true,
+      lowDriverAvgOutcome: lowAvg,
+      highDriverAvgOutcome: highAvg,
+      difference: lowAvg !== null && highAvg !== null ? round(highAvg - lowAvg, 1) : null,
+      lowDriverAvg: avg(low.map((pair) => pair.driver)),
+      highDriverAvg: avg(high.map((pair) => pair.driver)),
+    };
+  };
+
+  const coverage = (key: string) =>
+    days.length ? round((series(key).filter((value) => value !== null).length / days.length) * 100) : 0;
+
   return {
     generatedAt: new Date().toISOString(),
     profile: profile.data ?? null,
     currentMetrics: metrics.data ?? null,
     last30Days: days,
+    derived: {
+      daysTracked: days.length,
+      coveragePct: {
+        sleep: coverage("sleepMin"),
+        hrv: coverage("hrvMs"),
+        screen: coverage("screenMin"),
+        scores: coverage("sharpness"),
+      },
+      summary,
+      associations: {
+        sleepVsSharpness: association("sleepMin", "sharpness"),
+        sleepVsRecovery: association("sleepMin", "recovery"),
+        hrvVsReadiness: association("hrvMs", "readiness"),
+        screenVsSharpness: association("screenMin", "sharpness"),
+        pickupsVsSharpness: association("phonePickups", "sharpness"),
+        stepsVsRecovery: association("steps", "recovery"),
+      },
+    },
     activity30d: {
       drillSessions: gameRows.length,
       drillsBySystem: {
