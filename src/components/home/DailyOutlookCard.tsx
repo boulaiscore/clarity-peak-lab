@@ -184,6 +184,26 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
               </section>
             )}
 
+            <section className="mt-8 border-t border-white/[0.07] pt-7">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/82">
+                Ask the coach
+              </h3>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/68">
+                Ask anything about your last 30 days — sleep, recovery, focus, training load.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4 h-11 w-full rounded-full border-foreground/20 bg-foreground/[0.04] text-sm text-foreground hover:bg-foreground/[0.08]"
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/app/coach");
+                }}
+              >
+                Ask LOOMA
+              </Button>
+            </section>
+
             <section className="mt-8 border-t border-white/[0.07] pt-7" aria-labelledby="outlook-action-title">
               <h3
                 id="outlook-action-title"
@@ -216,26 +236,6 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
                   Start now
                 </Button>
               )}
-            </section>
-
-            <section className="mt-8 border-t border-white/[0.07] pt-7">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/82">
-                Ask the coach
-              </h3>
-              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/68">
-                Ask anything about your last 30 days — sleep, recovery, focus, training load.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                className="mt-4 h-11 w-full rounded-full border-foreground/20 bg-foreground/[0.04] text-sm text-foreground hover:bg-foreground/[0.08]"
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/app/coach");
-                }}
-              >
-                Ask LOOMA
-              </Button>
             </section>
 
             <p className="mt-9 border-t border-white/[0.06] pt-5 text-center text-[9px] leading-relaxed text-muted-foreground/42">
