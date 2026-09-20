@@ -567,6 +567,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (updates.gender !== undefined) profileUpdates.gender = updates.gender;
     if (updates.workType !== undefined) profileUpdates.work_type = updates.workType;
     if (updates.primaryOutcome !== undefined) profileUpdates.primary_outcome = updates.primaryOutcome;
+    if (updates.objectiveKind !== undefined) profileUpdates.objective_kind = updates.objectiveKind || null;
     if (updates.objectiveLabel !== undefined) profileUpdates.objective_label = updates.objectiveLabel || null;
     if (updates.objectiveDate !== undefined) profileUpdates.objective_date = updates.objectiveDate || null;
     if (updates.educationLevel !== undefined) profileUpdates.education_level = updates.educationLevel;
