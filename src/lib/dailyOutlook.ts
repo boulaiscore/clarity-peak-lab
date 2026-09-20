@@ -335,36 +335,29 @@ function objectiveGuidance(
     return withFocus(`${label} is today. Do the essential preparation only and go in fresh.`);
   }
 
-  if (false) {
-    if (intensity === "protective") {
-      return `${label} is today, and you are not at your best: keep the warm-up light and save your energy for the moment itself.`;
-    }
-    return `${label} is today. Do the essential preparation only and go in fresh.`;
-  }
-
   if (days === 1) {
-    return intensity === "protective"
+    return withFocus(intensity === "protective"
       ? `${label} is tomorrow. Stop heavy preparation early today and protect your sleep.`
-      : `${label} is tomorrow. Do one focused review today, then stop early.`;
+      : `${label} is tomorrow. Do one focused review today, then stop early.`);
   }
 
   if (days <= 7) {
     if (intensity === "protective") {
-      return `${label} is in ${days} days. Keep today light so the days before it are usable.`;
+      return withFocus(`${label} is in ${days} days. Keep today light so the days before it are usable.`);
     }
     if (intensity === "strong") {
-      return `${label} is in ${days} days. Use today for the hardest part of your preparation.`;
+      return withFocus(`${label} is in ${days} days. Use today for the hardest part of your preparation.`);
     }
-    return `${label} is in ${days} days. Keep preparation to one solid block today.`;
+    return withFocus(`${label} is in ${days} days. Keep preparation to one solid block today.`);
   }
 
   if (days <= 30) {
-    return intensity === "strong"
+    return withFocus(intensity === "strong"
       ? `${label} is in ${days} days. This is a good day to push preparation forward.`
-      : `${label} is in ${days} days, so there is no need to force it today.`;
+      : `${label} is in ${days} days, so there is no need to force it today.`);
   }
 
-  return `${label} is in ${days} days. Build the habit now rather than sprinting.`;
+  return withFocus(`${label} is in ${days} days. Build the habit now rather than sprinting.`);
 }
 
 function buildCoachBasis(
