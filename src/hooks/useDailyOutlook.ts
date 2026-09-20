@@ -216,6 +216,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     rhythm,
     user?.primaryOutcome,
     user?.workType,
+    objective,
   ]);
 
   const deterministicOutlook = useMemo(
@@ -242,6 +243,7 @@ export function useDailyOutlook(input: DailyOutlookHookInput) {
     personal: {
       workType: user?.workType ?? null,
       primaryOutcome: user?.primaryOutcome ?? "focus",
+      objective,
     },
     behavior: behaviorContext,
     previousDay: yesterdayMetrics ?? null,
