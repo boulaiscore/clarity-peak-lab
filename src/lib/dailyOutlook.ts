@@ -1,5 +1,6 @@
 import { clamp } from "@/lib/cognitiveEngine";
 import { LOW_RECOVERY_THRESHOLD } from "@/lib/decayConstants";
+import { OBJECTIVE_FOCUS_LABEL, type ObjectiveFocus } from "@/config/objectives";
 
 export const DAILY_OUTLOOK_POLICY_VERSION = "daily-outlook-v5-objective";
 
