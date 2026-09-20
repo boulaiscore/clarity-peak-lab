@@ -10,7 +10,7 @@ const corsHeaders = {
 
 const MODEL = "openai/gpt-6-astra";
 const PAID_STATUSES = new Set(["active", "trialing", "past_due"]);
-const PAID_PLANS = new Set(["pro", "founding_pro", "elite", "core"]);
+const PAID_PLANS = new Set(["pro", "founding_pro", "elite", "core", "premium"]);
 
 const SYSTEM_PROMPT = `You are the LOOMA Coach, a cognitive performance coach inside the LOOMA app.
 
