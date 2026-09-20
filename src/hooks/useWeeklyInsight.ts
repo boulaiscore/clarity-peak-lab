@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { CANONICAL_METRIC_FORMULA_VERSION } from "@/lib/dataLineage";
 import {
   deriveWeeklyInsight,
   type InsightDay,
@@ -30,8 +31,9 @@ export function useWeeklyInsight(): { result: WeeklyInsightResult | null; isLoad
       const [snapshots, health] = await Promise.all([
         supabase
           .from("daily_metric_snapshots")
-          .select("snapshot_date, sharpness, readiness, reasoning_quality, recovery, did_training")
+          .select("snapshot_date, sharpness, readiness, reasoning_quality, recovery, did_training, formula_version")
           .eq("user_id", user!.id)
+          .eq("formula_version", CANONICAL_METRIC_FORMULA_VERSION)
           .gte("snapshot_date", since)
           .order("snapshot_date", { ascending: true }),
         supabase

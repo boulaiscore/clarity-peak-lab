@@ -31,7 +31,7 @@ export function WeeklyInsightCard({ visible = true }: WeeklyInsightCardProps) {
   const detail = isReady
     ? result.insight.detail
     : result.status === "insufficient"
-    ? "Personal correlations appear once there is enough of your own history to be honest about them."
+    ? "Personal patterns appear only after enough comparable days are available."
     : "Your signals moved within normal range — nothing worth changing based on this week alone.";
 
   return (
