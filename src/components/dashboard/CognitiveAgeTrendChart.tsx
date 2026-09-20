@@ -424,7 +424,15 @@ export function CognitiveAgeTrendChart() {
               strokeLinecap="round"
               strokeLinejoin="round"
               connectNulls
-              dot={(props) => <CustomDot {...props} dataKey="cognitiveAge" />}
+              dot={(props) => (
+                <CustomDot
+                  key={`cognitive-age-dot-${props.index}`}
+                  cx={props.cx}
+                  cy={props.cy}
+                  payload={props.payload}
+                  dataKey="cognitiveAge"
+                />
+              )}
               isAnimationActive={false}
             >
               <LabelList

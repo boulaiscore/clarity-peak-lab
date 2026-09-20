@@ -496,6 +496,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                 connectNulls
                 dot={(props) => (
                   <CustomDot
+                    key={`metric-dot-${props.index}`}
                     cx={props.cx}
                     cy={props.cy}
                     payload={props.payload}
