@@ -151,6 +151,16 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
               <p className="text-[12px] font-medium text-muted-foreground/75">
                 {greetingForNow(coachName)} — here is what matters today.
               </p>
+              <p
+                className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                style={{ color: verdictColor }}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: verdictColor, boxShadow: `0 0 8px ${verdictColor}` }}
+                />
+                {outlook.verdict.label}
+              </p>
               <SheetTitle className="mt-2 text-[28px] leading-[1.08] tracking-tight">
                 {outlook.headline}
               </SheetTitle>
