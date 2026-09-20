@@ -41,6 +41,8 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
   const [primaryOutcome, setPrimaryOutcome] = useState<PrimaryOutcome>(user?.primaryOutcome ?? "focus");
+  const [objectiveLabel, setObjectiveLabel] = useState(user?.objectiveLabel ?? "");
+  const [objectiveDate, setObjectiveDate] = useState(user?.objectiveDate ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState<boolean | null>(null);
@@ -70,6 +72,8 @@ const ProfilePage = () => {
     if (user) {
       setName(user.name || "");
       setPrimaryOutcome(user.primaryOutcome ?? "focus");
+      setObjectiveLabel(user.objectiveLabel ?? "");
+      setObjectiveDate(user.objectiveDate ?? "");
     }
   }, [user]);
 
