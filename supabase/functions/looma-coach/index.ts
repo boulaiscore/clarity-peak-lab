@@ -224,6 +224,7 @@ serve(async (req) => {
         console.error("looma-coach stream error", error);
       } finally {
         controller.close();
+        await userInsert; // keep message order correct
         const finalText = answer.trim();
         if (finalText) {
           const { error } = await supabase.from("coach_messages").insert({
