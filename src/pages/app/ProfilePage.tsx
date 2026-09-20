@@ -218,31 +218,60 @@ const ProfilePage = () => {
                 </p>
               </div>
               <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="objective-label" className="text-[11px] text-muted-foreground">
-                    Objective
-                  </Label>
-                  <Input
-                    id="objective-label"
-                    value={objectiveLabel}
-                    maxLength={80}
-                    placeholder="McKinsey final round"
-                    onChange={(event) => setObjectiveLabel(event.target.value)}
-                  />
+                <div className="space-y-2">
+                  {OBJECTIVE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => setObjectiveKind(objectiveKind === preset.value ? "" : preset.value)}
+                      className={cn(
+                        "w-full rounded-xl border px-3 py-3 text-left transition-colors",
+                        objectiveKind === preset.value
+                          ? "border-primary/60 bg-primary/10"
+                          : "border-border/40 bg-background/30 hover:border-primary/35",
+                      )}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold">{preset.label}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {OBJECTIVE_FOCUS_LABEL[preset.focus]}
+                        </span>
+                      </span>
+                      <span className="mt-0.5 block text-[10px] text-muted-foreground">{preset.description}</span>
+                    </button>
+                  ))}
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="objective-date" className="text-[11px] text-muted-foreground">
-                    Date
-                  </Label>
-                  <Input
-                    id="objective-date"
-                    type="date"
-                    value={objectiveDate}
-                    disabled={!objectiveLabel.trim()}
-                    onChange={(event) => setObjectiveDate(event.target.value)}
-                  />
-                </div>
-                {(objectiveLabel || objectiveDate) && (
+
+                {objectiveKind === "other" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="objective-label" className="text-[11px] text-muted-foreground">
+                      Name it
+                    </Label>
+                    <Input
+                      id="objective-label"
+                      value={objectiveLabel}
+                      maxLength={80}
+                      placeholder="Board review"
+                      onChange={(event) => setObjectiveLabel(event.target.value)}
+                    />
+                  </div>
+                )}
+
+                {objectiveKind && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="objective-date" className="text-[11px] text-muted-foreground">
+                      Date
+                    </Label>
+                    <Input
+                      id="objective-date"
+                      type="date"
+                      value={objectiveDate}
+                      onChange={(event) => setObjectiveDate(event.target.value)}
+                    />
+                  </div>
+                )}
+
+                {(objectiveKind || objectiveLabel || objectiveDate) && (
                   <button
                     type="button"
                     onClick={clearObjective}
