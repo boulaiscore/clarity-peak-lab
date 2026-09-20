@@ -299,6 +299,7 @@ export const FEATURE_LABELS: Record<FeatureName, string> = {
   fullProtocolLibrary: "Full protocol library",
   allCognitiveModes: "All cognitive modes",
   personalizedDailyRecommendation: "Personalized daily recommendation",
+  loomaCoach: "LOOMA Coach · chat with your own data",
   streakTracking: "Streak tracking",
   weeklyConsistencyReport: "Weekly consistency review",
   basicAnalytics: "Pro analytics",
