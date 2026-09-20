@@ -12,6 +12,16 @@ import {
 } from "@/components/ui/sheet";
 import type { PassiveFeaturePayload } from "@/lib/passiveCoachFeatures";
 import { useDailyOutlook } from "@/hooks/useDailyOutlook";
+import { METRIC_COLORS } from "@/lib/metricColors";
+import type { DailyVerdictKind } from "@/lib/dailyOutlook";
+
+const VERDICT_COLORS: Record<DailyVerdictKind, string> = {
+  decide: METRIC_COLORS.sharpness,
+  build: METRIC_COLORS.reasoningQuality,
+  recover: METRIC_COLORS.recovery,
+  protect: METRIC_COLORS.readiness,
+  steady: "hsl(var(--muted-foreground) / 0.55)",
+};
 
 interface DailyOutlookCardProps {
   sharpness: number;
@@ -60,6 +70,8 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
   const hasLearnedPattern = outlook.coachBasis.learnedFromHistory;
   const hasPersonalConfidence = hasLearnedPattern && outlook.confidence >= 0.1;
 
+  const verdictColor = VERDICT_COLORS[outlook.verdict.kind];
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 8 }}
@@ -75,47 +87,45 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
         My day
       </h2>
 
-      <div className="rounded-[18px] bg-gradient-to-r from-violet-300/45 via-foreground/12 to-sky-300/40 p-px shadow-[0_10px_26px_rgba(0,0,0,0.14)]">
-        <button
-          type="button"
-          onClick={openOutlook}
-          className="flex min-h-[68px] w-full items-center gap-3 rounded-[17px] bg-card/95 px-3.5 py-3 text-left transition-colors hover:bg-card active:scale-[0.995]"
-        >
-          {isLoading ? (
-            <div className="flex w-full animate-pulse items-center gap-3">
-              <div className="h-10 w-10 shrink-0 rounded-xl bg-muted" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="h-2 w-20 rounded bg-muted" />
-                <div className="h-3.5 w-2/3 rounded bg-muted/70" />
-              </div>
-            </div>
-          ) : (
-            <>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-foreground/12 bg-background/50">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full border border-violet-300/45 text-[9px] font-semibold tracking-[-0.04em] text-foreground/90 shadow-[0_0_14px_rgba(167,139,250,0.14)]">
-                    L
-                </span>
+      <button
+        type="button"
+        onClick={openOutlook}
+        className="w-full rounded-[18px] border border-foreground/[0.07] bg-card/70 px-4 py-4 text-left transition-colors hover:bg-card active:scale-[0.995]"
+      >
+        {isLoading ? (
+          <div className="flex w-full animate-pulse flex-col gap-2.5">
+            <div className="h-2 w-24 rounded bg-muted" />
+            <div className="h-5 w-40 rounded bg-muted/70" />
+            <div className="h-3 w-3/4 rounded bg-muted/50" />
+          </div>
+        ) : (
+          <>
+            <span className="flex items-center gap-2">
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: verdictColor, boxShadow: `0 0 8px ${verdictColor}` }}
+              />
+              <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+                Today's verdict
               </span>
+              <span className="ml-auto text-[8px] font-medium uppercase tracking-[0.12em] text-muted-foreground/40">
+                {hasLearnedPattern ? "Personal" : "Learning"}
+              </span>
+            </span>
 
-              <span className="min-w-0 flex-1">
-                <span className="block text-[9px] font-semibold uppercase tracking-[0.18em] text-foreground/68">
-                  Daily Outlook
-                </span>
-                <span className="mt-1 block truncate text-[13px] font-medium leading-tight tracking-tight text-foreground/92">
-                  {outlook.headline}
-                </span>
+            <span className="mt-2.5 flex items-baseline justify-between gap-3">
+              <span className="text-[19px] font-semibold tracking-tight text-foreground">
+                {outlook.verdict.label}
               </span>
+              <ChevronRight className="h-4 w-4 shrink-0 self-center text-foreground/45" strokeWidth={2} />
+            </span>
 
-              <span className="flex shrink-0 items-center gap-2">
-                <span className="hidden text-[8px] font-medium uppercase tracking-[0.12em] text-muted-foreground/45 min-[360px]:block">
-                  {hasLearnedPattern ? "Personal" : "Learning"}
-                </span>
-                <ChevronRight className="h-4 w-4 text-foreground/55" strokeWidth={2} />
-              </span>
-            </>
-          )}
-        </button>
-      </div>
+            <span className="mt-1 block text-[12px] leading-relaxed text-muted-foreground/75">
+              {outlook.verdict.subline}
+            </span>
+          </>
+        )}
+      </button>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
@@ -140,6 +150,16 @@ export function DailyOutlookCard(props: DailyOutlookCardProps) {
             <SheetHeader className="mt-9 text-left">
               <p className="text-[12px] font-medium text-muted-foreground/75">
                 {greetingForNow(coachName)} — here is what matters today.
+              </p>
+              <p
+                className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                style={{ color: verdictColor }}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: verdictColor, boxShadow: `0 0 8px ${verdictColor}` }}
+                />
+                {outlook.verdict.label}
               </p>
               <SheetTitle className="mt-2 text-[28px] leading-[1.08] tracking-tight">
                 {outlook.headline}
