@@ -363,6 +363,7 @@ function coachSummary(
     stateInterpretation,
     previousDaySentence(input),
     basis.goalGuidance,
+    basis.objectiveGuidance,
     healthContextSentence(input.healthSignals),
     basis.patternInsight,
     nextMove,
