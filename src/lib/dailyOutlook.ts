@@ -761,6 +761,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
     return {
       ...shared,
       coachBasis: buildCoachBasis(input, "protective"),
+      verdict: {
+        kind: "protect",
+        label: "Protect your capacity",
+        subline: "Limited sustained capacity — bound the important work.",
+      },
       headline: "Sustained capacity is limited",
       summary: coachSummary(
         "Today is better suited to protecting consistency than pushing sustained cognitive capacity.",
@@ -787,6 +792,11 @@ export function deriveDailyOutlook(input: DailyOutlookInput): DailyOutlook {
   return {
     ...shared,
     coachBasis: buildCoachBasis(input, "steady"),
+    verdict: {
+      kind: "steady",
+      label: "Steady day",
+      subline: "Stable state — favor deep execution on your plan.",
+    },
     headline: "Your state is steady",
     summary: coachSummary(
       "Your state is steady, with no single signal strong enough to justify changing the whole day.",
