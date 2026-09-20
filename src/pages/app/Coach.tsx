@@ -39,12 +39,22 @@ export default function Coach() {
     clearConversation,
   } = useLoomaCoach();
 
+  const memory = useCoachMemory();
+  const [showMemory, setShowMemory] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const isBusy = status === "submitted" || status === "streaming";
 
   useEffect(() => {
     if (!isBusy) textareaRef.current?.focus();
   }, [isBusy, messages.length]);
+
+  // Memory is written server-side after an answer completes; pick it up shortly after.
+  const refreshMemory = memory.refresh;
+  useEffect(() => {
+    if (status !== "ready" || messages.length === 0) return;
+    const timer = window.setTimeout(() => void refreshMemory(), 4000);
+    return () => window.clearTimeout(timer);
+  }, [status, messages.length, refreshMemory]);
 
   const handleSend = (text: string) => {
     void sendMessage(text);
