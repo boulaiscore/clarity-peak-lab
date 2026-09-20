@@ -43,6 +43,8 @@ export type ProductEventName =
   | "health_permission_prompt_viewed"
   | "health_permission_prompt_connected"
   | "health_permission_prompt_deferred"
+  | "health_tracking_reminder_result"
+  | "health_tracking_reminder_dismissed"
   | "wearable_device_selected";
 
 type EventProperties = Record<string, string | number | boolean | null>;
