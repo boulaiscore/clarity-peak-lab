@@ -38,13 +38,14 @@ type SelectedInterval = Exclude<BillingInterval, "none">;
 
 const CARD_FEATURES: Record<PaidCardId, string[]> = {
   core: [
+    "LOOMA Coach · chat with your own data",
     "Unlimited daily protocols",
     "Complete training library",
     "Personalized daily recommendation",
     "90-day trends and weekly review",
   ],
   pro: [
-    "Everything in Pro",
+    "Everything in Pro, including LOOMA Coach",
     "Explainable Adaptive Coach insights",
     "Advanced personal-pattern analytics",
     "Formatted reports and early access",
