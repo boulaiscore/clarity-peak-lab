@@ -361,7 +361,25 @@ const Home = () => {
                 </div>}
 
               <RecoveryBatteryCard recovery={displayRecovery} isLoading={isDisplayLoading} deltaVsYesterday={recoveryDelta} onClick={isViewingToday ? () => setActiveTab("capacity") : undefined} acuteBoost={isViewingToday ? acuteBoost.activeBoost : 0} acuteBoostRemainingMinutes={isViewingToday ? acuteBoost.remainingMinutes : 0} />
+
+              {/* Today's verdict — one outlook, one action */}
+              {isViewingToday && (
+                <div className="mt-4">
+                  <DailyOutlookCard
+                    sharpness={sharpness}
+                    readiness={readiness}
+                    recovery={recoveryWithBoost}
+                    reasoningQuality={rq}
+                    signalCoverage={signalCoverage}
+                    activeSourceCount={activeSourceCount}
+                    passiveFeatures={passiveFeatures}
+                    isLoading={isDisplayLoading}
+                    personalizationPending={passiveLoading}
+                  />
+                </div>
+              )}
             </motion.section>
+
 
         <HealthTrackingReminder
           visible={isViewingToday && !metricsLoading && signalCoverageLevel === "Basic"}
