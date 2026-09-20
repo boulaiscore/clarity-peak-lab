@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, HeartPulse, Moon, Footprints, Activity } from "lucide-react";
+import { ArrowRight, HeartPulse, Moon, Footprints, Activity, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { requestPermissions } from "@/lib/capacitor/health";
 import { trackProductEvent } from "@/lib/productAnalytics";
@@ -14,6 +14,7 @@ const SIGNALS = [
   { icon: Footprints, label: "Daily movement" },
   { icon: Activity, label: "Active minutes" },
   { icon: HeartPulse, label: "Heart signals (with a wearable)" },
+  { icon: Dumbbell, label: "Workouts shared by Strava, Runna or Garmin" },
 ];
 
 /**

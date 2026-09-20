@@ -10,6 +10,7 @@ import {
   OtherWearableIcon,
   WhoopIcon,
 } from "@/components/icons/WearableIcons";
+import { WorkoutAppsCard } from "@/components/health/WorkoutAppsCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDirectWearableConnections, type DirectWearableProvider } from "@/hooks/useDirectWearableConnections";
 import { useWearableSync } from "@/hooks/useWearableSync";
