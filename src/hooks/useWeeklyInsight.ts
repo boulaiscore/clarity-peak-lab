@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { CANONICAL_METRIC_FORMULA_VERSION } from "@/lib/dataLineage";
@@ -20,9 +21,10 @@ function lookbackStart(): string {
 
 export function useWeeklyInsight(): { result: WeeklyInsightResult | null; isLoading: boolean } {
   const { user } = useAuth();
+  const today = format(new Date(), "yyyy-MM-dd");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["weekly-insight-history", user?.id],
+    queryKey: ["weekly-insight-history", user?.id, today],
     enabled: Boolean(user?.id),
     staleTime: 1000 * 60 * 30,
     queryFn: async () => {
@@ -35,12 +37,14 @@ export function useWeeklyInsight(): { result: WeeklyInsightResult | null; isLoad
           .eq("user_id", user!.id)
           .eq("formula_version", CANONICAL_METRIC_FORMULA_VERSION)
           .gte("snapshot_date", since)
+          .lt("snapshot_date", today)
           .order("snapshot_date", { ascending: true }),
         supabase
           .from("phone_health_snapshots")
           .select("date, sleep_min, steps, active_min, bedtime_dev_min")
           .eq("user_id", user!.id)
           .gte("date", since)
+          .lt("date", today)
           .order("date", { ascending: true }),
       ]);
 

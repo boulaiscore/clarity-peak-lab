@@ -88,6 +88,17 @@ interface SplitEffect {
   highCount: number;
 }
 
+function groupedDelta(
+  pairs: Array<{ driverValue: number; metricValue: number }>,
+  threshold: number,
+  minimumPerGroup: number,
+): number | null {
+  const low = pairs.filter((pair) => pair.driverValue < threshold).map((pair) => pair.metricValue);
+  const high = pairs.filter((pair) => pair.driverValue >= threshold).map((pair) => pair.metricValue);
+  if (low.length < minimumPerGroup || high.length < minimumPerGroup) return null;
+  return mean(high) - mean(low);
+}
+
 /**
  * Compares the metric on days that follow a "low" value of the driver vs a "high" one,
  * splitting on the user's own median. Returns null when either group is too small.
@@ -121,6 +132,19 @@ function nextDayEffect(
   const low = pairs.filter((pair) => pair.driverValue < threshold).map((pair) => pair.metricValue);
   const high = pairs.filter((pair) => pair.driverValue >= threshold).map((pair) => pair.metricValue);
   if (low.length < MIN_GROUP_SIZE || high.length < MIN_GROUP_SIZE) return null;
+
+  // A durable pattern must repeat across time, not be created by one unusual
+  // cluster. Require the direction to agree in both chronological halves.
+  const midpoint = Math.floor(pairs.length / 2);
+  const earlyDelta = groupedDelta(pairs.slice(0, midpoint), threshold, 2);
+  const recentDelta = groupedDelta(pairs.slice(midpoint), threshold, 2);
+  if (
+    earlyDelta === null ||
+    recentDelta === null ||
+    Math.sign(earlyDelta) !== Math.sign(recentDelta) ||
+    Math.abs(earlyDelta) < MIN_EFFECT_POINTS / 2 ||
+    Math.abs(recentDelta) < MIN_EFFECT_POINTS / 2
+  ) return null;
 
   return {
     delta: round1(mean(high) - mean(low)),
@@ -246,8 +270,8 @@ export function deriveWeeklyInsight(
         id: `trend-${best.metric}`,
         headline: `${METRIC_LABEL[best.metric]} is ${rising ? "up" : "down"} ${Math.abs(best.effect.delta)} pts this week`,
         detail: rising
-          ? `Your last 7 days average ${Math.abs(best.effect.delta)} points above the prior week. The trend is real; its driver is not yet established.`
-          : `Your last 7 days average ${Math.abs(best.effect.delta)} points below the prior week. The trend is real; its driver is not yet established.`,
+          ? `Your measured 7-day average is ${Math.abs(best.effect.delta)} points above the prior week. The driver is not yet established.`
+          : `Your measured 7-day average is ${Math.abs(best.effect.delta)} points below the prior week. The driver is not yet established.`,
         metric: best.metric,
         deltaPoints: best.effect.delta,
         sampleSize: best.effect.sampleSize,
