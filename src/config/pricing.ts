@@ -11,6 +11,7 @@ export type FeatureName =
   | "fullProtocolLibrary"
   | "allCognitiveModes"
   | "personalizedDailyRecommendation"
+  | "loomaCoach"
   | "streakTracking"
   | "weeklyConsistencyReport"
   | "basicAnalytics"
@@ -67,6 +68,7 @@ const allFeatures = (overrides: Partial<Record<FeatureName, boolean>> = {}): Rec
   fullProtocolLibrary: false,
   allCognitiveModes: false,
   personalizedDailyRecommendation: false,
+  loomaCoach: false,
   streakTracking: true,
   weeklyConsistencyReport: false,
   basicAnalytics: true,
@@ -88,6 +90,7 @@ const coreFeatures = allFeatures({
   fullProtocolLibrary: true,
   allCognitiveModes: true,
   personalizedDailyRecommendation: true,
+  loomaCoach: true,
   weeklyConsistencyReport: true,
 });
 
@@ -296,6 +299,7 @@ export const FEATURE_LABELS: Record<FeatureName, string> = {
   fullProtocolLibrary: "Full protocol library",
   allCognitiveModes: "All cognitive modes",
   personalizedDailyRecommendation: "Personalized daily recommendation",
+  loomaCoach: "LOOMA Coach · chat with your own data",
   streakTracking: "Streak tracking",
   weeklyConsistencyReport: "Weekly consistency review",
   basicAnalytics: "Pro analytics",
@@ -318,6 +322,7 @@ export const COMPARISON_FEATURES: FeatureName[] = [
   "unlimitedProtocols",
   "fullProtocolLibrary",
   "allCognitiveModes",
+  "loomaCoach",
   "personalizedDailyRecommendation",
   "weeklyConsistencyReport",
   "basicAnalytics",

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronDown, ExternalLink } from "lucide-react";
+import { Check, ChevronDown, ExternalLink, MessageSquareText } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,13 +38,14 @@ type SelectedInterval = Exclude<BillingInterval, "none">;
 
 const CARD_FEATURES: Record<PaidCardId, string[]> = {
   core: [
+    "LOOMA Coach · chat with your own data",
     "Unlimited daily protocols",
     "Complete training library",
     "Personalized daily recommendation",
     "90-day trends and weekly review",
   ],
   pro: [
-    "Everything in Pro",
+    "Everything in Pro, including LOOMA Coach",
     "Explainable Adaptive Coach insights",
     "Advanced personal-pattern analytics",
     "Formatted reports and early access",
@@ -209,6 +210,38 @@ export default function SubscriptionPage() {
             </button>
           </div>
         )}
+
+        <section className="mx-auto mt-7 max-w-3xl overflow-hidden rounded-[28px] border border-primary/30 bg-[linear-gradient(140deg,hsl(var(--card)),hsl(var(--primary)/0.12))] p-6 sm:p-7">
+          <div className="flex items-start gap-4">
+            <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10">
+              <MessageSquareText className="h-5 w-5 text-primary" strokeWidth={1.6} />
+            </span>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                Included in Pro and Elite
+              </p>
+              <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">LOOMA Coach</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Ask anything about your own performance. The coach reads your last 30 days — recovery,
+                sleep, HRV, screen time, training and quality time — and answers with your real numbers,
+                what changed and what to do today.
+              </p>
+              <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                {[
+                  "Answers grounded in your data, not generic advice",
+                  "Explains why a score moved",
+                  "Tells you when the data is too thin",
+                  "Private to your account",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-[13px] text-foreground/85">
+                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2.2} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
 
         <section className="mt-9 grid gap-4 md:grid-cols-3">
           {(["core", "pro", "founding_pro"] as PaidCardId[]).map((planId) => {
