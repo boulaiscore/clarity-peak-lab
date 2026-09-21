@@ -51,6 +51,7 @@ const nativeAuthStorage: AuthStorage = {
         );
         window.localStorage.removeItem(key);
       }
+      memoryCache.set(key, legacyValue);
       return legacyValue;
     } catch (error) {
       // Availability is more important than forcing a logout. This fallback is
@@ -61,6 +62,7 @@ const nativeAuthStorage: AuthStorage = {
   },
 
   async setItem(key, value) {
+    memoryCache.set(key, value);
     try {
       await SecureStorage.set(
         key,
@@ -77,6 +79,7 @@ const nativeAuthStorage: AuthStorage = {
   },
 
   async removeItem(key) {
+    memoryCache.delete(key);
     try {
       await SecureStorage.removeItem(key);
     } catch (error) {
