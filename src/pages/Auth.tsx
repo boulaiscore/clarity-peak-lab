@@ -8,6 +8,7 @@ import { getPasswordResetRedirectUrl } from "@/lib/platformUtils";
 import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { isAppleAuthAvailable, signInWithApple } from "@/lib/capacitor/appleAuth";
+import { lovable } from "@/integrations/lovable/index";
 import { toast } from "@/hooks/use-toast";
 import authBackground from "@/assets/auth-background.png";
 import { trackProductEvent } from "@/lib/productAnalytics";
@@ -26,6 +27,7 @@ const Auth = () => {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const showAppleSignIn = isAppleAuthAvailable();
 
   useEffect(() => {
