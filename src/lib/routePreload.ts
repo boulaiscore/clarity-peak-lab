@@ -14,7 +14,13 @@ export function preloadAppRoute(path: string): void {
 }
 
 export function preloadPrimaryRoutes(): void {
-  const pending = ["/neuro-lab", "/app/dashboard", "/app/recovery-breakdown"];
+  const pending = [
+    "/app/recovery-breakdown",
+    "/app/reasoning-quality-impact",
+    "/neuro-lab",
+    "/app/dashboard",
+    "/app/coach",
+  ];
   const preloadNext = () => {
     const path = pending.shift();
     if (!path) return;
