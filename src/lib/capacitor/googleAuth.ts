@@ -44,6 +44,21 @@ export async function signInWithGoogle(): Promise<GoogleAuthResult> {
         return { success: false, error: "Could not start Google sign-in." };
       }
 
+      // Probe the authorize endpoint first: when the Google provider has no
+      // client credentials it answers 400, and opening the browser would drop
+      // the user on a raw error page instead of a readable message.
+      try {
+        const probe = await fetch(data.url, { method: "GET", redirect: "manual" });
+        if (probe.status >= 400) {
+          return {
+            success: false,
+            error: "Google sign-in is not available in the mobile app yet. Use your email and password.",
+          };
+        }
+      } catch {
+        // A network/CORS failure tells us nothing; continue with the browser.
+      }
+
       const { Browser } = await import("@capacitor/browser");
       await Browser.open({ url: data.url });
       // The session is established by the deep link handler.
