@@ -17,9 +17,7 @@ function makeId(prefix: string) {
 }
 
 export function useLoomaCoach() {
-  const { session } = useAuth();
-  const sessionRef = useRef(session);
-  sessionRef.current = session;
+  const { session, getAccessToken } = useAuth();
   const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [status, setStatus] = useState<CoachStatus>("ready");
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +29,10 @@ export function useLoomaCoach() {
     let cancelled = false;
 
     const loadHistory = async () => {
+      if (!session?.user.id) {
+        setIsLoadingHistory(false);
+        return;
+      }
       const { data, error: historyError } = await supabase
         .from("coach_messages")
         .select("id, role, content")
@@ -56,7 +58,7 @@ export function useLoomaCoach() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [session?.user.id]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -80,36 +82,25 @@ export function useLoomaCoach() {
     abortRef.current = controller;
 
     try {
-      // The signed-in session held by AuthContext is the fastest and most
-      // reliable source on native, where secure storage reads can lag or time
-      // out. Fall back to the client, then to an explicit refresh.
-      const nowSeconds = Math.floor(Date.now() / 1000);
-      const contextSession = sessionRef.current;
-      let token: string | undefined =
-        contextSession && (contextSession.expires_at ?? 0) > nowSeconds + 30
-          ? contextSession.access_token
-          : undefined;
-
-      for (let attempt = 0; attempt < 3 && !token; attempt += 1) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        token = sessionData.session?.access_token;
-        if (token) break;
-        const { data: refreshed } = await supabase.auth.refreshSession();
-        token = refreshed.session?.access_token;
-        if (!token) await new Promise((resolve) => setTimeout(resolve, 400));
-      }
-      if (!token) token = sessionRef.current?.access_token;
+      let token = await getAccessToken();
       if (!token) throw new Error("Sign in again to use the coach.");
 
-      const response = await fetch(COACH_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ message: text }),
-        signal: controller.signal,
-      });
+      const requestCoach = (accessToken: string) => fetch(COACH_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ message: text }),
+          signal: controller.signal,
+        });
+
+      let response = await requestCoach(token);
+      if (response.status === 401) {
+        token = await getAccessToken(true);
+        if (!token) throw new Error("Your session has expired. Sign in again to use the coach.");
+        response = await requestCoach(token);
+      }
 
       if (!response.ok || !response.body) {
         const payload = await response.json().catch(() => ({}));
@@ -165,7 +156,7 @@ export function useLoomaCoach() {
     } finally {
       abortRef.current = null;
     }
-  }, []);
+  }, [getAccessToken]);
 
   const clearConversation = useCallback(async () => {
     const { data: userData } = await supabase.auth.getUser();

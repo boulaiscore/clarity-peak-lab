@@ -53,4 +53,5 @@
 ## Test interno Android (21 set)
 - [x] Login con Google aggiunto
 - [x] Chiave RevenueCat inserita (Test Store `test_…` per il test interno; servono prodotti/entitlements configurati su RevenueCat e la chiave `goog_` di produzione prima del rilascio pubblico)
+- [x] Coach usa esclusivamente la sessione Android verificata; nessun accesso alle schermate protette con il solo profilo cache
 - [ ] Verificare consegna email di conferma
