@@ -67,7 +67,7 @@ export function isAuthDeepLink(path: string, params: URLSearchParams): boolean {
   }
   
   // Check for Supabase auth tokens in params
-  if (params.has('access_token') || params.has('refresh_token') || params.has('error')) {
+  if (params.has('access_token') || params.has('refresh_token') || params.has('code') || params.has('error')) {
     return true;
   }
   

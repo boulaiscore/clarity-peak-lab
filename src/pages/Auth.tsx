@@ -8,7 +8,7 @@ import { getPasswordResetRedirectUrl } from "@/lib/platformUtils";
 import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { isAppleAuthAvailable, signInWithApple } from "@/lib/capacitor/appleAuth";
-import { lovable } from "@/integrations/lovable/index";
+import { signInWithGoogle } from "@/lib/capacitor/googleAuth";
 import { toast } from "@/hooks/use-toast";
 import authBackground from "@/assets/auth-background.png";
 import { trackProductEvent } from "@/lib/productAnalytics";
@@ -139,22 +139,17 @@ const Auth = () => {
     setError("");
 
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
+      const result = await signInWithGoogle();
 
-      if (result.error) {
-        const message = result.error.message || "Sign in with Google failed";
+      if (!result.success) {
+        const message = result.error || "Sign in with Google failed";
         setError(message);
         toast({
           title: "Sign in failed",
           description: message,
           variant: "destructive",
         });
-        return;
       }
-
-      if (result.redirected) return;
     } catch (err) {
       setError("Sign in with Google failed");
     } finally {

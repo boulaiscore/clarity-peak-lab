@@ -3,6 +3,8 @@ const routeLoaders: Record<string, () => Promise<unknown>> = {
   "/neuro-lab": () => import("@/pages/app/NeuroLab"),
   "/app/dashboard": () => import("@/pages/app/Dashboard"),
   "/app/recovery-breakdown": () => import("@/pages/app/RecoveryBreakdown"),
+  "/app/reasoning-quality-impact": () => import("@/pages/app/ReasoningQualityImpact"),
+  "/app/coach": () => import("@/pages/app/Coach"),
   "/app/wearable": () => import("@/pages/app/Wearable"),
 };
 
@@ -12,7 +14,13 @@ export function preloadAppRoute(path: string): void {
 }
 
 export function preloadPrimaryRoutes(): void {
-  const pending = ["/neuro-lab", "/app/dashboard", "/app/recovery-breakdown"];
+  const pending = [
+    "/app/recovery-breakdown",
+    "/app/reasoning-quality-impact",
+    "/neuro-lab",
+    "/app/dashboard",
+    "/app/coach",
+  ];
   const preloadNext = () => {
     const path = pending.shift();
     if (!path) return;

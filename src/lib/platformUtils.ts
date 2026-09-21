@@ -78,10 +78,17 @@ export function parseDeepLink(url: string): { path: string; params: URLSearchPar
     // Handle looma:// scheme
     if (url.startsWith(`${URL_SCHEME}://`)) {
       const withoutScheme = url.replace(`${URL_SCHEME}://`, '');
-      const [path, query] = withoutScheme.split('?');
+      const [pathAndQuery, hash] = withoutScheme.split('#');
+      const [path, query] = pathAndQuery.split('?');
+      // OAuth providers return tokens either in the query string (PKCE code)
+      // or in the URL fragment (implicit flow). Merge both.
+      const params = new URLSearchParams(query || '');
+      if (hash) {
+        new URLSearchParams(hash).forEach((value, key) => params.set(key, value));
+      }
       return {
         path: path.startsWith('/') ? path : `/${path}`,
-        params: new URLSearchParams(query || ''),
+        params,
       };
     }
     

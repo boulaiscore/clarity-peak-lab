@@ -76,8 +76,17 @@ export function useLoomaCoach() {
     abortRef.current = controller;
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
+      // On native builds the session lives in secure storage and can still be
+      // hydrating when the first question is sent, so retry before giving up.
+      let token: string | undefined;
+      for (let attempt = 0; attempt < 3 && !token; attempt += 1) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        token = sessionData.session?.access_token;
+        if (token) break;
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        token = refreshed.session?.access_token;
+        if (!token) await new Promise((resolve) => setTimeout(resolve, 300));
+      }
       if (!token) throw new Error("Sign in again to use the coach.");
 
       const response = await fetch(COACH_ENDPOINT, {
