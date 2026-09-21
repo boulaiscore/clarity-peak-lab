@@ -134,6 +134,34 @@ const Auth = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    setError("");
+
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+
+      if (result.error) {
+        const message = result.error.message || "Sign in with Google failed";
+        setError(message);
+        toast({
+          title: "Sign in failed",
+          description: message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (result.redirected) return;
+    } catch (err) {
+      setError("Sign in with Google failed");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   const switchToLogin = () => {
     setIsForgotPassword(false);
     setResetEmailSent(false);
