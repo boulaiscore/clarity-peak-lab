@@ -49,3 +49,8 @@
 - [x] Make Today's Verdict depend only on canonical, sufficiently mature inputs
 - [x] Harden We Noticed against duplicate dates, formula drift, confounding, and weak samples
 - [x] Expand regression tests and verify the mobile preview
+
+## Test interno Android (21 set)
+- [x] Login con Google aggiunto
+- [ ] Chiave pubblica RevenueCat Android da inserire
+- [ ] Verificare consegna email di conferma
