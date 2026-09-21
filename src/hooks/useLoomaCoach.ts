@@ -17,6 +17,9 @@ function makeId(prefix: string) {
 }
 
 export function useLoomaCoach() {
+  const { session } = useAuth();
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
   const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [status, setStatus] = useState<CoachStatus>("ready");
   const [error, setError] = useState<string | null>(null);
