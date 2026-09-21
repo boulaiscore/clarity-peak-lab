@@ -113,6 +113,19 @@ export async function initializePurchases(userId?: string): Promise<PurchasesIni
       return { initialized: false, code: 'missing_api_key', error: getMissingApiKeyError() };
     }
 
+    // RevenueCat Test Store keys (`test_...`) are rejected inside a real
+    // store build: the SDK shows a "Wrong API Key" dialog and force-closes
+    // the app. Treat them as "not configured" so the app stays usable.
+    if (normalizedApiKey.startsWith('test_')) {
+      console.warn('[Purchases] Test Store key detected on a native build - skipping configure');
+      return {
+        initialized: false,
+        code: 'missing_api_key',
+        error: 'Purchases are not available in this build yet (a production store key is required).',
+      };
+    }
+
+
     await Purchases.configure({
       apiKey: normalizedApiKey,
       appUserID: userId || undefined,
