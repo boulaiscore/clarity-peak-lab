@@ -29,7 +29,15 @@ export async function signInWithGoogle(): Promise<GoogleAuthResult> {
 
       if (error) {
         console.error("[GoogleAuth] OAuth error:", error);
-        return { success: false, error: error.message };
+        const raw = error.message || "";
+        const notConfigured =
+          /unsupported provider|missing oauth secret|validation_failed/i.test(raw);
+        return {
+          success: false,
+          error: notConfigured
+            ? "Google sign-in is not available in the mobile app yet. Use your email and password."
+            : raw,
+        };
       }
 
       if (!data?.url) {
