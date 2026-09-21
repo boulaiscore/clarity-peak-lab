@@ -25,11 +25,33 @@ export function useDeepLinks() {
 
     // Handle auth deep links
     if (isAuthDeepLink(path, params)) {
+      // The OAuth flow runs in the in-app browser; close it as soon as the
+      // provider hands control back to the app.
+      await Browser.close().catch(() => undefined);
+
       // Check for Supabase auth tokens
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
+      const authCode = params.get('code');
       const error = params.get('error');
       const errorDescription = params.get('error_description');
+
+      if (!error && !accessToken && authCode) {
+        try {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
+          if (exchangeError) {
+            console.error('[useDeepLinks] Code exchange failed:', exchangeError);
+            navigate('/auth', { state: { error: exchangeError.message }, replace: true });
+            return;
+          }
+          navigate('/app', { replace: true });
+          return;
+        } catch (e) {
+          console.error('[useDeepLinks] Code exchange threw:', e);
+          navigate('/auth', { replace: true });
+          return;
+        }
+      }
 
       if (error) {
         console.error('[useDeepLinks] Auth error:', error, errorDescription);
