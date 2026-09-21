@@ -82,18 +82,25 @@ export function useLoomaCoach() {
     abortRef.current = controller;
 
     try {
-      const token = await getAccessToken();
+      let token = await getAccessToken();
       if (!token) throw new Error("Sign in again to use the coach.");
 
-      const response = await fetch(COACH_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ message: text }),
-        signal: controller.signal,
-      });
+      const requestCoach = (accessToken: string) => fetch(COACH_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ message: text }),
+          signal: controller.signal,
+        });
+
+      let response = await requestCoach(token);
+      if (response.status === 401) {
+        token = await getAccessToken(true);
+        if (!token) throw new Error("Your session has expired. Sign in again to use the coach.");
+        response = await requestCoach(token);
+      }
 
       if (!response.ok || !response.body) {
         const payload = await response.json().catch(() => ({}));

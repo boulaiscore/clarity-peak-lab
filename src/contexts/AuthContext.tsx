@@ -108,7 +108,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  getAccessToken: () => Promise<string | null>;
+  getAccessToken: (forceRefresh?: boolean) => Promise<string | null>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -252,15 +252,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(nextSession);
   }, []);
 
-  const getAccessToken = useCallback(async (): Promise<string | null> => {
+  const getAccessToken = useCallback(async (forceRefresh = false): Promise<string | null> => {
     const nowSeconds = Math.floor(Date.now() / 1000);
     const current = sessionRef.current;
-    if (current?.access_token && (current.expires_at ?? 0) > nowSeconds + 60) {
+    if (!forceRefresh && current?.access_token && (current.expires_at ?? 0) > nowSeconds + 60) {
       return current.access_token;
     }
 
     const { data: stored, error: storedError } = await supabase.auth.getSession();
-    if (!storedError && stored.session?.access_token) {
+    if (!forceRefresh && !storedError && stored.session?.access_token) {
       commitSession(stored.session);
       if ((stored.session.expires_at ?? 0) > nowSeconds + 60) {
         return stored.session.access_token;
