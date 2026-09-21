@@ -18,11 +18,25 @@ const isNative = Capacitor.isNativePlatform();
  * localStorage. Existing native installs are migrated lazily on first read so
  * upgrading LOOMA does not sign the user out.
  */
+/**
+ * Every Supabase request reads the session through this adapter. On Android the
+ * keystore call crosses the native bridge, so without a memory cache a screen
+ * that fires a dozen queries pays a dozen serialized bridge round-trips (and an
+ * occasional timeout shows up as "signed out"). The cache is the source of
+ * truth once warm; secure storage stays the durable copy.
+ */
+const memoryCache = new Map<string, string | null>();
+
 const nativeAuthStorage: AuthStorage = {
   async getItem(key) {
+    if (memoryCache.has(key)) return memoryCache.get(key) ?? null;
     try {
       const secureValue = await SecureStorage.getItem(key);
-      if (secureValue !== null) return secureValue;
+      if (secureValue !== null) {
+        const value = typeof secureValue === "string" ? secureValue : String(secureValue);
+        memoryCache.set(key, value);
+        return value;
+      }
 
       // One-time migration from releases that stored the Supabase session in
       // the WebView. Do not remove the legacy value until secure storage wins.
