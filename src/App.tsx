@@ -99,7 +99,7 @@ function DeepLinkHandler({ children }: { children: React.ReactNode }) {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, session, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -109,7 +109,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (!user || !session) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -122,7 +122,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function OnboardingRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, session, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -132,7 +132,7 @@ function OnboardingRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (!user || !session) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -140,7 +140,7 @@ function OnboardingRoute({ children }: { children: React.ReactNode }) {
 }
 
 function EntryRedirect() {
-  const { user, isLoading } = useAuth();
+  const { user, session, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -150,7 +150,7 @@ function EntryRedirect() {
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user || !session) return <Navigate to="/auth" replace />;
   return <Navigate to={user.onboardingCompleted ? "/app" : "/onboarding"} replace />;
 }
 

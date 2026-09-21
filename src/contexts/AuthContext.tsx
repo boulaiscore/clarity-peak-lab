@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from "react";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
@@ -108,6 +108,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  getAccessToken: () => Promise<string | null>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -240,8 +241,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const cachedUser = useState(() => readCachedUser())[0];
   const [user, setUser] = useState<User | null>(cachedUser);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(cachedUser === null);
+  // A cached profile is only a paint accelerator. It must never make protected
+  // screens available before the secure native auth session is restored.
+  const [isLoading, setIsLoading] = useState(true);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const sessionRef = useRef<Session | null>(null);
+
+  const commitSession = useCallback((nextSession: Session | null) => {
+    sessionRef.current = nextSession;
+    setSession(nextSession);
+  }, []);
+
+  const getAccessToken = useCallback(async (): Promise<string | null> => {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const current = sessionRef.current;
+    if (current?.access_token && (current.expires_at ?? 0) > nowSeconds + 60) {
+      return current.access_token;
+    }
+
+    const { data: stored, error: storedError } = await supabase.auth.getSession();
+    if (!storedError && stored.session?.access_token) {
+      commitSession(stored.session);
+      if ((stored.session.expires_at ?? 0) > nowSeconds + 60) {
+        return stored.session.access_token;
+      }
+    }
+
+    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession(
+      stored.session ?? current ?? undefined,
+    );
+    if (refreshError || !refreshed.session?.access_token) return null;
+    commitSession(refreshed.session);
+    return refreshed.session.access_token;
+  }, [commitSession]);
 
   // Native WebViews can remain suspended for hours. Pause token rotation while
   // backgrounded and resume it as soon as LOOMA becomes active, matching the
@@ -403,7 +435,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, newSession) => {
         if (!isMounted) return;
         
-        setSession(newSession);
+        commitSession(newSession);
         
         if (newSession?.user) {
           // Skip if initial load already handled this
@@ -440,7 +472,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isMounted) return;
       initialLoadDone = true;
       
-      setSession(existingSession);
+      commitSession(existingSession);
       
       if (existingSession?.user) {
         const profile = await fetchProfile(existingSession.user.id);
@@ -465,14 +497,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [commitSession]);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     if (!email || !password) {
       return { success: false, error: "Please enter email and password" };
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -481,6 +513,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: error.message };
     }
 
+    if (!data.session) {
+      return { success: false, error: "The sign-in session could not be created. Please try again." };
+    }
+
+    commitSession(data.session);
     return { success: true };
   };
 
@@ -524,7 +561,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     await supabase.auth.signOut();
     setUser(null);
-    setSession(null);
+    commitSession(null);
     
     // CRITICAL: Clear all cached queries so the next login starts fresh
     queryClient.clear();
@@ -645,7 +682,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, login, signup, logout, updateUser, upgradeToPremium }}>
+    <AuthContext.Provider value={{ user, session, isLoading, getAccessToken, login, signup, logout, updateUser, upgradeToPremium }}>
       {children}
     </AuthContext.Provider>
   );
