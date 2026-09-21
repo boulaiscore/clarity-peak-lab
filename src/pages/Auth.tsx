@@ -8,6 +8,7 @@ import { getPasswordResetRedirectUrl } from "@/lib/platformUtils";
 import { ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { LoomaLogo } from "@/components/ui/LoomaLogo";
 import { isAppleAuthAvailable, signInWithApple } from "@/lib/capacitor/appleAuth";
+import { lovable } from "@/integrations/lovable/index";
 import { toast } from "@/hooks/use-toast";
 import authBackground from "@/assets/auth-background.png";
 import { trackProductEvent } from "@/lib/productAnalytics";
@@ -26,6 +27,7 @@ const Auth = () => {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const showAppleSignIn = isAppleAuthAvailable();
 
   useEffect(() => {
@@ -129,6 +131,34 @@ const Auth = () => {
       setError("Sign in with Apple failed");
     } finally {
       setIsAppleLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    setError("");
+
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+
+      if (result.error) {
+        const message = result.error.message || "Sign in with Google failed";
+        setError(message);
+        toast({
+          title: "Sign in failed",
+          description: message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (result.redirected) return;
+    } catch (err) {
+      setError("Sign in with Google failed");
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -368,17 +398,39 @@ const Auth = () => {
               </p>
             )}
 
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full min-h-[52px] rounded-xl"
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading}
+            >
+              {isGoogleLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47a5.53 5.53 0 0 1-2.4 3.63v3.02h3.87c2.27-2.09 3.55-5.17 3.55-8.89z"/>
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.94-2.91l-3.87-3.01c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A11.99 11.99 0 0 0 12 24z"/>
+                  <path fill="#FBBC05" d="M5.27 14.28a7.2 7.2 0 0 1 0-4.56V6.63H1.29a12 12 0 0 0 0 10.74l3.98-3.09z"/>
+                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.29 6.63l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z"/>
+                </svg>
+              )}
+              {isGoogleLoading ? "Signing in..." : "Continue with Google"}
+            </Button>
+
             {/* Sign in with Apple - iOS only */}
             {showAppleSignIn && (
               <>
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">or</span>
-                  </div>
-                </div>
+                
                 
                 <Button
                   type="button"
