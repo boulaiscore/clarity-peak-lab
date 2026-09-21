@@ -52,5 +52,5 @@
 
 ## Test interno Android (21 set)
 - [x] Login con Google aggiunto
-- [ ] Chiave pubblica RevenueCat Android da inserire
+- [x] Chiave RevenueCat inserita (Test Store `test_…` per il test interno; servono prodotti/entitlements configurati su RevenueCat e la chiave `goog_` di produzione prima del rilascio pubblico)
 - [ ] Verificare consegna email di conferma
