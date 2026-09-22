@@ -270,7 +270,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession(
       stored.session ?? current ?? undefined,
     );
-    if (refreshError || !refreshed.session?.access_token) return null;
+    if (refreshError || !refreshed.session?.access_token) {
+      // Do not leave protected screens mounted with a stale session object.
+      // A failed refresh is definitive: clear both auth and profile state so
+      // the route guard returns the user to sign-in instead of showing a false
+      // Coach-only authentication error.
+      commitSession(null);
+      setUser(null);
+      writeCachedUser(null);
+      return null;
+    }
     commitSession(refreshed.session);
     return refreshed.session.access_token;
   }, [commitSession]);
