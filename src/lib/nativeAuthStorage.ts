@@ -65,7 +65,11 @@ const nativeAuthStorage: AuthStorage = {
         if (value !== rawValue) {
           // Repair the old double-encoded value in place so every later launch
           // reads the canonical Supabase session format.
-          await SecureStorage.setItem(key, value);
+          try {
+            await SecureStorage.setItem(key, value);
+          } catch (migrationError) {
+            console.warn("[AuthStorage] Legacy session repair deferred", migrationError);
+          }
         }
         memoryCache.set(key, value);
         return value;
