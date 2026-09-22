@@ -82,7 +82,11 @@ export function useLoomaCoach() {
     abortRef.current = controller;
 
     try {
-      let token = await getAccessToken();
+      // ProtectedRoute only renders the Coach with a verified session. Use its
+      // access token first instead of immediately reading Android secure
+      // storage again: that second bridge read can temporarily return no
+      // session even though the signed-in session is already live in React.
+      let token = session?.access_token ?? await getAccessToken();
       if (!token) throw new Error("Sign in again to use the coach.");
 
       const requestCoach = (accessToken: string) => fetch(COACH_ENDPOINT, {
@@ -156,7 +160,7 @@ export function useLoomaCoach() {
     } finally {
       abortRef.current = null;
     }
-  }, [getAccessToken]);
+  }, [getAccessToken, session?.access_token]);
 
   const clearConversation = useCallback(async () => {
     const { data: userData } = await supabase.auth.getUser();
