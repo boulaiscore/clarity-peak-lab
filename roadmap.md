@@ -53,5 +53,6 @@
 ## Test interno Android (21 set)
 - [x] Login con Google aggiunto
 - [x] Chiave RevenueCat inserita (Test Store `test_…` per il test interno; servono prodotti/entitlements configurati su RevenueCat e la chiave `goog_` di produzione prima del rilascio pubblico)
-- [x] Coach usa esclusivamente la sessione Android verificata; nessun accesso alle schermate protette con il solo profilo cache
+- [x] Coach usa direttamente il token della sessione Android già verificata; rinnova solo dopo un rifiuto del server
+- [ ] Confermare LOOMA Coach sul dispositivo con bundle 1.0.28 (codice 29)
 - [ ] Verificare consegna email di conferma
