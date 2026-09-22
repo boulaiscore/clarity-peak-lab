@@ -54,5 +54,6 @@
 - [x] Login con Google aggiunto
 - [x] Chiave RevenueCat inserita (Test Store `test_…` per il test interno; servono prodotti/entitlements configurati su RevenueCat e la chiave `goog_` di produzione prima del rilascio pubblico)
 - [x] Coach usa direttamente il token della sessione Android già verificata; rinnova solo dopo un rifiuto del server
-- [ ] Confermare LOOMA Coach sul dispositivo con bundle 1.0.28 (codice 29)
+- [x] Correggere la persistenza Android: sessione salvata senza doppia codifica e migrazione automatica dei login esistenti
+- [ ] Confermare persistenza login e LOOMA Coach sul dispositivo con bundle 1.0.29 (codice 30)
 - [ ] Verificare consegna email di conferma

@@ -27,13 +27,50 @@ const isNative = Capacitor.isNativePlatform();
  */
 const memoryCache = new Map<string, string | null>();
 
+function unwrapLegacySecureValue(value: string): string {
+  // Releases up to 1.0.28 used SecureStorage.set(), which JSON-encoded the
+  // already serialized Supabase session. SecureStorage.getItem() then returned
+  // the extra quoted value and Supabase could not hydrate it after a cold start.
+  try {
+    const parsed = JSON.parse(value);
+    return typeof parsed === "string" ? parsed : value;
+  } catch {
+    return value;
+  }
+}
+
+async function readSecureValue(key: string): Promise<string | null> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await SecureStorage.getItem(key);
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) {
+        await new Promise((resolve) => window.setTimeout(resolve, 120 * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 const nativeAuthStorage: AuthStorage = {
   async getItem(key) {
     if (memoryCache.has(key)) return memoryCache.get(key) ?? null;
     try {
-      const secureValue = await SecureStorage.getItem(key);
+      const secureValue = await readSecureValue(key);
       if (secureValue !== null) {
-        const value = typeof secureValue === "string" ? secureValue : String(secureValue);
+        const rawValue = typeof secureValue === "string" ? secureValue : String(secureValue);
+        const value = unwrapLegacySecureValue(rawValue);
+        if (value !== rawValue) {
+          // Repair the old double-encoded value in place so every later launch
+          // reads the canonical Supabase session format.
+          try {
+            await SecureStorage.setItem(key, value);
+          } catch (migrationError) {
+            console.warn("[AuthStorage] Legacy session repair deferred", migrationError);
+          }
+        }
         memoryCache.set(key, value);
         return value;
       }
@@ -42,13 +79,7 @@ const nativeAuthStorage: AuthStorage = {
       // the WebView. Do not remove the legacy value until secure storage wins.
       const legacyValue = window.localStorage.getItem(key);
       if (legacyValue !== null) {
-        await SecureStorage.set(
-          key,
-          legacyValue,
-          false,
-          false,
-          KeychainAccess.whenUnlockedThisDeviceOnly,
-        );
+        await SecureStorage.setItem(key, legacyValue);
         window.localStorage.removeItem(key);
       }
       memoryCache.set(key, legacyValue);
@@ -64,13 +95,10 @@ const nativeAuthStorage: AuthStorage = {
   async setItem(key, value) {
     memoryCache.set(key, value);
     try {
-      await SecureStorage.set(
-        key,
-        value,
-        false,
-        false,
-        KeychainAccess.whenUnlockedThisDeviceOnly,
-      );
+      // setItem stores the already serialized Supabase payload verbatim.
+      // SecureStorage.set() would JSON-encode it a second time.
+      await SecureStorage.setDefaultKeychainAccess(KeychainAccess.whenUnlockedThisDeviceOnly);
+      await SecureStorage.setItem(key, value);
       window.localStorage.removeItem(key);
     } catch (error) {
       console.warn("[AuthStorage] Secure write unavailable; using local fallback", error);
