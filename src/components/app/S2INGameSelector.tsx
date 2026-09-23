@@ -18,6 +18,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
+import { GameLockCard } from "@/components/games/GameLockCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGamesGating } from "@/hooks/useGamesGating";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -156,22 +157,8 @@ export function S2INGameSelector({ open, onOpenChange }: S2INGameSelectorProps) 
 
           <div className="space-y-3 pb-6">
             {/* Show lock banner if games are locked */}
-            {isLocked && (
-              <Alert className={cn(
-                "border",
-                isProtection 
-                  ? "border-protection/30 bg-protection/5" 
-                  : "border-muted-foreground/20 bg-muted/30"
-              )}>
-                {isProtection ? (
-                  <ShieldAlert className="h-4 w-4 text-protection" />
-                ) : (
-                  <Lock className="h-4 w-4 text-muted-foreground" />
-                )}
-                <AlertDescription className="text-xs text-muted-foreground">
-                  {getWithholdReason(s2inGating?.reasonCode)}
-                </AlertDescription>
-              </Alert>
+            {isLocked && s2inGating && (
+              <GameLockCard gating={s2inGating} onNavigate={() => onOpenChange(false)} />
             )}
             
             {showSkeleton ? (

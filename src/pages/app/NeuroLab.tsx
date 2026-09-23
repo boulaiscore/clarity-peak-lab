@@ -153,8 +153,8 @@ export default function NeuroLab() {
     navigateToArea(areaId);
   };
   const navigateToArea = (areaId: NeuroLabArea) => {
-    const isDailyTraining = !isDailyCompleted;
-    navigate(`/neuro-lab/${areaId}?daily=${isDailyTraining}`);
+    const system = areaId === "reasoning" || areaId === "memory" ? "slow" : "fast";
+    navigate(`/neuro-lab?tab=games&system=${system}`);
   };
   const handleConfirmDailyTraining = () => {
     if (pendingAreaId) {
