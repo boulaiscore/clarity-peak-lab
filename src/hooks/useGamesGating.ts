@@ -253,9 +253,10 @@ export function useGamesGating(): UseGamesGatingResult {
       recoveryEffective, // Use REC_effective for gating
       caps,
       planModifiers,
-      isCalibrated // Pass calibration status for safety rule
+      isCalibrated, // Pass calibration status for safety rule
+      calibration // Personal (adaptive) thresholds
     );
-  }, [sharpness, readiness, recoveryEffective, caps, planModifiers, isCalibrated]);
+  }, [sharpness, readiness, recoveryEffective, caps, planModifiers, isCalibrated, calibration]);
   
   // Check if safety rule is active (pass sharpness for accurate detection)
   const safetyRuleActive = useMemo(() => {
