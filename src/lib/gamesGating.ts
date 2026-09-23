@@ -193,8 +193,8 @@ export function checkGameAvailability(
     // ============================================
     case "S2-CT": {
       const config = S2_THRESHOLDS["S2-CT"];
-      const minSharpness = config.minSharpness + s2Modifier;
-      const minReadiness = config.minReadiness + s2Modifier;
+      const minSharpness = personalSharpness(config.minSharpness + s2Modifier, "S2");
+      const minReadiness = personalReadiness(config.minReadiness + s2Modifier, "S2");
       const minREC = Math.max(config.minREC, requireRecForS2);
       
       // S2 HARD BLOCK: Recovery < 45
