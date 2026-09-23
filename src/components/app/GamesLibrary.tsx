@@ -156,14 +156,27 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
               key={system.id}
               onClick={() => handleSystemToggle(system.id)}
               aria-expanded={isOpen}
-              className={LAB_MODE_CARD_CLASS}
+              aria-pressed={isOpen}
+              className={cn(
+                LAB_MODE_CARD_CLASS,
+                isOpen
+                  ? "border-primary/70 bg-card ring-1 ring-primary/35 shadow-lg"
+                  : "border-border/35 opacity-60 saturate-50",
+              )}
             >
-              <div className={LAB_MODE_CARD_AMBIENCE_CLASS} />
+              <div className={cn(LAB_MODE_CARD_AMBIENCE_CLASS, !isOpen && "opacity-35")} />
               <div className="relative flex h-full flex-col">
                 <div className="flex h-4 shrink-0 items-start justify-between">
                   <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground">
                     {system.label}
                   </span>
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full transition-colors",
+                      isOpen ? "bg-primary shadow-sm" : "bg-muted-foreground/25",
+                    )}
+                  />
                 </div>
 
                 <div className="flex min-h-0 flex-1 items-center justify-center">
@@ -194,7 +207,8 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
       {/* Module rows — expands below the selected system (no height animation to avoid flicker) */}
       {openSystem && (() => {
-        const system = SYSTEMS.find(s => s.id === openSystem)!;
+        const system = SYSTEMS.find(s => s.id === openSystem);
+        if (!system) return null;
         return (
           <div key={openSystem} className="animate-fade-in">
 

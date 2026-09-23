@@ -57,3 +57,8 @@
 - [x] Correggere la persistenza Android: sessione salvata senza doppia codifica e migrazione automatica dei login esistenti
 - [ ] Confermare persistenza login e LOOMA Coach sul dispositivo con bundle 1.0.29 (codice 30)
 - [ ] Verificare consegna email di conferma
+
+## Lab drill gating clarity
+- [x] Make the selected System card unmistakable
+- [x] Explain metric entry levels as LOOMA quality-control rules
+- [x] Move the Sharpness action directly below the score
