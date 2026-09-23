@@ -288,9 +288,9 @@ export const DEFAULT_TARGETS: Record<TrainingPlanId, SCITargets> = {
 
 export type TrainingPlanType = keyof typeof DEFAULT_TARGETS;
 
-export function getTargetsForPlan(plan: string): SCITargets {
-  const planId: TrainingPlanId = plan === "expert" || plan === "superhuman" ? plan : "light";
-  return DEFAULT_TARGETS[planId];
+export function getTargetsForPlan(_plan: string): SCITargets {
+  // Plans are eliminated as a concept: everyone uses the single canonical targets.
+  return DEFAULT_TARGETS.expert;
 }
 
 /**

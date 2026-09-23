@@ -205,10 +205,11 @@ closeTo(
   "SCI cognitive performance counts each canonical skill once",
 );
 
+// Plans are eliminated: every legacy plan id resolves to the canonical targets.
 for (const planId of ["light", "expert", "superhuman"] as const) {
   const targets = getTargetsForPlan(planId);
-  assert.equal(targets.xpTargetWeek, TRAINING_PLANS[planId].xpTargetWeek);
-  assert.equal(targets.detoxMinutes, TRAINING_PLANS[planId].detox.weeklyMinutes);
+  assert.equal(targets.xpTargetWeek, TRAINING_PLANS.expert.xpTargetWeek);
+  assert.equal(targets.detoxMinutes, TRAINING_PLANS.expert.detox.weeklyMinutes);
 }
 
 closeTo(
