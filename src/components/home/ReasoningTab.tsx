@@ -58,8 +58,8 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
       { key: "AE", value: 0.30 * (100 - AE) },
     ];
     const bottleneck = candidates.reduce((a, b) => (a.value > b.value ? a : b)).key;
-    if (bottleneck === "S2") return { label: "Train Deliberate Reasoning", link: "/neuro-lab/reasoning" };
-    if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: "/neuro-lab/focus" };
+    if (bottleneck === "S2") return { label: "Train Deliberate Reasoning", link: "/neuro-lab?tab=games&system=slow" };
+    if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: "/neuro-lab?tab=games&system=fast" };
     return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
   }, [AE, S2, dailyState, recovery, signalCoverage]);
 

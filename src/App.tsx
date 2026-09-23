@@ -38,7 +38,7 @@ const DynamicTrainingRunner = lazyWithRetry(() => import("./pages/app/DynamicTra
 const InstallPage = lazyWithRetry(() => import("./pages/app/Install"));
 const NeuroLab = lazyWithRetry(() => import("./pages/app/NeuroLab"));
 const Wearable = lazyWithRetry(() => import("./pages/app/Wearable"));
-const NeuroLabArea = lazyWithRetry(() => import("./pages/app/NeuroLabArea"));
+const NeuroLabAreaRedirect = lazyWithRetry(() => import("./pages/app/NeuroLabAreaRedirect"));
 const NeuroLabSessionRunner = lazyWithRetry(() => import("./pages/app/NeuroLabSessionRunner"));
 const OrbitLockRunner = lazyWithRetry(() => import("./pages/app/OrbitLockRunner"));
 const FocusSwitchRunner = lazyWithRetry(() => import("./pages/app/FocusSwitchRunner"));
@@ -332,7 +332,7 @@ function AppRoutes() {
         path="/neuro-lab/:area"
         element={
           <ProtectedRoute>
-            <NeuroLabArea />
+            <NeuroLabAreaRedirect />
           </ProtectedRoute>
         }
       />

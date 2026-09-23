@@ -60,8 +60,8 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       { key: "S2", value: s2Potential },
     ].reduce((a, b) => (a.value > b.value ? a : b)).key;
 
-    if (bottleneck === "S1") return { label: "Train Fast Processing", link: "/neuro-lab/focus" };
-    if (bottleneck === "S2") return { label: "Train Deliberate Reasoning", link: "/neuro-lab/reasoning" };
+    if (bottleneck === "S1") return { label: "Train Fast Processing", link: "/neuro-lab?tab=games&system=fast" };
+    if (bottleneck === "S2") return { label: "Train Deliberate Reasoning", link: "/neuro-lab?tab=games&system=slow" };
     return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
   }, [S1, S2, recovery, recoveryModifier]);
 
