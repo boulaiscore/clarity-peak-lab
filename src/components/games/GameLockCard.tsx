@@ -116,7 +116,9 @@ export function GameLockCard({
       : null;
 
   const thresholdExplanation = details && required != null
-    ? `${required} starts LOOMA's Ready zone for demanding reasoning. It is a product rule, not a clinical cutoff.`
+    ? details.personalized
+      ? `${required} is set from your own range over the last 30 days — it sits just above a typical day for you, so it stays reachable. It is a LOOMA rule, not a clinical cutoff.`
+      : `${required} starts LOOMA's Ready zone for this drill. Once you have a few more tracked days, this number adapts to your own range. It is a LOOMA rule, not a clinical cutoff.`
     : null;
 
   const handleAction = (action: LockAction) => {

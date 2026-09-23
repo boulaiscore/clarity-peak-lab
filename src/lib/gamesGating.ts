@@ -24,6 +24,11 @@
 
 import type { CognitiveStates } from "./cognitiveEngine";
 import { isTestModeEnabled } from "@/hooks/useTestMode";
+import {
+  EMPTY_CALIBRATION,
+  personalizeMinThreshold,
+  type PersonalCalibration,
+} from "./adaptiveThresholds";
 
 export type GameType = "S1-AE" | "S1-RA" | "S2-CT" | "S2-IN";
 
@@ -115,7 +120,8 @@ export function checkGameAvailability(
   readiness: number,
   recovery: number,
   caps: GamesCaps,
-  planModifiers?: TrainingPlanModifiers
+  planModifiers?: TrainingPlanModifiers,
+  calibration: PersonalCalibration = EMPTY_CALIBRATION
 ): GameAvailability {
   const thresholds: GameThreshold[] = [];
   const unlockActions: string[] = [];
@@ -125,17 +131,25 @@ export function checkGameAvailability(
   const s2Modifier = planModifiers?.s2ThresholdModifier ?? 0;
   const requireRecForS2 = planModifiers?.requireRecForS2 ?? 50;
 
+  // Personal thresholds: relax (never tighten) the cognitive minimums around
+  // the user's own typical range so drills stay reachable.
+  const personalSharpness = (canonical: number, system: "S1" | "S2") =>
+    personalizeMinThreshold(canonical, calibration.typicalSharpness, system, calibration.isActive);
+  const personalReadiness = (canonical: number, system: "S1" | "S2") =>
+    personalizeMinThreshold(canonical, calibration.typicalReadiness, system, calibration.isActive);
+
   switch (gameType) {
     // ============================================
     // S1 GAMES - NO RECOVERY DEPENDENCY
     // ============================================
     case "S1-AE": {
       const config = S1_THRESHOLDS["S1-AE"];
+      const minSharpness = personalSharpness(config.minSharpness, "S1");
       
-      // Check Sharpness >= 40
-      if (sharpness < config.minSharpness) {
+      // Check Sharpness >= 40 (personalised)
+      if (sharpness < minSharpness) {
         enabled = false;
-        thresholds.push({ metric: "Sharpness", current: sharpness, required: config.minSharpness });
+        thresholds.push({ metric: "Sharpness", current: sharpness, required: minSharpness });
         unlockActions.push("Light warm-up activity", "Brief rest");
       }
       
@@ -149,18 +163,20 @@ export function checkGameAvailability(
 
     case "S1-RA": {
       const config = S1_THRESHOLDS["S1-RA"];
+      const minSharpness = personalSharpness(config.minSharpness, "S1");
+      const minReadiness = personalReadiness(config.minReadiness, "S1");
       
-      // Check Sharpness >= 45
-      if (sharpness < config.minSharpness) {
+      // Check Sharpness >= 45 (personalised)
+      if (sharpness < minSharpness) {
         enabled = false;
-        thresholds.push({ metric: "Sharpness", current: sharpness, required: config.minSharpness });
+        thresholds.push({ metric: "Sharpness", current: sharpness, required: minSharpness });
         unlockActions.push("Light focus activity", "S1-AE session first");
       }
       
-      // Check Readiness >= 35
-      if (readiness < config.minReadiness) {
+      // Check Readiness >= 35 (personalised)
+      if (readiness < minReadiness) {
         enabled = false;
-        thresholds.push({ metric: "Readiness", current: readiness, required: config.minReadiness });
+        thresholds.push({ metric: "Readiness", current: readiness, required: minReadiness });
         unlockActions.push("Short rest", "Delay by 1-2 hours");
       }
       
@@ -177,8 +193,8 @@ export function checkGameAvailability(
     // ============================================
     case "S2-CT": {
       const config = S2_THRESHOLDS["S2-CT"];
-      const minSharpness = config.minSharpness + s2Modifier;
-      const minReadiness = config.minReadiness + s2Modifier;
+      const minSharpness = personalSharpness(config.minSharpness + s2Modifier, "S2");
+      const minReadiness = personalReadiness(config.minReadiness + s2Modifier, "S2");
       const minREC = Math.max(config.minREC, requireRecForS2);
       
       // S2 HARD BLOCK: Recovery < 45
@@ -230,7 +246,8 @@ export function checkGameAvailability(
     case "S2-IN": {
       const config = S2_THRESHOLDS["S2-IN"];
       const insightMax = planModifiers?.insightMaxPerWeek ?? DEFAULT_CAPS.insightWeeklyMax;
-      const minSharpness = config.minSharpness + s2Modifier;
+      const minSharpness = personalSharpness(config.minSharpness + s2Modifier, "S2");
+      const minReadinessIn = personalReadiness(config.minReadiness, "S2");
       const minREC = Math.max(config.minREC, requireRecForS2);
       
       // S2 HARD BLOCK: Recovery < 45
@@ -256,10 +273,10 @@ export function checkGameAvailability(
         unlockActions.push("Detox session", "No-screens break");
       }
       
-      // Check 50 <= Readiness <= 70
-      if (readiness < config.minReadiness) {
+      // Check 50 <= Readiness <= 70 (lower bound personalised)
+      if (readiness < minReadinessIn) {
         enabled = false;
-        thresholds.push({ metric: "Readiness", current: readiness, required: config.minReadiness });
+        thresholds.push({ metric: "Readiness", current: readiness, required: minReadinessIn });
         unlockActions.push("Short rest", "Low-demand activity first");
       }
       if (readiness > config.maxReadiness) {
@@ -314,7 +331,8 @@ export function getAllGamesAvailability(
   recovery: number,
   caps: GamesCaps,
   planModifiers?: TrainingPlanModifiers,
-  isCalibrated?: boolean
+  isCalibrated?: boolean,
+  calibration: PersonalCalibration = EMPTY_CALIBRATION
 ): Record<GameType, GameAvailability> {
   // ============================================
   // TEST MODE BYPASS (v1.5)
@@ -332,10 +350,10 @@ export function getAllGamesAvailability(
   
   // First compute standard availability
   const result: Record<GameType, GameAvailability> = {
-    "S1-AE": checkGameAvailability("S1-AE", sharpness, readiness, recovery, caps, planModifiers),
-    "S1-RA": checkGameAvailability("S1-RA", sharpness, readiness, recovery, caps, planModifiers),
-    "S2-CT": checkGameAvailability("S2-CT", sharpness, readiness, recovery, caps, planModifiers),
-    "S2-IN": checkGameAvailability("S2-IN", sharpness, readiness, recovery, caps, planModifiers),
+    "S1-AE": checkGameAvailability("S1-AE", sharpness, readiness, recovery, caps, planModifiers, calibration),
+    "S1-RA": checkGameAvailability("S1-RA", sharpness, readiness, recovery, caps, planModifiers, calibration),
+    "S2-CT": checkGameAvailability("S2-CT", sharpness, readiness, recovery, caps, planModifiers, calibration),
+    "S2-IN": checkGameAvailability("S2-IN", sharpness, readiness, recovery, caps, planModifiers, calibration),
   };
 
   // ============================================

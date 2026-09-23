@@ -31,6 +31,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
+import { useMetricHistory } from "@/hooks/useMetricHistory";
+import { buildPersonalCalibration } from "@/lib/adaptiveThresholds";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import {
   calculateGameSkillUpdate,
@@ -74,6 +76,8 @@ export interface GameGatingResult {
     currentValue: number;
     requiredValue: number;
     metric: string;
+    /** True when the required value was adapted to the user's own range. */
+    personalized: boolean;
   } | null;
   unlockActions: string[];
 }
@@ -108,6 +112,14 @@ export interface UseGamesGatingResult {
   // Post-baseline safety rule
   safetyRuleActive: boolean;
   isCalibrated: boolean;
+
+  // Personal (adaptive) thresholds
+  personalThresholds: {
+    active: boolean;
+    sampleDays: number;
+    typicalSharpness: number | null;
+    typicalReadiness: number | null;
+  };
   
   // Helper function
   checkGame: (gymArea: string, thinkingMode: string) => GameGatingResult;
@@ -134,6 +146,13 @@ export function useGamesGating(): UseGamesGatingResult {
   
   // Get baseline status for safety rule
   const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
+
+  // Personal range over the last 30 days → adaptive (never stricter) thresholds
+  const { history: metricHistory } = useMetricHistory({ days: 30 });
+  const calibration = useMemo(
+    () => buildPersonalCalibration(metricHistory ?? []),
+    [metricHistory],
+  );
   
   // Get plan configuration
   const planId = DEFAULT_TRAINING_PLAN_ID;
@@ -234,9 +253,10 @@ export function useGamesGating(): UseGamesGatingResult {
       recoveryEffective, // Use REC_effective for gating
       caps,
       planModifiers,
-      isCalibrated // Pass calibration status for safety rule
+      isCalibrated, // Pass calibration status for safety rule
+      calibration // Personal (adaptive) thresholds
     );
-  }, [sharpness, readiness, recoveryEffective, caps, planModifiers, isCalibrated]);
+  }, [sharpness, readiness, recoveryEffective, caps, planModifiers, isCalibrated, calibration]);
   
   // Check if safety rule is active (pass sharpness for accurate detection)
   const safetyRuleActive = useMemo(() => {
@@ -279,13 +299,14 @@ export function useGamesGating(): UseGamesGatingResult {
           currentValue: firstThreshold.current,
           requiredValue: firstThreshold.required,
           metric: firstThreshold.metric,
+          personalized: calibration.isActive && firstThreshold.metric !== "Recovery",
         } : null,
         unlockActions: availability.unlockActions,
       };
     }
     
     return result;
-  }, [gamesAvailability, caps, planId, gatingModifiers, recoveryEffective]);
+  }, [gamesAvailability, caps, planId, gatingModifiers, recoveryEffective, calibration]);
   
   // Helper function to check a specific game by area and mode
   const checkGame = (gymArea: string, thinkingMode: string): GameGatingResult => {
@@ -314,6 +335,12 @@ export function useGamesGating(): UseGamesGatingResult {
     recoveryV2,
     safetyRuleActive,
     isCalibrated,
+    personalThresholds: {
+      active: calibration.isActive,
+      sampleDays: calibration.sampleDays,
+      typicalSharpness: calibration.typicalSharpness,
+      typicalReadiness: calibration.typicalReadiness,
+    },
     checkGame,
     isLoading: metricsLoading || recoveryLoading || todayLoading || weeklyLoading || baselineLoading,
   };
