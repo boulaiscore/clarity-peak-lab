@@ -74,6 +74,8 @@ export interface GameGatingResult {
     currentValue: number;
     requiredValue: number;
     metric: string;
+    /** True when the required value was adapted to the user's own range. */
+    personalized: boolean;
   } | null;
   unlockActions: string[];
 }
