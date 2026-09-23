@@ -146,6 +146,13 @@ export function useGamesGating(): UseGamesGatingResult {
   
   // Get baseline status for safety rule
   const { isCalibrated, isLoading: baselineLoading } = useBaselineStatus();
+
+  // Personal range over the last 30 days → adaptive (never stricter) thresholds
+  const { history: metricHistory } = useMetricHistory({ days: 30 });
+  const calibration = useMemo(
+    () => buildPersonalCalibration(metricHistory ?? []),
+    [metricHistory],
+  );
   
   // Get plan configuration
   const planId = DEFAULT_TRAINING_PLAN_ID;
