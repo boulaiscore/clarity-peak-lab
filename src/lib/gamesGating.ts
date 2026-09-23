@@ -120,7 +120,8 @@ export function checkGameAvailability(
   readiness: number,
   recovery: number,
   caps: GamesCaps,
-  planModifiers?: TrainingPlanModifiers
+  planModifiers?: TrainingPlanModifiers,
+  calibration: PersonalCalibration = EMPTY_CALIBRATION
 ): GameAvailability {
   const thresholds: GameThreshold[] = [];
   const unlockActions: string[] = [];
@@ -129,6 +130,13 @@ export function checkGameAvailability(
 
   const s2Modifier = planModifiers?.s2ThresholdModifier ?? 0;
   const requireRecForS2 = planModifiers?.requireRecForS2 ?? 50;
+
+  // Personal thresholds: relax (never tighten) the cognitive minimums around
+  // the user's own typical range so drills stay reachable.
+  const personalSharpness = (canonical: number, system: "S1" | "S2") =>
+    personalizeMinThreshold(canonical, calibration.typicalSharpness, system, calibration.isActive);
+  const personalReadiness = (canonical: number, system: "S1" | "S2") =>
+    personalizeMinThreshold(canonical, calibration.typicalReadiness, system, calibration.isActive);
 
   switch (gameType) {
     // ============================================
