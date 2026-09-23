@@ -112,6 +112,14 @@ export interface UseGamesGatingResult {
   // Post-baseline safety rule
   safetyRuleActive: boolean;
   isCalibrated: boolean;
+
+  // Personal (adaptive) thresholds
+  personalThresholds: {
+    active: boolean;
+    sampleDays: number;
+    typicalSharpness: number | null;
+    typicalReadiness: number | null;
+  };
   
   // Helper function
   checkGame: (gymArea: string, thinkingMode: string) => GameGatingResult;
