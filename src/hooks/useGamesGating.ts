@@ -299,13 +299,14 @@ export function useGamesGating(): UseGamesGatingResult {
           currentValue: firstThreshold.current,
           requiredValue: firstThreshold.required,
           metric: firstThreshold.metric,
+          personalized: calibration.isActive && firstThreshold.metric !== "Recovery",
         } : null,
         unlockActions: availability.unlockActions,
       };
     }
     
     return result;
-  }, [gamesAvailability, caps, planId, gatingModifiers, recoveryEffective]);
+  }, [gamesAvailability, caps, planId, gatingModifiers, recoveryEffective, calibration]);
   
   // Helper function to check a specific game by area and mode
   const checkGame = (gymArea: string, thinkingMode: string): GameGatingResult => {
