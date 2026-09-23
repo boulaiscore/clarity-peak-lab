@@ -15,6 +15,8 @@ import { PassiveStateFactors } from "@/components/metrics/PassiveStateFactors";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { METRIC_COLORS } from "@/lib/metricColors";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
+import { LAB_RECOVERY_ROUTE, labGamesRoute } from "@/lib/labRoutes";
+import { S2_ENTRY_SHARPNESS } from "@/lib/gamesGating";
 
 interface IntuitionTabProps {
   onBackToOverview?: () => void;
@@ -48,7 +50,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
 
   const cta = useMemo(() => {
     if (recovery < 45) {
-      return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
+      return { label: "Start Recovery", link: LAB_RECOVERY_ROUTE };
     }
 
     const s1Potential = 0.6 * (100 - S1) * recoveryModifier;
@@ -60,10 +62,17 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       { key: "S2", value: s2Potential },
     ].reduce((a, b) => (a.value > b.value ? a : b)).key;
 
-    if (bottleneck === "S1") return { label: "Train Fast Processing", link: "/neuro-lab?tab=games&system=fast" };
-    if (bottleneck === "S2") return { label: "Train Deliberate Reasoning", link: "/neuro-lab?tab=games&system=slow" };
-    return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
-  }, [S1, S2, recovery, recoveryModifier]);
+    if (bottleneck === "S1") return { label: "Train Fast Processing", link: labGamesRoute("fast") };
+    if (bottleneck === "S2") {
+      // System 2 drills stay locked until Sharpness reaches their entry level.
+      // Sending the user there would create a dead end, so route to System 1 first.
+      if (sharpness < S2_ENTRY_SHARPNESS) {
+        return { label: "Train Fast Processing first", link: labGamesRoute("fast") };
+      }
+      return { label: "Train Analytical Reasoning", link: labGamesRoute("slow") };
+    }
+    return { label: "Start Recovery", link: LAB_RECOVERY_ROUTE };
+  }, [S1, S2, recovery, recoveryModifier, sharpness]);
 
   return (
     <div className="space-y-6 pb-8">
