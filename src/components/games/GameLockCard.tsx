@@ -26,8 +26,6 @@ interface LockContent {
 import { LAB_RECOVERY_ROUTE, labGamesRoute } from "@/lib/labRoutes";
 
 const RECOVERY_ROUTE = LAB_RECOVERY_ROUTE;
-const FAST_ROUTE = "fast" as const;
-const SLOW_ROUTE = "slow" as const;
 
 function buildLockContent(gating: GameGatingResult): LockContent {
   switch (gating.reasonCode) {
