@@ -246,7 +246,8 @@ export function checkGameAvailability(
     case "S2-IN": {
       const config = S2_THRESHOLDS["S2-IN"];
       const insightMax = planModifiers?.insightMaxPerWeek ?? DEFAULT_CAPS.insightWeeklyMax;
-      const minSharpness = config.minSharpness + s2Modifier;
+      const minSharpness = personalSharpness(config.minSharpness + s2Modifier, "S2");
+      const minReadinessIn = personalReadiness(config.minReadiness, "S2");
       const minREC = Math.max(config.minREC, requireRecForS2);
       
       // S2 HARD BLOCK: Recovery < 45
