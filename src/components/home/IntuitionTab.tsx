@@ -97,6 +97,12 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
         </p>
       )}
 
+      <Link to={cta.link} className="block">
+        <Button variant="premium" className="h-12 w-full text-sm">
+          {cta.label}
+        </Button>
+      </Link>
+
       <MetricInterpretationNote changeDrivers="recovery and fast-processing or reasoning practice" />
 
       <MetricFactorsSection>
@@ -146,12 +152,6 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       {signalCoverage > 0 && (
         <PassiveStateFactors sources={signalSources} digitalAttention={digitalAttention} />
       )}
-
-      <Link to={cta.link} className="block pt-1">
-        <Button variant="premium" className="w-full h-12 text-sm">
-          {cta.label}
-        </Button>
-      </Link>
 
       <Collapsible open={infoOpen} onOpenChange={setInfoOpen}>
         <CollapsibleTrigger className="flex items-center justify-between w-full py-3 px-1 text-xs text-muted-foreground hover:text-foreground transition-colors">

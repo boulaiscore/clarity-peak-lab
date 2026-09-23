@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Lock, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GameGatingResult } from "@/hooks/useGamesGating";
+import { Button } from "@/components/ui/button";
 
 interface LockAction {
   label: string;
@@ -20,7 +21,6 @@ interface LockContent {
   title: string;
   why: string;
   actions: LockAction[];
-  note?: string;
 }
 
 import { LAB_RECOVERY_ROUTE, labGamesRoute } from "@/lib/labRoutes";
@@ -32,20 +32,18 @@ function buildLockContent(gating: GameGatingResult): LockContent {
     case "RECOVERY_TOO_LOW":
     case "SUPERHUMAN_REC_REQUIRED":
       return {
-        title: "Recovery is too low right now",
-        why: "Training in this state lowers your scores instead of building them. It reopens as soon as Recovery reaches the level below.",
+        title: "Recovery needs to rise first",
+        why: "This protects the quality of your result when your available energy is low.",
         actions: [
           { label: "Start a recovery session", to: RECOVERY_ROUTE },
-          { label: "Take a screen-free break" },
         ],
       };
     case "SHARPNESS_TOO_LOW":
       return {
-        title: "Sharpness is below the level this drill needs",
-        why: "These drills only measure something real when your clarity is high enough. Fast-processing work is the quickest way to raise it today.",
+        title: "Build Sharpness first",
+        why: "A short Fast · intuitive drill is the most direct next step.",
         actions: [
           { label: "Open Fast · intuitive drills", to: labGamesRoute("fast") },
-          { label: "Or rest and retry later" },
         ],
       };
     case "SHARPNESS_TOO_HIGH":
@@ -57,10 +55,9 @@ function buildLockContent(gating: GameGatingResult): LockContent {
     case "READINESS_TOO_LOW":
       return {
         title: "Readiness is below the level this drill needs",
-        why: "Readiness reflects how much demanding work your day can absorb. Rest or wait a few hours and it usually comes back up.",
+        why: "Recover before adding demanding analytical work.",
         actions: [
           { label: "Start a recovery session", to: RECOVERY_ROUTE },
-          { label: "Or retry in 2–4 hours" },
         ],
       };
     case "READINESS_OUT_OF_RANGE":
@@ -76,7 +73,6 @@ function buildLockContent(gating: GameGatingResult): LockContent {
         why: "You already did today's useful volume. More sessions today would add load without adding measurable gain.",
         actions: [
           { label: "Recover instead", to: RECOVERY_ROUTE },
-          { label: "Resets tomorrow morning" },
         ],
       };
     case "CAP_REACHED_WEEKLY_S2":
@@ -86,7 +82,6 @@ function buildLockContent(gating: GameGatingResult): LockContent {
         why: "Deliberate reasoning is capped per week so results stay comparable over time.",
         actions: [
           { label: "Open Fast · intuitive drills", to: labGamesRoute("fast") },
-          { label: "Resets at the start of next week" },
         ],
       };
     default:
@@ -120,10 +115,15 @@ export function GameLockCard({
       ? Math.max(4, Math.min(100, (current / required) * 100))
       : null;
 
+  const thresholdExplanation = details && required != null
+    ? `${required} starts LOOMA's Ready zone for demanding reasoning. It is a product rule, not a clinical cutoff.`
+    : null;
+
   const handleAction = (action: LockAction) => {
-    if (!action.to) return;
+    const destination = action.to;
+    if (!destination) return;
     onNavigate?.();
-    setTimeout(() => navigate(action.to!), 150);
+    setTimeout(() => navigate(destination), 150);
   };
 
   return (
@@ -149,11 +149,11 @@ export function GameLockCard({
       {details && current != null && required != null && (
         <div className="mt-3 rounded-lg border border-border/30 bg-background/40 px-3 py-2.5">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
-              Unlock criterion
+            <span className="text-[10px] font-medium text-muted-foreground">
+              {details.metric}
             </span>
-            <span className="text-[11px] tabular-nums text-foreground/85">
-              {details.metric} {current} · needs {required}
+            <span className="text-[12px] font-semibold tabular-nums text-foreground">
+              {current} / {required}
             </span>
           </div>
           {progress != null && (
@@ -164,24 +164,27 @@ export function GameLockCard({
               />
             </div>
           )}
+          {thresholdExplanation && (
+            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground/70">
+              {thresholdExplanation}
+            </p>
+          )}
         </div>
       )}
 
       <div className="mt-3 space-y-1.5">
-        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
-          What to do now
-        </p>
         {content.actions.map((action) =>
           action.to ? (
-            <button
+            <Button
               key={action.label}
               type="button"
+              variant="subtle"
               onClick={() => handleAction(action)}
-              className="flex w-full items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/50 px-3 py-2 text-left text-[12px] font-medium text-foreground transition-colors hover:bg-background active:scale-[0.99]"
+              className="h-9 w-full justify-between rounded-lg px-3 text-left text-[12px]"
             >
               <span className="min-w-0 truncate">{action.label}</span>
               <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            </button>
+            </Button>
           ) : (
             <p key={action.label} className="px-1 text-[11px] text-muted-foreground/75">
               {action.label}
