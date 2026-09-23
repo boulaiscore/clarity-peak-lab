@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronDown, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NeuroLabArea } from "@/lib/neuroLab";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LAB_MODE_CARD_AMBIENCE_CLASS, LAB_MODE_CARD_CLASS } from "@/components/lab/labModeCardStyles";
 
 import { SystemNetworkVisual } from "./SystemNetworkVisual";
@@ -82,6 +82,15 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
     systemFromUrl === "fast" || systemFromUrl === "slow" ? systemFromUrl : null
   );
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Re-open the requested system whenever the URL asks for one (a nonce in the
+  // query string makes repeated requests from lock cards land here too).
+  const systemRequestKey = `${systemFromUrl ?? ""}:${searchParams.get("o") ?? ""}`;
+  useEffect(() => {
+    if (systemFromUrl === "fast" || systemFromUrl === "slow") {
+      setOpenSystem(systemFromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [systemRequestKey]);
   const [pickerArea, setPickerArea] = useState<NeuroLabArea>("focus");
   const [pickerMode, setPickerMode] = useState<ThinkingSystem>("fast");
   const [pendingGame, setPendingGame] = useState<{ areaId: NeuroLabArea; mode: ThinkingSystem } | null>(null);
@@ -155,9 +164,6 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                   <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground">
                     {system.label}
                   </span>
-                  <span className="text-[7px] font-semibold uppercase tracking-[0.16em] text-foreground">
-                    {isFast ? "Rapid" : "Structured"}
-                  </span>
                 </div>
 
                 <div className="flex min-h-0 flex-1 items-center justify-center">
@@ -166,7 +172,7 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
 
                 <div className="h-[52px] shrink-0 border-t border-border/35 pt-2.5">
                   <p className="truncate whitespace-nowrap text-[12px] font-semibold leading-none tracking-tight text-foreground">
-                    {isFast ? "Fast · intuitive" : "Slow · deliberate"}
+                    {isFast ? "Fast · intuitive" : "Slow · analytical"}
                   </p>
                   <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
                     <p className="min-w-0 truncate whitespace-nowrap text-[9px] font-medium leading-none text-foreground">

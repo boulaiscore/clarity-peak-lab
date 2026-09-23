@@ -26,6 +26,7 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
   const {
     readiness,
     recovery,
+    sharpness,
     S2,
     AE,
     readinessCognitiveComponent,

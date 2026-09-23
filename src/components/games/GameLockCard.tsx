@@ -23,9 +23,11 @@ interface LockContent {
   note?: string;
 }
 
-const RECOVERY_ROUTE = "/neuro-lab?tab=detox";
-const FAST_ROUTE = "/neuro-lab?tab=games&system=fast";
-const SLOW_ROUTE = "/neuro-lab?tab=games&system=slow";
+import { LAB_RECOVERY_ROUTE, labGamesRoute } from "@/lib/labRoutes";
+
+const RECOVERY_ROUTE = LAB_RECOVERY_ROUTE;
+const FAST_ROUTE = "fast" as const;
+const SLOW_ROUTE = "slow" as const;
 
 function buildLockContent(gating: GameGatingResult): LockContent {
   switch (gating.reasonCode) {
@@ -44,7 +46,7 @@ function buildLockContent(gating: GameGatingResult): LockContent {
         title: "Sharpness is below the level this drill needs",
         why: "These drills only measure something real when your clarity is high enough. Fast-processing work is the quickest way to raise it today.",
         actions: [
-          { label: "Train fast processing first", to: FAST_ROUTE },
+          { label: "Open Fast · intuitive drills", to: labGamesRoute("fast") },
           { label: "Or rest and retry later" },
         ],
       };
@@ -52,7 +54,7 @@ function buildLockContent(gating: GameGatingResult): LockContent {
       return {
         title: "Reserved for a lower sharpness range",
         why: "You are already above the range this drill is designed for, so it would not add anything today.",
-        actions: [{ label: "Go to deliberate reasoning", to: SLOW_ROUTE }],
+        actions: [{ label: "Open Slow · analytical drills", to: labGamesRoute("slow") }],
       };
     case "READINESS_TOO_LOW":
       return {
@@ -67,7 +69,7 @@ function buildLockContent(gating: GameGatingResult): LockContent {
       return {
         title: "Readiness is outside this drill's range",
         why: "Insight work needs a middle readiness range. Right now Critical Thinking is the better use of your state.",
-        actions: [{ label: "Go to Critical Thinking", to: SLOW_ROUTE }],
+        actions: [{ label: "Open Slow · analytical drills", to: labGamesRoute("slow") }],
       };
     case "CAP_REACHED_DAILY_S1":
     case "CAP_REACHED_DAILY_S2":
@@ -85,7 +87,7 @@ function buildLockContent(gating: GameGatingResult): LockContent {
         title: "Weekly limit for this drill reached",
         why: "Deliberate reasoning is capped per week so results stay comparable over time.",
         actions: [
-          { label: "Train fast processing", to: FAST_ROUTE },
+          { label: "Open Fast · intuitive drills", to: labGamesRoute("fast") },
           { label: "Resets at the start of next week" },
         ],
       };
