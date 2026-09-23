@@ -273,10 +273,10 @@ export function checkGameAvailability(
         unlockActions.push("Detox session", "No-screens break");
       }
       
-      // Check 50 <= Readiness <= 70
-      if (readiness < config.minReadiness) {
+      // Check 50 <= Readiness <= 70 (lower bound personalised)
+      if (readiness < minReadinessIn) {
         enabled = false;
-        thresholds.push({ metric: "Readiness", current: readiness, required: config.minReadiness });
+        thresholds.push({ metric: "Readiness", current: readiness, required: minReadinessIn });
         unlockActions.push("Short rest", "Low-demand activity first");
       }
       if (readiness > config.maxReadiness) {
