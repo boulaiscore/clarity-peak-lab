@@ -335,6 +335,12 @@ export function useGamesGating(): UseGamesGatingResult {
     recoveryV2,
     safetyRuleActive,
     isCalibrated,
+    personalThresholds: {
+      active: calibration.isActive,
+      sampleDays: calibration.sampleDays,
+      typicalSharpness: calibration.typicalSharpness,
+      typicalReadiness: calibration.typicalReadiness,
+    },
     checkGame,
     isLoading: metricsLoading || recoveryLoading || todayLoading || weeklyLoading || baselineLoading,
   };
