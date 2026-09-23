@@ -163,18 +163,20 @@ export function checkGameAvailability(
 
     case "S1-RA": {
       const config = S1_THRESHOLDS["S1-RA"];
+      const minSharpness = personalSharpness(config.minSharpness, "S1");
+      const minReadiness = personalReadiness(config.minReadiness, "S1");
       
-      // Check Sharpness >= 45
-      if (sharpness < config.minSharpness) {
+      // Check Sharpness >= 45 (personalised)
+      if (sharpness < minSharpness) {
         enabled = false;
-        thresholds.push({ metric: "Sharpness", current: sharpness, required: config.minSharpness });
+        thresholds.push({ metric: "Sharpness", current: sharpness, required: minSharpness });
         unlockActions.push("Light focus activity", "S1-AE session first");
       }
       
-      // Check Readiness >= 35
-      if (readiness < config.minReadiness) {
+      // Check Readiness >= 35 (personalised)
+      if (readiness < minReadiness) {
         enabled = false;
-        thresholds.push({ metric: "Readiness", current: readiness, required: config.minReadiness });
+        thresholds.push({ metric: "Readiness", current: readiness, required: minReadiness });
         unlockActions.push("Short rest", "Delay by 1-2 hours");
       }
       
