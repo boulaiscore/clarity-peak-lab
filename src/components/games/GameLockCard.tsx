@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Lock, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GameGatingResult } from "@/hooks/useGamesGating";
+import { Button } from "@/components/ui/button";
 
 interface LockAction {
   label: string;
@@ -115,7 +116,7 @@ export function GameLockCard({
       : null;
 
   const thresholdExplanation = details && required != null
-    ? `${required} is LOOMA's entry level for ${details.metric.toLowerCase()} in this drill. It is a quality-control rule for comparable results, not a clinical cutoff.`
+    ? `${required} starts LOOMA's Ready zone for demanding reasoning. It is a product rule, not a clinical cutoff.`
     : null;
 
   const handleAction = (action: LockAction) => {
@@ -149,7 +150,7 @@ export function GameLockCard({
         <div className="mt-3 rounded-lg border border-border/30 bg-background/40 px-3 py-2.5">
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-[10px] font-medium text-muted-foreground">
-              Current
+              {details.metric}
             </span>
             <span className="text-[12px] font-semibold tabular-nums text-foreground">
               {current} / {required}
@@ -174,15 +175,16 @@ export function GameLockCard({
       <div className="mt-3 space-y-1.5">
         {content.actions.map((action) =>
           action.to ? (
-            <button
+            <Button
               key={action.label}
               type="button"
+              variant="subtle"
               onClick={() => handleAction(action)}
-              className="flex w-full items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/50 px-3 py-2 text-left text-[12px] font-medium text-foreground transition-colors hover:bg-background active:scale-[0.99]"
+              className="h-9 w-full justify-between rounded-lg px-3 text-left text-[12px]"
             >
               <span className="min-w-0 truncate">{action.label}</span>
               <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            </button>
+            </Button>
           ) : (
             <p key={action.label} className="px-1 text-[11px] text-muted-foreground/75">
               {action.label}

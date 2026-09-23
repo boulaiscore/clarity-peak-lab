@@ -161,10 +161,12 @@ export function GamesLibrary({ onStartGame }: GamesLibraryProps) {
                 LAB_MODE_CARD_CLASS,
                 isOpen
                   ? "border-primary/70 bg-card ring-1 ring-primary/35 shadow-lg"
-                  : "border-border/35 opacity-60 saturate-50",
+                  : openSystem
+                    ? "border-border/35 opacity-60 saturate-50"
+                    : "border-border/50",
               )}
             >
-              <div className={cn(LAB_MODE_CARD_AMBIENCE_CLASS, !isOpen && "opacity-35")} />
+              <div className={cn(LAB_MODE_CARD_AMBIENCE_CLASS, openSystem && !isOpen && "opacity-35")} />
               <div className="relative flex h-full flex-col">
                 <div className="flex h-4 shrink-0 items-start justify-between">
                   <span className="text-[8px] font-semibold uppercase leading-none tracking-[0.18em] text-foreground">
