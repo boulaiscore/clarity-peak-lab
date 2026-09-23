@@ -144,11 +144,12 @@ export function checkGameAvailability(
     // ============================================
     case "S1-AE": {
       const config = S1_THRESHOLDS["S1-AE"];
+      const minSharpness = personalSharpness(config.minSharpness, "S1");
       
-      // Check Sharpness >= 40
-      if (sharpness < config.minSharpness) {
+      // Check Sharpness >= 40 (personalised)
+      if (sharpness < minSharpness) {
         enabled = false;
-        thresholds.push({ metric: "Sharpness", current: sharpness, required: config.minSharpness });
+        thresholds.push({ metric: "Sharpness", current: sharpness, required: minSharpness });
         unlockActions.push("Light warm-up activity", "Brief rest");
       }
       
