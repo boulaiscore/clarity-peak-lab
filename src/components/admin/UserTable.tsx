@@ -72,7 +72,6 @@ export function UserTable({ users, isLoading }: UserTableProps) {
         <TableRow>
           <TableHead>Name</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Plan</TableHead>
           <TableHead>Sessions</TableHead>
           <TableHead>Level</TableHead>
           <TableHead>Joined</TableHead>
@@ -91,7 +90,6 @@ export function UserTable({ users, isLoading }: UserTableProps) {
               </div>
             </TableCell>
             <TableCell>{getSubscriptionBadge(user.subscription_status)}</TableCell>
-            <TableCell className="capitalize">{user.training_plan || "—"}</TableCell>
             <TableCell>{user.total_sessions ?? 0}</TableCell>
             <TableCell>
               <span className="font-mono text-sm">

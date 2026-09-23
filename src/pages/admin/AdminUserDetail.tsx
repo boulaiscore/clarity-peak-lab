@@ -160,10 +160,6 @@ export default function AdminUserDetail() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Plan</span>
-                  <span className="capitalize">{user.training_plan || "—"}</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Sessions</span>
                   <span>{user.total_sessions ?? 0}</span>
                 </div>
