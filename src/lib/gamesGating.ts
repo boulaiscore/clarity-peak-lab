@@ -77,6 +77,9 @@ const S1_THRESHOLDS = {
   },
 };
 
+/** Lowest Sharpness at which any System 2 drill can unlock (S2-IN). */
+export const S2_ENTRY_SHARPNESS = 60;
+
 const S2_THRESHOLDS = {
   "S2-CT": {
     // enabled IF (Sharpness >= 65) AND (Readiness >= 60) AND (REC >= 50)
