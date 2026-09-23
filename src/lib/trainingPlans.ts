@@ -510,8 +510,9 @@ export const TRAINING_PLANS: Record<TrainingPlanId, TrainingPlan> = {
 
 export const DEFAULT_TRAINING_PLAN = TRAINING_PLANS[DEFAULT_TRAINING_PLAN_ID];
 
-export function getTrainingPlan(id: TrainingPlanId): TrainingPlan {
-  return TRAINING_PLANS[id];
+export function getTrainingPlan(_id: TrainingPlanId): TrainingPlan {
+  // Plans are eliminated as a concept: every user is on the single canonical protocol.
+  return TRAINING_PLANS[DEFAULT_TRAINING_PLAN_ID];
 }
 
 export function getPlanColor(id: TrainingPlanId): string {
@@ -535,6 +536,7 @@ export function getPlanIntensityLabel(intensity: "low" | "medium" | "high"): str
 /**
  * Get games gating modifiers for a training plan
  */
-export function getPlanGamesGatingModifiers(planId: TrainingPlanId): TrainingPlan["gamesGating"] {
-  return TRAINING_PLANS[planId].gamesGating;
+export function getPlanGamesGatingModifiers(_planId: TrainingPlanId): TrainingPlan["gamesGating"] {
+  // Single canonical protocol: legacy plan ids always resolve to the default modifiers.
+  return TRAINING_PLANS[DEFAULT_TRAINING_PLAN_ID].gamesGating;
 }
