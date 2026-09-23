@@ -31,6 +31,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { useBaselineStatus } from "@/hooks/useBaselineStatus";
+import { useMetricHistory } from "@/hooks/useMetricHistory";
+import { buildPersonalCalibration } from "@/lib/adaptiveThresholds";
 import { useRecordIntradayOnAction } from "@/hooks/useRecordIntradayOnAction";
 import {
   calculateGameSkillUpdate,
