@@ -350,10 +350,10 @@ export function getAllGamesAvailability(
   
   // First compute standard availability
   const result: Record<GameType, GameAvailability> = {
-    "S1-AE": checkGameAvailability("S1-AE", sharpness, readiness, recovery, caps, planModifiers),
-    "S1-RA": checkGameAvailability("S1-RA", sharpness, readiness, recovery, caps, planModifiers),
-    "S2-CT": checkGameAvailability("S2-CT", sharpness, readiness, recovery, caps, planModifiers),
-    "S2-IN": checkGameAvailability("S2-IN", sharpness, readiness, recovery, caps, planModifiers),
+    "S1-AE": checkGameAvailability("S1-AE", sharpness, readiness, recovery, caps, planModifiers, calibration),
+    "S1-RA": checkGameAvailability("S1-RA", sharpness, readiness, recovery, caps, planModifiers, calibration),
+    "S2-CT": checkGameAvailability("S2-CT", sharpness, readiness, recovery, caps, planModifiers, calibration),
+    "S2-IN": checkGameAvailability("S2-IN", sharpness, readiness, recovery, caps, planModifiers, calibration),
   };
 
   // ============================================
