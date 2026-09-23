@@ -331,7 +331,8 @@ export function getAllGamesAvailability(
   recovery: number,
   caps: GamesCaps,
   planModifiers?: TrainingPlanModifiers,
-  isCalibrated?: boolean
+  isCalibrated?: boolean,
+  calibration: PersonalCalibration = EMPTY_CALIBRATION
 ): Record<GameType, GameAvailability> {
   // ============================================
   // TEST MODE BYPASS (v1.5)
