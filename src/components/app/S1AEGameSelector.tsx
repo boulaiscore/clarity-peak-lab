@@ -20,6 +20,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
+import { GameLockCard } from "@/components/games/GameLockCard";
 import { useAEGuidance } from "@/hooks/useAEGuidance";
 import { useS1Difficulty } from "@/hooks/useS1Difficulty";
 import { S1DifficultySelector } from "./S1DifficultySelector";
@@ -233,23 +234,9 @@ export function S1AEGameSelector({ open, onOpenChange }: S1AEGameSelectorProps) 
 
               <div className="space-y-3 pb-6">
                 {/* Show lock banner if games are locked */}
-                {isLocked && (
-                  <Alert className={cn(
-                    "border",
-                    isProtection 
-                      ? "border-protection/30 bg-protection/5" 
-                      : "border-muted-foreground/20 bg-muted/30"
-                  )}>
-                    {isProtection ? (
-                      <ShieldAlert className="h-4 w-4 text-protection" />
-                    ) : (
-                      <Lock className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <AlertDescription className="text-xs text-muted-foreground">
-                      {getWithholdReason(s1aeGating?.reasonCode)}
-                    </AlertDescription>
-                  </Alert>
-                )}
+                {isLocked && s1aeGating && (
+              <GameLockCard gating={s1aeGating} onNavigate={() => onOpenChange(false)} />
+            )}
                 {showSkeleton ? (
                   // Loading skeleton
                   <>

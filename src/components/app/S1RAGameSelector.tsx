@@ -21,6 +21,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
+import { GameLockCard } from "@/components/games/GameLockCard";
 import { useS1Difficulty } from "@/hooks/useS1Difficulty";
 import { S1DifficultySelector } from "./S1DifficultySelector";
 import { Difficulty } from "@/lib/s1DifficultyEngine";
@@ -206,23 +207,9 @@ export function S1RAGameSelector({ open, onOpenChange }: S1RAGameSelectorProps) 
               
               <div className="space-y-3 pb-6">
                 {/* Show lock banner if games are locked */}
-                {isLocked && (
-                  <Alert className={cn(
-                    "border",
-                    isProtection 
-                      ? "border-protection/30 bg-protection/5" 
-                      : "border-muted-foreground/20 bg-muted/30"
-                  )}>
-                    {isProtection ? (
-                      <ShieldAlert className="h-4 w-4 text-protection" />
-                    ) : (
-                      <Lock className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <AlertDescription className="text-xs text-muted-foreground">
-                      {getWithholdReason(s1raGating?.reasonCode)}
-                    </AlertDescription>
-                  </Alert>
-                )}
+                {isLocked && s1raGating && (
+              <GameLockCard gating={s1raGating} onNavigate={() => onOpenChange(false)} />
+            )}
                 
                 {showSkeleton ? (
                   <Skeleton className="h-28 w-full rounded-xl" />
