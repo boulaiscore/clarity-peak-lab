@@ -15,6 +15,8 @@ import { PassiveStateFactors } from "@/components/metrics/PassiveStateFactors";
 import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { METRIC_COLORS } from "@/lib/metricColors";
 import { getReadinessStatus } from "@/lib/metricStatusLabels";
+import { LAB_RECOVERY_ROUTE, labGamesRoute } from "@/lib/labRoutes";
+import { S2_ENTRY_SHARPNESS } from "@/lib/gamesGating";
 
 interface ReasoningTabProps {
   onBackToOverview?: () => void;
@@ -49,7 +51,7 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
 
   const cta = useMemo(() => {
     if (recovery < 45 || (signalCoverage >= 0.35 && dailyState < 40)) {
-      return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
+      return { label: "Start Recovery", link: LAB_RECOVERY_ROUTE };
     }
 
     const candidates = [
@@ -58,10 +60,16 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
       { key: "AE", value: 0.30 * (100 - AE) },
     ];
     const bottleneck = candidates.reduce((a, b) => (a.value > b.value ? a : b)).key;
-    if (bottleneck === "S2") return { label: "Train Deliberate Reasoning", link: "/neuro-lab?tab=games&system=slow" };
-    if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: "/neuro-lab?tab=games&system=fast" };
-    return { label: "Start Recovery", link: "/neuro-lab?tab=detox" };
-  }, [AE, S2, dailyState, recovery, signalCoverage]);
+    if (bottleneck === "S2") {
+      // Avoid sending the user to System 2 drills that are still gated by Sharpness.
+      if (sharpness < S2_ENTRY_SHARPNESS) {
+        return { label: "Train Fast Processing first", link: labGamesRoute("fast") };
+      }
+      return { label: "Train Analytical Reasoning", link: labGamesRoute("slow") };
+    }
+    if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: labGamesRoute("fast") };
+    return { label: "Start Recovery", link: LAB_RECOVERY_ROUTE };
+  }, [AE, S2, dailyState, recovery, sharpness, signalCoverage]);
 
   return (
     <div className="space-y-6 pb-8">
