@@ -24,6 +24,11 @@
 
 import type { CognitiveStates } from "./cognitiveEngine";
 import { isTestModeEnabled } from "@/hooks/useTestMode";
+import {
+  EMPTY_CALIBRATION,
+  personalizeMinThreshold,
+  type PersonalCalibration,
+} from "./adaptiveThresholds";
 
 export type GameType = "S1-AE" | "S1-RA" | "S2-CT" | "S2-IN";
 
