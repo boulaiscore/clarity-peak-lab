@@ -382,7 +382,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       readinessBreakdown,
       isLoading: !displayReady,
     };
-  }, [states, S1, S2, recoveryV2State, phoneHealthSnapshot, phoneHealthLoading, wearableSnapshot, wearableLoading, passiveContext, today, decayData, rollingStart, displayReady]);
+  }, [states, S1, S2, recoveryV2State, phoneHealthSnapshot, phoneHealthLoading, wearableSnapshot, wearableLoading, passiveContext, today, decayData, rollingStart, displayReady, recoveryTargetForDate, wearableHistory]);
   
   // Update the display cache as soon as core metrics are available. Optional
   // sources update the same result in place when their requests resolve.
