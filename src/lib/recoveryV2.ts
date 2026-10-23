@@ -464,6 +464,7 @@ export function calculateCurrentRecoveryBreakdown(
   state: RecoveryState | null | undefined,
   targetOverride?: number | null,
   nowTs: string = new Date().toISOString(),
+  targetForDate?: RecoveryTargetResolver | null,
 ): CurrentRecoveryBreakdown {
   const target = resolveRecoveryForMetrics(null, targetOverride);
   if (!state || !hasValidRecoveryData(state)) {
@@ -481,7 +482,7 @@ export function calculateCurrentRecoveryBreakdown(
   const storedValue = Math.max(0, Math.min(100, state.recValue as number));
   const storedAt = state.recLastTs as string;
   const elapsedDays = calendarDaysBetween(storedAt, nowTs);
-  const currentValue = applyRecoveryDecay(storedValue, storedAt, nowTs, target);
+  const currentValue = applyRecoveryDecay(storedValue, storedAt, nowTs, target, targetForDate);
   return {
     storedValue: roundRecovery(storedValue),
     storedAt,
