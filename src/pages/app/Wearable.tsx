@@ -66,6 +66,21 @@ function SignalState({ label, active }: { label: string; active: boolean }) {
   );
 }
 
+function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function ReadingsRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-medium text-white/80">{value}</span>
+    </div>
+  );
+}
+
 const Health = () => {
   const { user } = useAuth();
   const healthHub = useWearableSync();
@@ -113,6 +128,15 @@ const Health = () => {
     movement: phoneHealth?.steps != null || phoneHealth?.active_min != null,
   }), [hasTodayWearableData, phoneHealth, wearableData]);
   const observedCount = Object.values(signals).filter(Boolean).length;
+  const sleepMin = phoneHealth?.sleep_min ?? (hasTodayWearableData ? wearableData?.sleep_duration_min ?? null : null);
+  const sleepEfficiency = hasTodayWearableData ? wearableData?.sleep_efficiency ?? null : null;
+  const readings = useMemo(() => [
+    { label: "Sleep", value: sleepMin != null ? formatDuration(sleepMin) + (sleepEfficiency != null ? ` · ${Math.round(sleepEfficiency)}%` : "") : null },
+    { label: "HRV", value: hasTodayWearableData && wearableData?.hrv_ms != null ? `${Math.round(wearableData.hrv_ms)} ms` : null },
+    { label: "Resting heart rate", value: hasTodayWearableData && wearableData?.resting_hr != null ? `${Math.round(wearableData.resting_hr)} bpm` : null },
+    { label: "Steps", value: phoneHealth?.steps != null ? phoneHealth.steps.toLocaleString() : null },
+    { label: "Active minutes", value: phoneHealth?.active_min != null ? `${phoneHealth.active_min} min` : null },
+  ].filter((reading) => reading.value != null), [sleepMin, sleepEfficiency, hasTodayWearableData, wearableData, phoneHealth]);
   const connectedDirect = direct.connections.filter((connection) => connection.status === "connected");
   const primaryDirect = connectedDirect.find((connection) => connection.is_primary) ?? connectedDirect[0] ?? null;
   const anyConnected = connectedDirect.length > 0 || healthHub.isConnected;
@@ -292,6 +316,17 @@ const Health = () => {
                 <SignalState label="Resting heart rate" active={signals.rhr} />
                 <SignalState label="Movement" active={signals.movement} />
               </div>
+
+              {readings.length > 0 && (
+                <div className="mt-4 border-t border-white/[0.06] pt-4">
+                  <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-white/35">Today's readings</p>
+                  <div className="mt-1 divide-y divide-white/[0.04]">
+                    {readings.map((reading) => (
+                      <ReadingsRow key={reading.label} label={reading.label} value={reading.value as string} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-5 flex items-center justify-between border-t border-white/[0.06] pt-4">
                 <div>
