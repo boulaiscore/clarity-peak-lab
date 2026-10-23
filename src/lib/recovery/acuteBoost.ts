@@ -80,7 +80,8 @@ export function getActiveResidualBoost(
  */
 export function applyBoostToRec(recRaw: number, boost: number): number {
   if (boost <= 0) return recRaw;
-  return Math.min(ACUTE_BOOST.REC_EFFECTIVE_CAP, recRaw + boost);
+  // Never lower REC: the cap only limits how high the boost can push.
+  return Math.max(recRaw, Math.min(ACUTE_BOOST.REC_EFFECTIVE_CAP, recRaw + boost));
 }
 
 /**
