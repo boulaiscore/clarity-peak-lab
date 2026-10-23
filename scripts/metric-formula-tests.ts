@@ -95,6 +95,7 @@ closeTo(
 );
 const partialPhysio = calculatePhysioEstimate({
     hrvMs: 70,
+    hrvBaseline: { medianMs: 70, sampleDays: 10 },
     restingHr: 60,
     sleepDurationMin: 450,
     sleepEfficiency: null,
@@ -104,6 +105,7 @@ closeTo(partialPhysio.confidence, 0.84, "Partial wearable confidence");
 closeTo(partialPhysio.score, 56.3, "Partial wearable score is shrunk toward neutral");
 const deduplicatedPhysio = calculatePhysioEstimate({
   hrvMs: 70,
+  hrvBaseline: { medianMs: 70, sampleDays: 10 },
   restingHr: 60,
   sleepDurationMin: 450,
   sleepEfficiency: null,
@@ -113,6 +115,7 @@ closeTo(deduplicatedPhysio.confidence, 0.6, "Duplicate sleep duration does not c
 closeTo(
   calculatePhysioComponent({
     hrvMs: 70,
+    hrvBaseline: { medianMs: 70, sampleDays: 10 },
     restingHr: 60,
     sleepDurationMin: 450,
     sleepEfficiency: null,
