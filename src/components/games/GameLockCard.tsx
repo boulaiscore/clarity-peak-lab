@@ -117,8 +117,8 @@ export function GameLockCard({
 
   const thresholdExplanation = details && required != null
     ? details.personalized
-      ? `${required} is set from your own range over the last 30 days — it sits just above a typical day for you, so it stays reachable. It is a LOOMA rule, not a clinical cutoff.`
-      : `${required} starts LOOMA's Ready zone for this drill. Once you have a few more tracked days, this number adapts to your own range. It is a LOOMA rule, not a clinical cutoff.`
+      ? "From your own range over the last 30 days — stays reachable."
+      : "LOOMA's starting target — adapts to your range after a few tracked days."
     : null;
 
   const handleAction = (action: LockAction) => {
@@ -131,69 +131,63 @@ export function GameLockCard({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4",
-        isProtection ? "border-protection/30 bg-protection/5" : "border-border/40 bg-muted/20",
+        "rounded-xl px-3.5 py-3",
+        isProtection ? "border border-protection/25 bg-protection/5" : "border border-border/25 bg-muted/[0.08]",
         className,
       )}
     >
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-center gap-2">
         {isProtection ? (
-          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-protection" />
+          <ShieldAlert className="h-3.5 w-3.5 shrink-0 text-protection/80" />
         ) : (
-          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
         )}
-        <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-semibold leading-snug text-foreground">{content.title}</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{content.why}</p>
-        </div>
+        <p className="text-[12px] font-medium leading-none text-foreground/90">{content.title}</p>
       </div>
+      <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground/80">{content.why}</p>
 
       {details && current != null && required != null && (
-        <div className="mt-3 rounded-lg border border-border/30 bg-background/40 px-3 py-2.5">
+        <div className="mt-2.5">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[10px] font-medium text-muted-foreground">
-              {details.metric}
-            </span>
-            <span className="text-[12px] font-semibold tabular-nums text-foreground">
-              {current} / {required}
+            <span className="text-[10px] font-medium text-muted-foreground/70">{details.metric}</span>
+            <span className="text-[11px] font-medium tabular-nums text-muted-foreground">
+              {current} <span className="text-muted-foreground/50">/ {required}</span>
             </span>
           </div>
           {progress != null && (
-            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted/40">
+            <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-muted/40">
               <div
-                className="h-full rounded-full bg-foreground/55 transition-all duration-500"
+                className="h-full rounded-full bg-foreground/35 transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             </div>
           )}
-          {thresholdExplanation && (
-            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground/70">
-              {thresholdExplanation}
-            </p>
-          )}
         </div>
       )}
 
-      <div className="mt-3 space-y-1.5">
-        {content.actions.map((action) =>
-          action.to ? (
-            <Button
-              key={action.label}
-              type="button"
-              variant="subtle"
-              onClick={() => handleAction(action)}
-              className="h-9 w-full justify-between rounded-lg px-3 text-left text-[12px]"
-            >
-              <span className="min-w-0 truncate">{action.label}</span>
-              <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            </Button>
-          ) : (
-            <p key={action.label} className="px-1 text-[11px] text-muted-foreground/75">
-              {action.label}
-            </p>
-          ),
-        )}
-      </div>
+      {thresholdExplanation && (
+        <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground/45">
+          {thresholdExplanation}
+        </p>
+      )}
+
+      {content.actions.map((action) =>
+        action.to ? (
+          <button
+            key={action.label}
+            type="button"
+            onClick={() => handleAction(action)}
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-foreground/60 transition-colors hover:text-foreground"
+          >
+            {action.label}
+            <ArrowRight className="h-3 w-3" />
+          </button>
+        ) : (
+          <p key={action.label} className="mt-2 text-[11px] text-muted-foreground/75">
+            {action.label}
+          </p>
+        ),
+      )}
     </div>
   );
 }
