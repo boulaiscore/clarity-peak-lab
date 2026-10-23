@@ -48,7 +48,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
     if (sharpness >= 50) return "Steady clarity. Pace complex work and protect focus.";
     if (sharpness >= 35) return "Today favors lighter cognitive work and shorter focus blocks.";
     return "Protect capacity today; this signal can move with recovery and practice.";
-  }, [sharpness, s2EntrySharpness]);
+  }, [sharpness]);
 
   const { personalThresholds } = useGamesGating();
   const s2EntrySharpness = personalizeMinThreshold(
