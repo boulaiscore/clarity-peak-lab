@@ -7,6 +7,11 @@
  * Supports configurable date ranges and granularity.
  */
 
+import {
+  buildRecoveryTargetResolver,
+  type PhoneTargetRow,
+  type WearableTargetRow,
+} from "@/lib/recoveryTargetHistory";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,7 +67,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
           .order("date", { ascending: true }),
         supabase
           .from("wearable_daily_canonical")
-          .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency")
+          .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, source")
           .eq("user_id", user.id)
           .gte("date", startDate)
           .order("date", { ascending: true }),
@@ -91,21 +96,12 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
 
     const byDate = new Map<string, typeof rawData.metrics[number]>();
     rawData.metrics.forEach((row) => byDate.set(row.snapshot_date, row));
-    const phoneByDate = new Map(rawData.phone.map((row) => [row.date, row]));
-    const wearableByDate = new Map(rawData.wearable.map((row) => [row.date, row]));
-    const recoveryTargetForDate = (date: string): number => {
-      const phone = phoneByDate.get(date);
-      const wearable = wearableByDate.get(date);
-      const estimate = calculatePhysioEstimate(wearable ? {
-        hrvMs: wearable.hrv_ms,
-        restingHr: wearable.resting_hr,
-        sleepDurationMin: wearable.sleep_duration_min,
-        sleepEfficiency: wearable.sleep_efficiency,
-      } : null, {
-        includeSleepDuration: phone?.sleep_min == null,
-      });
-      return calculateDailyRecoveryTarget(phone?.target_rec, estimate);
-    };
+    const resolveTarget = buildRecoveryTargetResolver(
+      rawData.phone as PhoneTargetRow[],
+      rawData.wearable as WearableTargetRow[],
+    );
+    const recoveryTargetForDate = (date: string): number =>
+      resolveTarget(date) ?? REC_DAILY_BASELINE;
 
     const windowStart = format(subDays(new Date(), days - 1), "yyyy-MM-dd");
 
