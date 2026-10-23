@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Lock, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GameGatingResult } from "@/hooks/useGamesGating";
-import { Button } from "@/components/ui/button";
 
 interface LockAction {
   label: string;
