@@ -1,3 +1,4 @@
+import { scoreHrv, type HrvMetric } from "@/lib/hrv";
 /**
  * ============================================
  * NLOOP PRO – COGNITIVE ENGINE v1.3
