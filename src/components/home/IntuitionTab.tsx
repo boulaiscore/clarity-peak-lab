@@ -16,7 +16,9 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { METRIC_COLORS } from "@/lib/metricColors";
 import { getSharpnessStatus } from "@/lib/metricStatusLabels";
 import { LAB_RECOVERY_ROUTE, labGamesRoute } from "@/lib/labRoutes";
-import { S2_ENTRY_SHARPNESS } from "@/lib/gamesGating";
+import { S2_CANONICAL_ENTRY_SHARPNESS } from "@/lib/gamesGating";
+import { personalizeMinThreshold } from "@/lib/adaptiveThresholds";
+import { useGamesGating } from "@/hooks/useGamesGating";
 
 interface IntuitionTabProps {
   onBackToOverview?: () => void;
@@ -66,7 +68,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
     if (bottleneck === "S2") {
       // System 2 drills stay locked until Sharpness reaches their entry level.
       // Sending the user there would create a dead end, so route to System 1 first.
-      if (sharpness < S2_ENTRY_SHARPNESS) {
+      if (sharpness < s2EntrySharpness) {
         return { label: "Train Fast Processing first", link: labGamesRoute("fast") };
       }
       return { label: "Train Analytical Reasoning", link: labGamesRoute("slow") };

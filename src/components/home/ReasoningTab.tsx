@@ -16,7 +16,9 @@ import { useTodayMetrics } from "@/hooks/useTodayMetrics";
 import { METRIC_COLORS } from "@/lib/metricColors";
 import { getReadinessStatus } from "@/lib/metricStatusLabels";
 import { LAB_RECOVERY_ROUTE, labGamesRoute } from "@/lib/labRoutes";
-import { S2_ENTRY_SHARPNESS } from "@/lib/gamesGating";
+import { S2_CANONICAL_ENTRY_SHARPNESS } from "@/lib/gamesGating";
+import { personalizeMinThreshold } from "@/lib/adaptiveThresholds";
+import { useGamesGating } from "@/hooks/useGamesGating";
 
 interface ReasoningTabProps {
   onBackToOverview?: () => void;
@@ -63,7 +65,7 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
     const bottleneck = candidates.reduce((a, b) => (a.value > b.value ? a : b)).key;
     if (bottleneck === "S2") {
       // Avoid sending the user to System 2 drills that are still gated by Sharpness.
-      if (sharpness < S2_ENTRY_SHARPNESS) {
+      if (sharpness < s2EntrySharpness) {
         return { label: "Train Fast Processing first", link: labGamesRoute("fast") };
       }
       return { label: "Train Analytical Reasoning", link: labGamesRoute("slow") };

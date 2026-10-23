@@ -82,8 +82,11 @@ const S1_THRESHOLDS = {
   },
 };
 
-/** Lowest Sharpness at which any System 2 drill can unlock (S2-IN). */
-export const S2_ENTRY_SHARPNESS = 60;
+/**
+ * Canonical (un-personalised) Sharpness entry for System 2 (S2-IN). The
+ * user's actual gate can be lower: use personalizeMinThreshold for copy.
+ */
+export const S2_CANONICAL_ENTRY_SHARPNESS = 60;
 
 const S2_THRESHOLDS = {
   "S2-CT": {
