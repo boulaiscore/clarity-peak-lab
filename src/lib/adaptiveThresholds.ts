@@ -31,6 +31,9 @@ export interface PersonalCalibration {
   typicalReadiness: number | null;
   /** Number of days with usable data. */
   sampleDays: number;
+  /** Per-metric usable days (each metric activates independently). */
+  sharpnessDays?: number;
+  readinessDays?: number;
   /** True when thresholds should be personalised. */
   isActive: boolean;
 }
