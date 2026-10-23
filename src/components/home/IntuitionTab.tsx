@@ -81,7 +81,7 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
       return { label: "Train Analytical Reasoning", link: labGamesRoute("slow") };
     }
     return { label: "Start Recovery", link: LAB_RECOVERY_ROUTE };
-  }, [S1, S2, recovery, recoveryModifier, sharpness]);
+  }, [S1, S2, recovery, recoveryModifier, sharpness, s2EntrySharpness]);
 
   return (
     <div className="space-y-6 pb-8">
