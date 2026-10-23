@@ -527,6 +527,9 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
               />
             </ComposedChart>
           </ResponsiveContainer>
+          {viewMode === "week" && chartData.some((d) => (d as ChartDataPoint).projected) && (
+            <p className="mt-1 text-[10px] text-muted-foreground">~ Estimated — no data recorded that day</p>
+          )}
         </div>
       )}
     </div>
