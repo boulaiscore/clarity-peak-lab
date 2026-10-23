@@ -31,6 +31,8 @@ export interface MetricDataPoint {
   reasoningQuality: number | null;
   s1?: number | null;
   s2?: number | null;
+  /** True when Recovery on this day is reconstructed, not observed. */
+  recoveryProjected?: boolean;
 }
 
 interface UseMetricHistoryOptions {
@@ -101,7 +103,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
       rawData.wearable as WearableTargetRow[],
     );
     const recoveryTargetForDate = (date: string): number =>
-      resolveTarget(date) ?? REC_DAILY_BASELINE;
+      resolveTarget(date) ?? 50; // neutral target when no passive data
 
     const windowStart = format(subDays(new Date(), days - 1), "yyyy-MM-dd");
 
@@ -145,6 +147,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
           date: dateStr,
           readiness: row.readiness != null ? Number(row.readiness) : last.readiness,
           sharpness: row.sharpness != null ? Number(row.sharpness) : last.sharpness,
+          recoveryProjected: row.recovery == null && last.recovery != null,
           recovery: row.recovery != null
             ? Number(row.recovery)
             : last.recovery != null
@@ -161,6 +164,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
         if (last.recovery != null) {
           last = {
             ...last,
+            recoveryProjected: true,
             recovery: recalibrateRecoveryForNewDay(
               last.recovery,
               recoveryTargetForDate(dateStr),
