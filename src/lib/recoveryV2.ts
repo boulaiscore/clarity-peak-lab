@@ -450,9 +450,10 @@ export function initializeRecoveryBaseline(
 export function getCurrentRecovery(
   state: RecoveryState,
   targetOverride?: number | null,
+  targetForDate?: RecoveryTargetResolver | null,
 ): number | null {
   if (!hasValidRecoveryData(state)) return null;
-  return calculateCurrentRecoveryBreakdown(state, targetOverride).currentValue;
+  return calculateCurrentRecoveryBreakdown(state, targetOverride, undefined, targetForDate).currentValue;
 }
 
 /**
