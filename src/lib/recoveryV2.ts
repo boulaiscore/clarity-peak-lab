@@ -333,24 +333,48 @@ export function applyRecoveryDecay(
   currentRec: number,
   lastTs: string,
   nowTs: string = new Date().toISOString(),
-  targetOverride?: number | null
+  targetOverride?: number | null,
+  targetForDate?: RecoveryTargetResolver | null,
 ): number {
   const days = calendarDaysBetween(lastTs, nowTs);
 
   // Same calendar day → frozen snapshot
   if (days <= 0) return currentRec;
 
-  const target =
+  const todayTarget =
     targetOverride != null && Number.isFinite(targetOverride)
       ? Math.max(0, Math.min(100, targetOverride))
       : REC_DAILY_BASELINE;
 
-  // Apply the canonical daily recalibration once per missed calendar day.
-  let rec = currentRec;
-  for (let i = 0; i < days; i++) {
-    rec = recalibrateRecoveryForNewDay(rec, target);
+  // Each missed day reverts toward THAT day's target (same model as the
+  // Monitor history). Today uses the live target.
+  const targets: number[] = [];
+  const now = new Date(nowTs);
+  for (let i = days - 1; i >= 0; i--) {
+    if (i === 0) {
+      targets.push(todayTarget);
+      continue;
+    }
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const t = targetForDate ? targetForDate(iso) : null;
+    targets.push(t != null && Number.isFinite(t) ? t : targetForDate ? REC_DAILY_BASELINE : todayTarget);
   }
+  return advanceRecoveryByDays(currentRec, targets);
+}
 
+/** Resolves the passive Recovery target for an ISO date, or null if unknown. */
+export type RecoveryTargetResolver = (isoDate: string) => number | null;
+
+/**
+ * Canonical multi-day recurrence: one mean-reversion step per day toward
+ * that day's target. Shared by live Recovery and historical projections.
+ */
+export function advanceRecoveryByDays(currentRec: number, dailyTargets: number[]): number {
+  let rec = Math.max(0, Math.min(100, currentRec));
+  for (const target of dailyTargets) {
+    rec = recalibrateRecoveryForNewDay(rec, Number.isFinite(target) ? target : REC_DAILY_BASELINE);
+  }
   return Math.max(0, Math.min(100, Math.round(rec * 10) / 10));
 }
 
@@ -358,15 +382,12 @@ export function applyRecoveryDecay(
 // GAIN FUNCTION
 // ============================================
 
+const safeMinutes = (m: number) => (Number.isFinite(m) && m > 0 ? m : 0);
+
 /**
  * Apply recovery gain from Detox/Walking actions.
- * Formula: REC = min(100, decayed_REC + 0.12 × (detox_min + 0.5 × walk_min))
- * 
- * @param currentRec Current recovery value (0-100)
- * @param lastTs ISO timestamp of last update
- * @param detoxMinutes Minutes of digital detox completed
- * @param walkMinutes Minutes of walking completed
- * @returns New recovery state
+ * Formula: REC = clamp(decayed_REC + 0.12 × (detox_min + 0.5 × walk_min), 0, 100)
+ * Negative or non-finite minutes are ignored.
  */
 export function applyRecoveryAction(
   currentRec: number,
@@ -374,16 +395,17 @@ export function applyRecoveryAction(
   detoxMinutes: number,
   walkMinutes: number,
   targetOverride?: number | null,
+  targetForDate?: RecoveryTargetResolver | null,
 ): RecoveryActionResult {
   const nowTs = new Date().toISOString();
   
   // Step 1: Apply decay first
-  const decayedRec = applyRecoveryDecay(currentRec, lastTs, nowTs, targetOverride);
+  const decayedRec = applyRecoveryDecay(currentRec, lastTs, nowTs, targetOverride, targetForDate);
   
   // Step 2: Apply gain
-  const x = detoxMinutes + 0.5 * walkMinutes;
+  const x = safeMinutes(detoxMinutes) + 0.5 * safeMinutes(walkMinutes);
   const gainedRec = decayedRec + REC_GAIN_COEFFICIENT * x;
-  const newRecValue = Math.min(100, Math.round(gainedRec * 10) / 10);
+  const newRecValue = Math.max(0, Math.min(100, Math.round(gainedRec * 10) / 10));
   
   return {
     newRecValue,
