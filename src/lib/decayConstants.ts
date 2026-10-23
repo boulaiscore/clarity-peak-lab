@@ -91,14 +91,8 @@ export const COGNITIVE_AGE_MAX_INCREASE_PER_MONTH = 1;
 export const COGNITIVE_AGE_TRACKING_PERIOD_DAYS = 30;
 
 // ============================================
-// RECOVERY v2.0 (CONTINUOUS DECAY MODEL)
+// RECOVERY v2.0 (DAILY MEAN-REVERSION MODEL — see recoveryV2.ts)
 // ============================================
-
-/**
- * Recovery half-life in hours for exponential decay.
- * REC decays by 50% every 72 hours of inactivity.
- */
-export const REC_HALF_LIFE_HOURS = 72;
 
 /**
  * Gain coefficient for recovery actions.

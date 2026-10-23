@@ -48,8 +48,15 @@ export function IntuitionTab({ onBackToOverview }: IntuitionTabProps) {
     if (sharpness >= 50) return "Steady clarity. Pace complex work and protect focus.";
     if (sharpness >= 35) return "Today favors lighter cognitive work and shorter focus blocks.";
     return "Protect capacity today; this signal can move with recovery and practice.";
-  }, [sharpness]);
+  }, [sharpness, s2EntrySharpness]);
 
+  const { personalThresholds } = useGamesGating();
+  const s2EntrySharpness = personalizeMinThreshold(
+    S2_CANONICAL_ENTRY_SHARPNESS,
+    personalThresholds.typicalSharpness,
+    "S2",
+    personalThresholds.typicalSharpness != null,
+  );
   const cta = useMemo(() => {
     if (recovery < 45) {
       return { label: "Start Recovery", link: LAB_RECOVERY_ROUTE };

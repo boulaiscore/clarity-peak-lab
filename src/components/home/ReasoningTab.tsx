@@ -52,6 +52,13 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
     return "Protect capacity today; this signal can move with recovery and practice.";
   }, [readiness]);
 
+  const { personalThresholds } = useGamesGating();
+  const s2EntrySharpness = personalizeMinThreshold(
+    S2_CANONICAL_ENTRY_SHARPNESS,
+    personalThresholds.typicalSharpness,
+    "S2",
+    personalThresholds.typicalSharpness != null,
+  );
   const cta = useMemo(() => {
     if (recovery < 45 || (signalCoverage >= 0.35 && dailyState < 40)) {
       return { label: "Start Recovery", link: LAB_RECOVERY_ROUTE };
@@ -72,7 +79,7 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
     }
     if (bottleneck === "AE") return { label: "Train Attentional Efficiency", link: labGamesRoute("fast") };
     return { label: "Start Recovery", link: LAB_RECOVERY_ROUTE };
-  }, [AE, S2, dailyState, recovery, sharpness, signalCoverage]);
+  }, [AE, S2, dailyState, recovery, sharpness, signalCoverage, s2EntrySharpness]);
 
   return (
     <div className="space-y-6 pb-8">
