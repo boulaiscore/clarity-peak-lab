@@ -154,11 +154,28 @@ function nextDayEffect(
   };
 }
 
+/** Minimum observed days in EACH calendar week for a week-over-week comparison. */
+export const MIN_DAYS_PER_WEEK = 4;
+
 function weekOverWeek(days: InsightDay[], metric: InsightMetricKey): SplitEffect | null {
-  const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
-  const recent = sorted.slice(-7).map((day) => day[metric]).filter((v): v is number => v !== null);
-  const prior = sorted.slice(-14, -7).map((day) => day[metric]).filter((v): v is number => v !== null);
-  if (recent.length < MIN_GROUP_SIZE || prior.length < MIN_GROUP_SIZE) return null;
+  // Calendar windows (not observation counts): the 7 days ending on the most
+  // recent observed date vs the 7 calendar days before them.
+  if (days.length === 0) return null;
+  const anchor = [...days].sort((a, b) => a.date.localeCompare(b.date))[days.length - 1].date;
+  const shift = (n: number) => {
+    const d = new Date(`${anchor}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - n);
+    return d.toISOString().slice(0, 10);
+  };
+  const recentStart = shift(6);
+  const priorStart = shift(13);
+  const valuesIn = (from: string, to: string) => days
+    .filter((day) => day.date >= from && day.date <= to)
+    .map((day) => day[metric])
+    .filter((v): v is number => v !== null);
+  const recent = valuesIn(recentStart, anchor);
+  const prior = valuesIn(priorStart, shift(7));
+  if (recent.length < MIN_DAYS_PER_WEEK || prior.length < MIN_DAYS_PER_WEEK) return null;
   return {
     delta: round1(mean(recent) - mean(prior)),
     sampleSize: recent.length + prior.length,

@@ -1,3 +1,4 @@
+import { scoreHrv, type HrvMetric } from "@/lib/hrv";
 /**
  * ============================================
  * NLOOP PRO – COGNITIVE ENGINE v1.3
@@ -72,6 +73,10 @@ export interface ReadinessPhysioData {
   restingHr: number | null;
   sleepDurationMin: number | null;
   sleepEfficiency: number | null;
+  /** SDNN (iOS) or RMSSD (Android/WHOOP/Oura). Never scored on a shared scale. */
+  hrvMetric?: HrvMetric | null;
+  /** Personal same-type baseline (median of previous 30 days). */
+  hrvBaseline?: { medianMs: number | null; sampleDays: number } | null;
 }
 
 export interface PhysioEstimate {
@@ -312,12 +317,11 @@ export function calculatePhysioEstimate(
   const { hrvMs, restingHr, sleepDurationMin, sleepEfficiency } = data;
   const includeSleepDuration = options.includeSleepDuration ?? true;
 
+  const hrv = hrvMs == null ? null : scoreHrv(hrvMs, data.hrvMetric, data.hrvBaseline);
   const signals: Array<{ value: number | null; weight: number }> = [
     {
-      value: hrvMs == null
-        ? null
-        : ((clamp(hrvMs, 20, 120) - 20) / 100) * 100,
-      weight: 0.40,
+      value: hrv ? hrv.score : null,
+      weight: 0.40 * (hrv ? hrv.confidence : 1),
     },
     {
       value: restingHr == null

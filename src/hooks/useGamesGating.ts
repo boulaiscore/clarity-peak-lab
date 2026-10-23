@@ -299,7 +299,11 @@ export function useGamesGating(): UseGamesGatingResult {
           currentValue: firstThreshold.current,
           requiredValue: firstThreshold.required,
           metric: firstThreshold.metric,
-          personalized: calibration.isActive && firstThreshold.metric !== "Recovery",
+          personalized: firstThreshold.metric === "Sharpness"
+            ? calibration.typicalSharpness != null
+            : firstThreshold.metric === "Readiness"
+              ? calibration.typicalReadiness != null
+              : false,
         } : null,
         unlockActions: availability.unlockActions,
       };

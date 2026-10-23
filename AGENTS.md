@@ -98,3 +98,7 @@ npm run build
 - Keep changes focused on the requested behavior and preserve existing Lovable-compatible patterns.
 - When changing auth, subscription, Supabase, notifications, PWA, or Capacitor code, check the surrounding flow before editing because those paths can affect production behavior beyond the visible UI.
 - Update this file whenever build, test, lint, or project-structure conventions change.
+
+## Metric engine rules
+- HRV is scored by type (SDNN iOS / RMSSD Android, WHOOP, Oura via `hrvMetricForSource`) against the user's own 30-day same-type median (`src/lib/hrv.ts`); never compare raw ms across types — the two statistics are not equivalent.
+- Every Recovery consumer (live hooks, intraday recorder, Monitor history) resolves missed-day targets through `buildRecoveryTargetResolver` + `advanceRecoveryByDays`, so live and charted Recovery cannot diverge.

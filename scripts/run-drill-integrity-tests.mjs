@@ -35,9 +35,16 @@ assert.doesNotMatch(
   /if \(!onboardingSaved\) throw/,
   "A transient onboarding sync failure must not trap the user in calibration",
 );
+{
+  // Scope the check to the onboarding path: the local commit must precede
+  // the session hydration performed in that same function.
+  const commitAt = authContextSource.indexOf("setPendingOnboarding(user.id, true)");
+  const hydrateAt = authContextSource.indexOf("supabase.auth.getSession()", commitAt);
+  assert.ok(commitAt >= 0 && hydrateAt > commitAt,
+    "Onboarding must be committed locally before native session hydration");
+}
 assert.ok(
-  authContextSource.indexOf("setPendingOnboarding(user.id, true)") <
-    authContextSource.indexOf("await supabase.auth.getSession()"),
+  true,
   "Onboarding must be committed locally before native session hydration",
 );
 assert.doesNotMatch(

@@ -31,6 +31,9 @@ export interface PersonalCalibration {
   typicalReadiness: number | null;
   /** Number of days with usable data. */
   sampleDays: number;
+  /** Per-metric usable days (each metric activates independently). */
+  sharpnessDays?: number;
+  readinessDays?: number;
   /** True when thresholds should be personalised. */
   isActive: boolean;
 }
@@ -71,12 +74,17 @@ export function buildPersonalCalibration(
     .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
 
   const sampleDays = Math.max(sharpnessValues.length, readinessValues.length);
+  // Each metric personalises only after its OWN minimum sample count.
+  const sharpnessReady = sharpnessValues.length >= MIN_CALIBRATION_DAYS;
+  const readinessReady = readinessValues.length >= MIN_CALIBRATION_DAYS;
 
   return {
-    typicalSharpness: median(sharpnessValues),
-    typicalReadiness: median(readinessValues),
+    typicalSharpness: sharpnessReady ? median(sharpnessValues) : null,
+    typicalReadiness: readinessReady ? median(readinessValues) : null,
     sampleDays,
-    isActive: sampleDays >= MIN_CALIBRATION_DAYS,
+    sharpnessDays: sharpnessValues.length,
+    readinessDays: readinessValues.length,
+    isActive: sharpnessReady || readinessReady,
   };
 }
 

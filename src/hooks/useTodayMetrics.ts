@@ -36,6 +36,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCognitiveStates } from "@/hooks/useCognitiveStates";
+import { useRecoveryTargetHistory } from "@/hooks/useRecoveryTargetHistory";
+import { physioInputFromWearable } from "@/lib/recoveryTargetHistory";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMediumPeriodStartDate } from "@/lib/temporalWindows";
 import {
@@ -164,6 +166,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   
   const { data: wearableSnapshot, isLoading: wearableLoading } =
     useWearableDailySnapshot(userId, today);
+  const { resolver: recoveryTargetForDate, wearableHistory } = useRecoveryTargetHistory(userId);
 
   const { data: passiveContext } = useQuery({
     queryKey: ["today-passive-context", userId, passiveHistoryStart],
@@ -224,12 +227,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
   
   const freshResult = useMemo((): UseTodayMetricsResult => {
     // Calculate Physio component (if wearable data available)
-    const physioInput = wearableSnapshot ? {
-      hrvMs: wearableSnapshot.hrv_ms ?? null,
-      restingHr: wearableSnapshot.resting_hr ?? null,
-      sleepDurationMin: wearableSnapshot.sleep_duration_min ?? null,
-      sleepEfficiency: wearableSnapshot.sleep_efficiency ?? null,
-    } : null;
+    const physioInput = physioInputFromWearable(wearableSnapshot, wearableHistory, today);
     const physioEstimate = calculatePhysioEstimate(physioInput);
     const physioComponent = calculatePhysioComponent(physioInput);
     // Phone Health and wearable snapshots can expose the same sleep-duration
@@ -245,7 +243,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
     );
     // Recovery uses the same combined Health + wearable target as actions and gating.
     const recoveryRawValue = recoveryV2State
-      ? getCurrentRecovery(recoveryV2State, recoveryTarget)
+      ? getCurrentRecovery(recoveryV2State, recoveryTarget, recoveryTargetForDate)
       : null;
     const recovery = resolveRecoveryForMetrics(recoveryRawValue, recoveryTarget);
     const recoveryEstimated = recoveryRawValue === null;
@@ -384,7 +382,7 @@ export function useTodayMetrics(): UseTodayMetricsResult {
       readinessBreakdown,
       isLoading: !displayReady,
     };
-  }, [states, S1, S2, recoveryV2State, phoneHealthSnapshot, phoneHealthLoading, wearableSnapshot, wearableLoading, passiveContext, today, decayData, rollingStart, displayReady]);
+  }, [states, S1, S2, recoveryV2State, phoneHealthSnapshot, phoneHealthLoading, wearableSnapshot, wearableLoading, passiveContext, today, decayData, rollingStart, displayReady, recoveryTargetForDate, wearableHistory]);
   
   // Update the display cache as soon as core metrics are available. Optional
   // sources update the same result in place when their requests resolve.

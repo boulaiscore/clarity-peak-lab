@@ -35,7 +35,7 @@ const CARD_OPTIONS: { value: CardType; label: string }[] = [
 const CARD_COPY: Record<CardType, { title: string; description: string }> = {
   "cognitive-age": {
     title: "Cognitive Age",
-    description: "30-day task-performance estimate",
+    description: "Long-term estimate based on your performance over the last 6 months",
   },
   "dual-process": {
     title: "Dual-Process Profile",

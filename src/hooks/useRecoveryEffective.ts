@@ -33,6 +33,8 @@ import {
   hasValidRecoveryData,
 } from "@/lib/recoveryV2";
 import { calculatePhysioEstimate } from "@/lib/cognitiveEngine";
+import { useRecoveryTargetHistory } from "@/hooks/useRecoveryTargetHistory";
+import { physioInputFromWearable } from "@/lib/recoveryTargetHistory";
 import { getMediumPeriodStart } from "@/lib/temporalWindows";
 import { format } from "date-fns";
 import { useUserMetrics } from "@/hooks/useExercises";
@@ -107,14 +109,11 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   const { data: phoneHealthTarget } = usePhoneHealthDailyContext(userId, today);
   const { data: wearableSnapshot } = useWearableDailySnapshot(userId, today);
 
-  const wearablePhysioEstimate = useMemo(() => wearableSnapshot ? calculatePhysioEstimate({
-      hrvMs: wearableSnapshot.hrv_ms,
-      restingHr: wearableSnapshot.resting_hr,
-      sleepDurationMin: wearableSnapshot.sleep_duration_min,
-      sleepEfficiency: wearableSnapshot.sleep_efficiency,
-    }, {
+  const { resolver: recoveryTargetForDate, wearableHistory } = useRecoveryTargetHistory(userId);
+  const wearablePhysioEstimate = useMemo(() => wearableSnapshot ? calculatePhysioEstimate(
+      physioInputFromWearable(wearableSnapshot, wearableHistory, today), {
       includeSleepDuration: phoneHealthTarget?.sleep_min == null,
-    }) : null, [phoneHealthTarget?.sleep_min, wearableSnapshot]);
+    }) : null, [phoneHealthTarget?.sleep_min, wearableSnapshot, wearableHistory, today]);
   const recoveryTargetBreakdown = useMemo(() => calculateDailyRecoveryTargetBreakdown(
     phoneHealthTarget?.target_rec,
     wearablePhysioEstimate,
@@ -175,7 +174,7 @@ export function useRecoveryEffective(): UseRecoveryEffectiveResult {
   const result = useMemo((): Omit<UseRecoveryEffectiveResult, 'isLoading' | 'weeklyDetoxMinutes' | 'weeklyWalkMinutes'> => {
     // Check v2 state
     const isV2Initialized = v2State ? hasValidRecoveryData(v2State) : false;
-    const currentRecovery = calculateCurrentRecoveryBreakdown(v2State, combinedRecoveryTarget);
+    const currentRecovery = calculateCurrentRecoveryBreakdown(v2State, combinedRecoveryTarget, undefined, recoveryTargetForDate);
     const recoveryV2 = isV2Initialized ? currentRecovery.currentValue : null;
     
     // PRIORITY 1: Use v2 recovery if initialized

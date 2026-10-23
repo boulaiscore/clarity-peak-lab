@@ -31,6 +31,8 @@ import {
   calculateDailyRecoveryTarget,
 } from "@/lib/recoveryV2";
 import { calculatePhysioEstimate } from "@/lib/cognitiveEngine";
+import { useRecoveryTargetHistory } from "@/hooks/useRecoveryTargetHistory";
+import { physioInputFromWearable } from "@/lib/recoveryTargetHistory";
 
 export interface UseRecoveryV2Result {
   /** Current recovery value with decay applied (0-100), null if not initialized */
@@ -139,7 +141,7 @@ export function useRecoveryV2(): UseRecoveryV2Result {
       const yesterday = format(new Date(Date.now() - 24 * 60 * 60 * 1000), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("wearable_daily_canonical")
-        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at")
+        .select("hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, updated_at, source")
         .eq("user_id", userId)
         .gte("date", yesterday)
         .lte("date", today)
@@ -157,17 +159,14 @@ export function useRecoveryV2(): UseRecoveryV2Result {
     staleTime: 5 * 60_000,
   });
 
+  const { resolver: recoveryTargetForDate, wearableHistory } = useRecoveryTargetHistory(userId);
   const recoveryTarget = useMemo(() => {
-    const physio = wearableSnapshot ? calculatePhysioEstimate({
-      hrvMs: wearableSnapshot.hrv_ms,
-      restingHr: wearableSnapshot.resting_hr,
-      sleepDurationMin: wearableSnapshot.sleep_duration_min,
-      sleepEfficiency: wearableSnapshot.sleep_efficiency,
-    }, {
+    const physio = wearableSnapshot ? calculatePhysioEstimate(
+      physioInputFromWearable(wearableSnapshot, wearableHistory, format(new Date(), "yyyy-MM-dd")), {
       includeSleepDuration: phoneHealthTarget?.sleepMin == null,
     }) : null;
     return calculateDailyRecoveryTarget(phoneHealthTarget?.targetRec, physio);
-  }, [phoneHealthTarget, wearableSnapshot]);
+  }, [phoneHealthTarget, wearableSnapshot, wearableHistory]);
 
   // Compute current recovery with decay applied (using phone-health target if available)
   const currentRecovery = useMemo(() => {
@@ -179,8 +178,9 @@ export function useRecoveryV2(): UseRecoveryV2Result {
       recoveryState.recLastTs,
       new Date().toISOString(),
       recoveryTarget,
+      recoveryTargetForDate,
     );
-  }, [recoveryState, recoveryTarget]);
+  }, [recoveryState, recoveryTarget, recoveryTargetForDate]);
   
   const isInitialized = recoveryState ? hasValidRecoveryData(recoveryState) : false;
   
@@ -217,6 +217,7 @@ export function useRecoveryV2(): UseRecoveryV2Result {
         detoxMinutes,
         walkMinutes,
         recoveryTarget,
+        recoveryTargetForDate,
       );
       
       const { error } = await supabase

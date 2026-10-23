@@ -95,6 +95,7 @@ closeTo(
 );
 const partialPhysio = calculatePhysioEstimate({
     hrvMs: 70,
+    hrvBaseline: { medianMs: 70, sampleDays: 10 },
     restingHr: 60,
     sleepDurationMin: 450,
     sleepEfficiency: null,
@@ -104,6 +105,7 @@ closeTo(partialPhysio.confidence, 0.84, "Partial wearable confidence");
 closeTo(partialPhysio.score, 56.3, "Partial wearable score is shrunk toward neutral");
 const deduplicatedPhysio = calculatePhysioEstimate({
   hrvMs: 70,
+  hrvBaseline: { medianMs: 70, sampleDays: 10 },
   restingHr: 60,
   sleepDurationMin: 450,
   sleepEfficiency: null,
@@ -113,6 +115,7 @@ closeTo(deduplicatedPhysio.confidence, 0.6, "Duplicate sleep duration does not c
 closeTo(
   calculatePhysioComponent({
     hrvMs: 70,
+    hrvBaseline: { medianMs: 70, sampleDays: 10 },
     restingHr: 60,
     sleepDurationMin: 450,
     sleepEfficiency: null,
@@ -394,5 +397,56 @@ assert.equal(
   true,
   "Summary-only snapshots are upgraded with system and component values",
 );
+
+// ---- HRV: SDNN and RMSSD never share a scale ----
+{
+  const { scoreHrv } = await import("../src/lib/hrv");
+  // Personal mode: equal to own median = 50; +28.4% (e^0.25) = 100; -22% = 0.
+  assert.equal(scoreHrv(50, "rmssd", { medianMs: 50, sampleDays: 7 }).score, 50);
+  assert.equal(Math.round(scoreHrv(50 * Math.exp(0.25), "sdnn", { medianMs: 50, sampleDays: 10 }).score), 100);
+  assert.equal(Math.round(scoreHrv(50 * Math.exp(-0.25), "sdnn", { medianMs: 50, sampleDays: 10 }).score), 0);
+  // Cold start (<7 days): type-specific ranges, half confidence.
+  const cold = scoreHrv(60, "sdnn", { medianMs: 55, sampleDays: 6 });
+  assert.equal(cold.personal, false);
+  assert.equal(cold.confidence, 0.5);
+  assert.equal(cold.score, 50); // SDNN 20..100
+  assert.equal(scoreHrv(52.5, "rmssd", null).score, 50); // RMSSD 15..90
+}
+
+// ---- Recovery: shared day-by-day recurrence ----
+{
+  const { advanceRecoveryByDays } = await import("../src/lib/recoveryV2");
+  // 80 → toward 40 then 60: 40+40*.35=54 → 60+(54-60)*.35=57.9
+  assert.equal(advanceRecoveryByDays(80, [40, 60]), 57.9);
+  // Missed days use THEIR target; unknown days fall back to neutral 50.
+  const live = applyRecoveryDecay(80, "2026-08-08T08:00:00", "2026-08-10T08:00:00", 60, (d) => (d === "2026-08-09" ? 40 : null));
+  assert.equal(live, 57.9);
+  const unknown = applyRecoveryDecay(80, "2026-08-08T08:00:00", "2026-08-10T08:00:00", 60, () => null);
+  assert.equal(unknown, advanceRecoveryByDays(80, [50, 60]));
+}
+
+// ---- Fast Recover never lowers Recovery ----
+{
+  const { applyBoostToRec } = await import("../src/lib/recovery/acuteBoost");
+  assert.equal(applyBoostToRec(90, 3), 90);
+  assert.equal(applyBoostToRec(80, 8), 85);
+  assert.equal(applyBoostToRec(70, 5), 75);
+}
+
+// ---- Personal thresholds activate per metric ----
+{
+  const { buildPersonalCalibration } = await import("../src/lib/adaptiveThresholds");
+  const points = [1, 2, 3, 4, 5].map((i) => ({ sharpness: 58, readiness: i === 1 ? 40 : null }));
+  const cal = buildPersonalCalibration(points);
+  assert.equal(cal.typicalSharpness, 58);
+  assert.equal(cal.typicalReadiness, null);
+}
+
+// ---- Recovery action ignores invalid minutes ----
+{
+  const { applyRecoveryAction } = await import("../src/lib/recoveryV2");
+  const now = new Date().toISOString();
+  assert.equal(applyRecoveryAction(30, now, -500, Number.NaN).newRecValue, 30);
+}
 
 console.log("Metric formula checks passed");

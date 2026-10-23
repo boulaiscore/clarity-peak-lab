@@ -138,20 +138,9 @@ export function useIntradayMetricHistory() {
         isNow: false,
         eventType: "midnight-null",
       });
-    } else {
-      // No events and no baseline - use current live values as synthetic baseline
-      // This gives a flat line from 00:00 to now, which is acceptable for brand new users
-      dataPoints.push({
-        timestamp: todayStart.toISOString(),
-        hour: "00:00",
-        readiness: todayMetrics.readiness,
-        sharpness: todayMetrics.sharpness,
-        recovery: todayMetrics.recovery != null ? Math.round(todayMetrics.recovery * 10) / 10 : null,
-        reasoningQuality: currentRQ != null ? Math.round(currentRQ * 10) / 10 : null,
-        isNow: false,
-        eventType: "midnight-synthetic",
-      });
     }
+    // No events and no baseline: no synthetic midnight point. The line starts
+    // at the first real observation of the day.
     
     // 2. Add all recorded intraday events
     intradayEvents?.forEach((event) => {

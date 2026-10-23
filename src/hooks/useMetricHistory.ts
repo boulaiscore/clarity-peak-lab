@@ -7,6 +7,11 @@
  * Supports configurable date ranges and granularity.
  */
 
+import {
+  buildRecoveryTargetResolver,
+  type PhoneTargetRow,
+  type WearableTargetRow,
+} from "@/lib/recoveryTargetHistory";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +31,8 @@ export interface MetricDataPoint {
   reasoningQuality: number | null;
   s1?: number | null;
   s2?: number | null;
+  /** True when Recovery on this day is reconstructed, not observed. */
+  recoveryProjected?: boolean;
 }
 
 interface UseMetricHistoryOptions {
@@ -62,7 +69,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
           .order("date", { ascending: true }),
         supabase
           .from("wearable_daily_canonical")
-          .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency")
+          .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, source")
           .eq("user_id", user.id)
           .gte("date", startDate)
           .order("date", { ascending: true }),
@@ -91,21 +98,12 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
 
     const byDate = new Map<string, typeof rawData.metrics[number]>();
     rawData.metrics.forEach((row) => byDate.set(row.snapshot_date, row));
-    const phoneByDate = new Map(rawData.phone.map((row) => [row.date, row]));
-    const wearableByDate = new Map(rawData.wearable.map((row) => [row.date, row]));
-    const recoveryTargetForDate = (date: string): number => {
-      const phone = phoneByDate.get(date);
-      const wearable = wearableByDate.get(date);
-      const estimate = calculatePhysioEstimate(wearable ? {
-        hrvMs: wearable.hrv_ms,
-        restingHr: wearable.resting_hr,
-        sleepDurationMin: wearable.sleep_duration_min,
-        sleepEfficiency: wearable.sleep_efficiency,
-      } : null, {
-        includeSleepDuration: phone?.sleep_min == null,
-      });
-      return calculateDailyRecoveryTarget(phone?.target_rec, estimate);
-    };
+    const resolveTarget = buildRecoveryTargetResolver(
+      rawData.phone as PhoneTargetRow[],
+      rawData.wearable as WearableTargetRow[],
+    );
+    const recoveryTargetForDate = (date: string): number =>
+      resolveTarget(date) ?? 50; // neutral target when no passive data
 
     const windowStart = format(subDays(new Date(), days - 1), "yyyy-MM-dd");
 
@@ -149,6 +147,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
           date: dateStr,
           readiness: row.readiness != null ? Number(row.readiness) : last.readiness,
           sharpness: row.sharpness != null ? Number(row.sharpness) : last.sharpness,
+          recoveryProjected: row.recovery == null && last.recovery != null,
           recovery: row.recovery != null
             ? Number(row.recovery)
             : last.recovery != null
@@ -165,6 +164,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
         if (last.recovery != null) {
           last = {
             ...last,
+            recoveryProjected: true,
             recovery: recalibrateRecoveryForNewDay(
               last.recovery,
               recoveryTargetForDate(dateStr),
