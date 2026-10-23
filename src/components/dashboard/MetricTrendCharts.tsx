@@ -51,6 +51,8 @@ interface ChartDataPoint {
   dayNum: string;
   isLast: boolean;
   xLabel: string;
+  /** Reconstructed (not observed) value — rendered as "~N". */
+  projected?: boolean;
 }
 
 interface IntradayChartDataPoint {
@@ -167,8 +169,10 @@ const CustomLabel = ({
   value, 
   isRecovery, 
   color,
-  isVisible = true 
+  isVisible = true,
+  projected = false,
 }: { 
+  projected?: boolean;
   x?: number; 
   y?: number; 
   value?: number | null; 
@@ -188,8 +192,9 @@ const CustomLabel = ({
       fontSize={11}
       fontWeight={500}
       fontFamily="system-ui, -apple-system, sans-serif"
+      opacity={projected ? 0.55 : 1}
     >
-      {Math.round(value)}{isRecovery ? "%" : ""}
+      {projected ? "~" : ""}{Math.round(value)}{isRecovery ? "%" : ""}
     </text>
   );
 };
@@ -514,6 +519,7 @@ function SingleMetricChart({ metric, weeklyData, intradayData }: SingleMetricCha
                       isRecovery={metric.key === "recovery"}
                       color={metric.color}
                       isVisible={isVisible}
+                      projected={viewMode === "week" && Boolean((chartData[index] as ChartDataPoint | undefined)?.projected)}
                     />
                   );
                 }}
@@ -544,7 +550,8 @@ export function MetricTrendCharts() {
       readiness: number | null; 
       sharpness: number | null; 
       recovery: number | null; 
-      reasoningQuality: number | null 
+      reasoningQuality: number | null;
+      recoveryProjected?: boolean;
     }> = {};
     
     weeklyHistory.forEach((point) => {
@@ -553,6 +560,7 @@ export function MetricTrendCharts() {
         sharpness: point.sharpness,
         recovery: point.recovery,
         reasoningQuality: point.reasoningQuality,
+        recoveryProjected: point.recoveryProjected,
       };
     });
 
@@ -576,7 +584,7 @@ export function MetricTrendCharts() {
       
       result.readiness.push({ ...base, value: existingData?.readiness ?? null });
       result.sharpness.push({ ...base, value: existingData?.sharpness ?? null });
-      result.recovery.push({ ...base, value: existingData?.recovery ?? null });
+      result.recovery.push({ ...base, value: existingData?.recovery ?? null, projected: existingData?.recoveryProjected ?? false });
       result.reasoningQuality.push({ ...base, value: existingData?.reasoningQuality ?? null });
     }
 
