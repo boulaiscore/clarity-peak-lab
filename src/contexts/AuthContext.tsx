@@ -568,6 +568,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Import from dedicated file to avoid circular dependency
     const { queryClient, clearPersistedQueryCache } = await import("@/lib/queryClient");
     
+    // Stop background phone-use uploads for this account before signing out.
+    try {
+      const { stopBackgroundUsageSync } = await import("@/lib/backgroundUsageSync");
+      await stopBackgroundUsageSync();
+    } catch (error) {
+      console.warn("[Auth] Could not stop background usage sync", error);
+    }
     await supabase.auth.signOut();
     setUser(null);
     commitSession(null);

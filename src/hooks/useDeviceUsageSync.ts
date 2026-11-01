@@ -7,6 +7,7 @@ import AppBlocker, { isNativeAndroid } from "@/lib/capacitor/appBlocker";
 import IosDeviceUsage, { isNativeIos } from "@/lib/capacitor/iosDeviceUsage";
 import { aggregateAttentionUsage } from "@/lib/deviceUsageAggregation";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureBackgroundUsageSync } from "@/lib/backgroundUsageSync";
 
 interface LooseResult {
   data?: unknown;
@@ -84,6 +85,8 @@ export function useDeviceUsageSync(): void {
           attemptedRef.current = null;
           return;
         }
+
+        if (isNativeAndroid()) void ensureBackgroundUsageSync(userId);
 
         let aggregate: {
           attentionUsageMin: number;
