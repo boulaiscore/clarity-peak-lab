@@ -231,105 +231,47 @@ class AppBlockerPlugin : Plugin() {
 
     @PluginMethod
     fun getUsageAggregate(call: PluginCall) {
-        if (!checkUsageAccessPermission()) {
-            val result = JSObject()
-            result.put("attentionUsageMin", 0)
-            result.put("activeAppCount", 0)
-            result.put("lastAttentionUseAt", null)
-            result.put("attentionSessionCount", null)
-            result.put("attentionSwitchCount", null)
-            result.put("briefSessionCount", null)
-            call.resolve(result)
+        val aggregate = UsageAggregator.compute(context)
+        val result = JSObject()
+        result.put("attentionUsageMin", aggregate?.attentionUsageMin ?: 0)
+        result.put("activeAppCount", aggregate?.activeAppCount ?: 0)
+        result.put("lastAttentionUseAt", aggregate?.lastAttentionUseAt)
+        result.put("attentionSessionCount", aggregate?.attentionSessionCount)
+        result.put("attentionSwitchCount", aggregate?.attentionSwitchCount)
+        result.put("briefSessionCount", aggregate?.briefSessionCount)
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    fun enableBackgroundUsageSync(call: PluginCall) {
+        val token = call.getString("token")
+        val endpoint = call.getString("endpoint")
+        val apiKey = call.getString("apiKey")
+        if (token.isNullOrBlank() || endpoint.isNullOrBlank() || apiKey.isNullOrBlank()) {
+            call.reject("token, endpoint and apiKey are required")
             return
         }
+        context.getSharedPreferences(UsageSyncWorker.PREFS, Context.MODE_PRIVATE).edit()
+            .putString(UsageSyncWorker.KEY_TOKEN, token)
+            .putString(UsageSyncWorker.KEY_ENDPOINT, endpoint)
+            .putString(UsageSyncWorker.KEY_API_KEY, apiKey)
+            .apply()
+        UsageSyncWorker.schedule(context)
+        call.resolve()
+    }
 
-        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val calendar = Calendar.getInstance()
-        val endTime = calendar.timeInMillis
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        val startTime = calendar.timeInMillis
+    @PluginMethod
+    fun disableBackgroundUsageSync(call: PluginCall) {
+        UsageSyncWorker.cancel(context)
+        call.resolve()
+    }
 
-        val usageStatsList = usageStatsManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            startTime,
-            endTime
-        )
-
-        var attentionUsageMin = 0
-        var activeAppCount = 0
-        var lastAttentionUseAt: Long? = null
-
-        for (usageStats in usageStatsList) {
-            if (!socialAppPackages.contains(usageStats.packageName)) continue
-            val usageMinutes = (usageStats.totalTimeInForeground / 1000 / 60).toInt()
-            if (usageMinutes <= 0) continue
-
-            attentionUsageMin += usageMinutes
-            activeAppCount += 1
-            if (lastAttentionUseAt == null || usageStats.lastTimeUsed > lastAttentionUseAt!!) {
-                lastAttentionUseAt = usageStats.lastTimeUsed
-            }
-        }
-
-        // UsageEvents stays entirely on-device. We persist only three daily
-        // counts: attention sessions, transitions back into an attention app,
-        // and sessions lasting at most two minutes. No package sequence leaves
-        // the plugin.
-        val usageEvents = usageStatsManager.queryEvents(startTime, endTime)
-        val event = UsageEvents.Event()
-        val activeStarts = mutableMapOf<String, Long>()
-        var foregroundPackage: String? = null
-        var lastForegroundPackage: String? = null
-        var hasSeenAttentionSession = false
-        var attentionSessionCount = 0
-        var attentionSwitchCount = 0
-        var briefSessionCount = 0
-
-        while (usageEvents.hasNextEvent()) {
-            usageEvents.getNextEvent(event)
-            val packageName = event.packageName ?: continue
-            val isForeground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                event.eventType == UsageEvents.Event.ACTIVITY_RESUMED
-            } else {
-                event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND
-            }
-            val isBackground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                event.eventType == UsageEvents.Event.ACTIVITY_PAUSED
-            } else {
-                event.eventType == UsageEvents.Event.MOVE_TO_BACKGROUND
-            }
-
-            if (isForeground) {
-                if (socialAppPackages.contains(packageName) && foregroundPackage != packageName) {
-                    attentionSessionCount += 1
-                    if (hasSeenAttentionSession && lastForegroundPackage != null && lastForegroundPackage != packageName) {
-                        attentionSwitchCount += 1
-                    }
-                    hasSeenAttentionSession = true
-                    activeStarts[packageName] = event.timeStamp
-                }
-                foregroundPackage = packageName
-                lastForegroundPackage = packageName
-            } else if (isBackground && socialAppPackages.contains(packageName)) {
-                val startedAt = activeStarts.remove(packageName)
-                if (startedAt != null) {
-                    val durationMs = event.timeStamp - startedAt
-                    if (durationMs in 1..120_000) briefSessionCount += 1
-                }
-                if (foregroundPackage == packageName) foregroundPackage = null
-            }
-        }
-
+    @PluginMethod
+    fun isBackgroundUsageSyncEnabled(call: PluginCall) {
+        val enabled = context.getSharedPreferences(UsageSyncWorker.PREFS, Context.MODE_PRIVATE)
+            .getString(UsageSyncWorker.KEY_TOKEN, null) != null
         val result = JSObject()
-        result.put("attentionUsageMin", attentionUsageMin)
-        result.put("activeAppCount", activeAppCount)
-        result.put("lastAttentionUseAt", lastAttentionUseAt)
-        result.put("attentionSessionCount", attentionSessionCount)
-        result.put("attentionSwitchCount", attentionSwitchCount)
-        result.put("briefSessionCount", briefSessionCount)
+        result.put("enabled", enabled)
         call.resolve(result)
     }
 
