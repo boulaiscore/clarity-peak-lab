@@ -18,6 +18,8 @@ import { useTodayPhoneHealthSnapshot } from "@/hooks/usePhoneHealthSync";
 import { useDeviceUsagePermission } from "@/hooks/useDeviceUsagePermission";
 import { useCalendarContextPermission } from "@/hooks/useCalendarContextPermission";
 import { supabase } from "@/integrations/supabase/client";
+import { useTodayMetrics } from "@/hooks/useTodayMetrics";
+import { digitalRecoveryAdjustment } from "@/lib/recoveryV2";
 import { getPlatform, isNativePlatform, openHealthSettings } from "@/lib/capacitor/health";
 import { trackProductEvent } from "@/lib/productAnalytics";
 import { cn } from "@/lib/utils";
@@ -88,6 +90,7 @@ const Health = () => {
   const { data: phoneHealth } = useTodayPhoneHealthSnapshot();
   const deviceUsage = useDeviceUsagePermission();
   const calendarContext = useCalendarContextPermission();
+  const { digitalAttention } = useTodayMetrics();
   const platform = getPlatform();
   const native = isNativePlatform();
   const today = format(new Date(), "yyyy-MM-dd");
@@ -136,7 +139,19 @@ const Health = () => {
     { label: "Resting heart rate", value: hasTodayWearableData && wearableData?.resting_hr != null ? `${Math.round(wearableData.resting_hr)} bpm` : null },
     { label: "Steps", value: phoneHealth?.steps != null ? phoneHealth.steps.toLocaleString() : null },
     { label: "Active minutes", value: phoneHealth?.active_min != null ? `${phoneHealth.active_min} min` : null },
-  ].filter((reading) => reading.value != null), [sleepMin, sleepEfficiency, hasTodayWearableData, wearableData, phoneHealth]);
+    { label: "Phone attention", value: digitalAttention?.attentionUsageMin != null ? formatDuration(digitalAttention.attentionUsageMin) : null },
+    { label: "App switches", value: digitalAttention?.attentionSwitchCount != null ? String(digitalAttention.attentionSwitchCount) : null },
+    { label: "Brief checks", value: digitalAttention?.briefSessionCount != null ? String(digitalAttention.briefSessionCount) : null },
+    {
+      label: "Phone use effect on Recovery",
+      value: digitalAttention?.score != null
+        ? (() => {
+            const adj = digitalRecoveryAdjustment(digitalAttention.score, digitalAttention.confidence);
+            return adj < 0 ? `${adj.toFixed(1)} pts` : "None";
+          })()
+        : null,
+    },
+  ].filter((reading) => reading.value != null), [sleepMin, sleepEfficiency, hasTodayWearableData, wearableData, phoneHealth, digitalAttention]);
   const connectedDirect = direct.connections.filter((connection) => connection.status === "connected");
   const primaryDirect = connectedDirect.find((connection) => connection.is_primary) ?? connectedDirect[0] ?? null;
   const anyConnected = connectedDirect.length > 0 || healthHub.isConnected;

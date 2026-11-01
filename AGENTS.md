@@ -102,3 +102,4 @@ npm run build
 ## Metric engine rules
 - HRV is scored by type (SDNN iOS / RMSSD Android, WHOOP, Oura via `hrvMetricForSource`) against the user's own 30-day same-type median (`src/lib/hrv.ts`); never compare raw ms across types — the two statistics are not equivalent.
 - Every Recovery consumer (live hooks, intraday recorder, Monitor history) resolves missed-day targets through `buildRecoveryTargetResolver` + `advanceRecoveryByDays`, so live and charted Recovery cannot diverge.
+- Phone-use aggregates lower the Recovery target only via `applyDigitalLoadToRecoveryTarget` (penalty-only, bounded, confidence-scaled), applied inside the resolver and every live target — partial-day data must never reward Recovery.
