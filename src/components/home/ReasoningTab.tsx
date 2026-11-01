@@ -1,3 +1,4 @@
+import { PhoneUseCard } from "@/components/metrics/PhoneUseCard";
 import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -153,6 +154,8 @@ export function ReasoningTab({ onBackToOverview }: ReasoningTabProps) {
           />
         )}
       </MetricFactorsSection>
+
+      <PhoneUseCard />
 
       {signalCoverage > 0 && (
         <PassiveStateFactors sources={signalSources} digitalAttention={digitalAttention} />
