@@ -73,6 +73,12 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
           .eq("user_id", user.id)
           .gte("date", startDate)
           .order("date", { ascending: true }),
+        supabase
+          .from("device_usage_snapshots")
+          .select(DEVICE_TARGET_COLUMNS)
+          .eq("user_id", user.id)
+          .gte("snapshot_date", startDate)
+          .order("snapshot_date", { ascending: true }),
       ]);
 
       if (metricResult.error) throw metricResult.error;
