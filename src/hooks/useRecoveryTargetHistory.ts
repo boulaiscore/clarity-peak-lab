@@ -6,6 +6,8 @@ import {
   buildRecoveryTargetResolver,
   type PhoneTargetRow,
   type WearableTargetRow,
+  type DeviceTargetRow,
+  DEVICE_TARGET_COLUMNS,
 } from "@/lib/recoveryTargetHistory";
 
 /**
@@ -17,16 +19,20 @@ export function useRecoveryTargetHistory(userId: string | undefined) {
     queryKey: ["recovery-target-history", userId, format(new Date(), "yyyy-MM-dd")],
     queryFn: async () => {
       const start = format(subDays(new Date(), 45), "yyyy-MM-dd");
-      const [phone, wearable] = await Promise.all([
+      const [phone, wearable, device] = await Promise.all([
         supabase.from("phone_health_snapshots").select("date, target_rec, sleep_min")
           .eq("user_id", userId!).gte("date", start),
         supabase.from("wearable_daily_canonical")
           .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, source")
           .eq("user_id", userId!).gte("date", start),
+        supabase.from("device_usage_snapshots").select(DEVICE_TARGET_COLUMNS)
+          .eq("user_id", userId!).gte("snapshot_date", start)
+          .order("snapshot_date", { ascending: true }),
       ]);
       return {
         phone: (phone.data ?? []) as PhoneTargetRow[],
         wearable: (wearable.data ?? []) as WearableTargetRow[],
+        device: (device.data ?? []) as unknown as DeviceTargetRow[],
       };
     },
     enabled: !!userId,
@@ -35,6 +41,7 @@ export function useRecoveryTargetHistory(userId: string | undefined) {
 
   return useMemo(() => ({
     wearableHistory: data?.wearable ?? [],
-    resolver: data ? buildRecoveryTargetResolver(data.phone, data.wearable) : null,
+    deviceHistory: data?.device ?? [],
+    resolver: data ? buildRecoveryTargetResolver(data.phone, data.wearable, data.device) : null,
   }), [data]);
 }

@@ -7,6 +7,9 @@ import { useCallback } from "react";
 import {
   buildRecoveryTargetResolver,
   physioInputFromWearable,
+  digitalEstimateForDate,
+  DEVICE_TARGET_COLUMNS,
+  type DeviceTargetRow,
   type PhoneTargetRow,
   type WearableTargetRow,
 } from "@/lib/recoveryTargetHistory";
@@ -17,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Json } from "@/integrations/supabase/types";
 import {
   calculateDailyRecoveryTarget,
+  applyDigitalLoadToRecoveryTarget,
   getCurrentRecovery,
   resolveRecoveryForMetrics,
   type RecoveryState,
@@ -190,25 +194,30 @@ export function useRecordIntradayOnAction() {
       };
       const wearable = wearableResult.data;
       const historyStart = format(subDays(now, 45), "yyyy-MM-dd");
-      const [phoneHistory, wearableHistory] = await Promise.all([
+      const [phoneHistory, wearableHistory, deviceHistory] = await Promise.all([
         supabase.from("phone_health_snapshots").select("date, target_rec, sleep_min")
           .eq("user_id", userId).gte("date", historyStart),
         supabase.from("wearable_daily_canonical")
           .select("date, hrv_ms, resting_hr, sleep_duration_min, sleep_efficiency, source")
           .eq("user_id", userId).gte("date", historyStart),
+        supabase.from("device_usage_snapshots").select(DEVICE_TARGET_COLUMNS)
+          .eq("user_id", userId).gte("snapshot_date", historyStart)
+          .order("snapshot_date", { ascending: true }),
       ]);
+      const deviceTargetRows = (deviceHistory.data ?? []) as unknown as DeviceTargetRow[];
       const wearableRows = (wearableHistory.data ?? []) as WearableTargetRow[];
       const recoveryTargetForDate = buildRecoveryTargetResolver(
         (phoneHistory.data ?? []) as PhoneTargetRow[],
         wearableRows,
+        deviceTargetRows,
       );
       const physioEstimate = wearable ? calculatePhysioEstimate(
         physioInputFromWearable(wearable, wearableRows, today), {
         includeSleepDuration: phoneResult.data?.sleep_min == null,
       }) : null;
-      const recoveryTarget = calculateDailyRecoveryTarget(
-        phoneResult.data?.target_rec,
-        physioEstimate,
+      const recoveryTarget = applyDigitalLoadToRecoveryTarget(
+        calculateDailyRecoveryTarget(phoneResult.data?.target_rec, physioEstimate),
+        digitalEstimateForDate(deviceTargetRows, today),
       );
       const recovery = getCurrentRecovery(recoveryState, recoveryTarget, recoveryTargetForDate);
       const recoveryForFormula = resolveRecoveryForMetrics(recovery, recoveryTarget);
