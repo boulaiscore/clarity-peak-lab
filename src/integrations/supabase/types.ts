@@ -855,6 +855,30 @@ export type Database = {
         }
         Relationships: []
       }
+      device_ingest_tokens: {
+        Row: {
+          created_at: string
+          last_used_at: string | null
+          platform: string
+          token_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_used_at?: string | null
+          platform?: string
+          token_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          last_used_at?: string | null
+          platform?: string
+          token_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       device_usage_snapshots: {
         Row: {
           active_app_count: number | null

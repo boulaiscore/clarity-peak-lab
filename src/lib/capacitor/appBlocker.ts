@@ -49,6 +49,11 @@ export interface AppBlockerPlugin {
     briefSessionCount: number | null;
   }>;
 
+  // Background 15-minute aggregate upload (Android WorkManager)
+  enableBackgroundUsageSync(options: { token: string; endpoint: string; apiKey: string }): Promise<void>;
+  disableBackgroundUsageSync(): Promise<void>;
+  isBackgroundUsageSyncEnabled(): Promise<{ enabled: boolean }>;
+
   // Get current violation count
   getViolationCount(): Promise<{ violationCount: number }>;
 

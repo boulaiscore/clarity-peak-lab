@@ -103,3 +103,4 @@ npm run build
 - HRV is scored by type (SDNN iOS / RMSSD Android, WHOOP, Oura via `hrvMetricForSource`) against the user's own 30-day same-type median (`src/lib/hrv.ts`); never compare raw ms across types — the two statistics are not equivalent.
 - Every Recovery consumer (live hooks, intraday recorder, Monitor history) resolves missed-day targets through `buildRecoveryTargetResolver` + `advanceRecoveryByDays`, so live and charted Recovery cannot diverge.
 - Phone-use aggregates lower the Recovery target only via `applyDigitalLoadToRecoveryTarget` (penalty-only, bounded, confidence-scaled), applied inside the resolver and every live target — partial-day data must never reward Recovery.
+- Background phone-use upload (Android WorkManager, `android-plugin/app-blocker/UsageSyncWorker.kt`) authenticates with a revocable device token via the `device-usage-ingest` function, never the login session — refresh-token rotation in native code would sign the web layer out.
