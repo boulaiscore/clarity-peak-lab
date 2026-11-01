@@ -10,6 +10,8 @@
 import {
   buildRecoveryTargetResolver,
   type PhoneTargetRow,
+  type DeviceTargetRow,
+  DEVICE_TARGET_COLUMNS,
   type WearableTargetRow,
 } from "@/lib/recoveryTargetHistory";
 import { useMemo } from "react";
@@ -54,7 +56,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
 
       const startDate = format(subDays(new Date(), fetchDays), "yyyy-MM-dd");
 
-      const [metricResult, phoneResult, wearableResult] = await Promise.all([
+      const [metricResult, phoneResult, wearableResult, deviceResult] = await Promise.all([
         supabase
           .from("daily_metric_snapshots")
           .select("snapshot_date, readiness, sharpness, recovery, reasoning_quality, s1, s2")
@@ -90,6 +92,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
         metrics: metricResult.data || [],
         phone: phoneResult.data || [],
         wearable: wearableResult.data || [],
+        device: (deviceResult.data || []) as unknown as DeviceTargetRow[],
       };
     },
     enabled: !!user?.id,
@@ -107,6 +110,7 @@ export function useMetricHistory(options: UseMetricHistoryOptions = {}) {
     const resolveTarget = buildRecoveryTargetResolver(
       rawData.phone as PhoneTargetRow[],
       rawData.wearable as WearableTargetRow[],
+      rawData.device,
     );
     const recoveryTargetForDate = (date: string): number =>
       resolveTarget(date) ?? 50; // neutral target when no passive data
