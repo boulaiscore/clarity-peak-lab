@@ -8,6 +8,7 @@ import {
   MetricFactorCard,
   MetricFactorsSection,
 } from "@/components/metrics/MetricDetail";
+import { PhoneUseCard } from "@/components/metrics/PhoneUseCard";
 import { RecoveryScoreBar } from "@/components/metrics/RecoveryScale";
 import { useRecoveryEffective } from "@/hooks/useRecoveryEffective";
 import { getRecoveryStatus } from "@/lib/metricStatusLabels";
@@ -169,6 +170,8 @@ export function CapacityTab({ onBackToOverview }: CapacityTabProps) {
           estimated
         />
       </MetricFactorsSection>
+
+      <PhoneUseCard />
 
       <MetricFactorsSection title="Recorded recovery actions">
         <MetricFactorCard
