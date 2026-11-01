@@ -449,4 +449,16 @@ assert.equal(
   assert.equal(applyRecoveryAction(30, now, -500, Number.NaN).newRecValue, 30);
 }
 
+// ---- Phone use lowers Recovery target by at most 6, never raises it ----
+{
+  const { digitalRecoveryAdjustment, applyDigitalLoadToRecoveryTarget } = await import("../src/lib/recoveryV2");
+  assert.equal(digitalRecoveryAdjustment(0, 1), -6);
+  assert.equal(digitalRecoveryAdjustment(25, 1), -3);
+  assert.equal(digitalRecoveryAdjustment(0, 0.5), -3);
+  assert.equal(digitalRecoveryAdjustment(90, 1), -0);
+  assert.equal(digitalRecoveryAdjustment(null, 1), 0);
+  assert.equal(applyDigitalLoadToRecoveryTarget(60, { score: 0, confidence: 1 }), 54);
+  assert.equal(applyDigitalLoadToRecoveryTarget(60, { score: 100, confidence: 1 }), 60);
+}
+
 console.log("Metric formula checks passed");

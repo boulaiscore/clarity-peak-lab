@@ -146,6 +146,33 @@ export function calculateDailyRecoveryTarget(
   return calculateDailyRecoveryTargetBreakdown(phoneHealthTarget, wearable).combinedTarget;
 }
 
+/** Max Recovery-target points removed by heavy/fragmented phone use. */
+export const DIGITAL_RECOVERY_MAX_PENALTY = 6;
+
+/**
+ * Phone-use contribution to the daily Recovery target. Penalty only: heavier
+ * or more fragmented use than the person's own baseline lowers the target by
+ * up to DIGITAL_RECOVERY_MAX_PENALTY, scaled by confidence. Lighter use never
+ * creates a reward (partial-day data would otherwise inflate Recovery).
+ */
+export function digitalRecoveryAdjustment(
+  digitalScore: number | null | undefined,
+  confidence: number | null | undefined,
+): number {
+  if (digitalScore == null || !Number.isFinite(digitalScore)) return 0;
+  const conf = Math.max(0, Math.min(1, confidence ?? 0));
+  const deficit = Math.max(0, Math.min(1, (50 - digitalScore) / 50));
+  return -Math.round(deficit * DIGITAL_RECOVERY_MAX_PENALTY * conf * 10) / 10;
+}
+
+export function applyDigitalLoadToRecoveryTarget(
+  target: number,
+  digital: { score: number | null; confidence: number } | null | undefined,
+): number {
+  const adj = digitalRecoveryAdjustment(digital?.score, digital?.confidence);
+  return Math.max(0, Math.min(100, Math.round((target + adj) * 10) / 10));
+}
+
 // ============================================
 // RRI CALCULATION
 // ============================================

@@ -30,6 +30,8 @@ const looseSupabase = supabase as unknown as {
  * Syncs a daily mobile aggregate after the user has granted the platform's
  * protected usage permission. Native app identities never enter this layer.
  */
+export const DEVICE_USAGE_REFRESH_MS = 15 * 60_000;
+
 export function useDeviceUsageSync(): void {
   const { user } = useAuth();
   const userId = user?.id;
@@ -48,8 +50,17 @@ export function useDeviceUsageSync(): void {
       removeListener = () => handle.remove();
     });
 
+    // Refresh the aggregate every 15 minutes while the app is open so
+    // Recovery and Readiness reflect today's phone use as it happens.
+    const interval = window.setInterval(() => {
+      if (!disposed && document.visibilityState === "visible") {
+        setResumeTick((value) => value + 1);
+      }
+    }, DEVICE_USAGE_REFRESH_MS);
+
     return () => {
       disposed = true;
+      window.clearInterval(interval);
       void removeListener?.();
     };
   }, []);
@@ -142,6 +153,7 @@ export function useDeviceUsageSync(): void {
         await queryClient.invalidateQueries({ queryKey: ["device-usage-snapshots", userId] });
         await queryClient.invalidateQueries({ queryKey: ["today-passive-context", userId] });
         await queryClient.invalidateQueries({ queryKey: ["today-metrics", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["recovery-target-history", userId] });
         await queryClient.invalidateQueries({ queryKey: ["adaptive-passive-sources", userId] });
       } catch (error) {
         attemptedRef.current = null;

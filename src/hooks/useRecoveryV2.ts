@@ -29,10 +29,11 @@ import {
   initializeRecoveryBaseline,
   calculateRRI,
   calculateDailyRecoveryTarget,
+  applyDigitalLoadToRecoveryTarget,
 } from "@/lib/recoveryV2";
 import { calculatePhysioEstimate } from "@/lib/cognitiveEngine";
 import { useRecoveryTargetHistory } from "@/hooks/useRecoveryTargetHistory";
-import { physioInputFromWearable } from "@/lib/recoveryTargetHistory";
+import { digitalEstimateForDate, physioInputFromWearable } from "@/lib/recoveryTargetHistory";
 
 export interface UseRecoveryV2Result {
   /** Current recovery value with decay applied (0-100), null if not initialized */
@@ -159,14 +160,17 @@ export function useRecoveryV2(): UseRecoveryV2Result {
     staleTime: 5 * 60_000,
   });
 
-  const { resolver: recoveryTargetForDate, wearableHistory } = useRecoveryTargetHistory(userId);
+  const { resolver: recoveryTargetForDate, wearableHistory, deviceHistory } = useRecoveryTargetHistory(userId);
   const recoveryTarget = useMemo(() => {
     const physio = wearableSnapshot ? calculatePhysioEstimate(
       physioInputFromWearable(wearableSnapshot, wearableHistory, format(new Date(), "yyyy-MM-dd")), {
       includeSleepDuration: phoneHealthTarget?.sleepMin == null,
     }) : null;
-    return calculateDailyRecoveryTarget(phoneHealthTarget?.targetRec, physio);
-  }, [phoneHealthTarget, wearableSnapshot, wearableHistory]);
+    return applyDigitalLoadToRecoveryTarget(
+      calculateDailyRecoveryTarget(phoneHealthTarget?.targetRec, physio),
+      digitalEstimateForDate(deviceHistory, format(new Date(), "yyyy-MM-dd")),
+    );
+  }, [phoneHealthTarget, wearableSnapshot, wearableHistory, deviceHistory]);
 
   // Compute current recovery with decay applied (using phone-health target if available)
   const currentRecovery = useMemo(() => {
