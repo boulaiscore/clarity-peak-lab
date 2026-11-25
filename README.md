@@ -2,7 +2,13 @@
 
 LOOMA is a mobile cognitive-performance system for professionals doing high-impact work. It combines task performance, personal history, permitted phone-health and wearable signals, and privacy-safe usage aggregates to help users decide when to focus, analyze, train, or recover.
 
-LOOMA is not a medical device, diagnostic assessment, intelligence test, or predictor of decision outcomes. Scores are intended for within-person comparison and become more useful as a user's personal history grows.
+LOOMA is not a medical device, diagnostic assessment, intelligence test, or
+predictor of decision outcomes. Scores are intended for within-person
+comparison and become more useful as a user's personal history grows.
+
+**Reviewers and new contributors:** start with [REVIEW_GUIDE.md](REVIEW_GUIDE.md)
+— it maps the codebase, states the metric-engine invariants, and lists what is
+not yet real.
 
 ## Product loop
 
