@@ -97,11 +97,11 @@ export default function NeuroLab() {
     setShowPaywall(true);
   }, [isPremium, streakData?.streak, user?.id]);
 
-  // Read tab from URL query param, default to "games" (Training first)
+  // Read tab from URL query param, default to "detox" (Recover first)
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(() => {
-    if (tabFromUrl === "tasks" || tabFromUrl === "detox") return tabFromUrl;
-    return "games"; // Training as default
+    if (tabFromUrl === "tasks" || tabFromUrl === "games") return tabFromUrl;
+    return "detox"; // Recover as default
   });
 
   // Sync activeTab when URL changes
