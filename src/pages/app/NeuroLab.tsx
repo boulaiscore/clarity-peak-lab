@@ -228,19 +228,19 @@ export default function NeuroLab() {
         <div className="mt-5 scroll-mt-4">
           <div className="mb-2.5 flex items-baseline justify-between px-0.5">
             <h2 className="text-[15px] font-semibold tracking-tight text-foreground">Choose your mode</h2>
-            <span className="text-[9px] text-muted-foreground/55">Train · prime · recover</span>
+            <span className="text-[9px] text-muted-foreground/55">Recover · prime · train</span>
           </div>
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-4 grid h-11 w-full grid-cols-3 rounded-xl bg-muted/30 p-1">
-              <TabsTrigger value="games" className="rounded-lg px-2 text-[11px] font-medium text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                Train
+              <TabsTrigger value="detox" className="rounded-lg px-2 text-[11px] font-medium text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                Recover
               </TabsTrigger>
               <TabsTrigger value="tasks" className="rounded-lg px-2 text-[11px] font-medium text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 Quality Time
               </TabsTrigger>
-              <TabsTrigger value="detox" className="rounded-lg px-2 text-[11px] font-medium text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                Recover
+              <TabsTrigger value="games" className="rounded-lg px-2 text-[11px] font-medium text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                Train
               </TabsTrigger>
             </TabsList>
 
